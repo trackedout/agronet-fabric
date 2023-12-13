@@ -2,6 +2,7 @@ plugins {
     id 'fabric-loom' version '1.4-SNAPSHOT'
     id 'maven-publish'
     id "org.jetbrains.kotlin.jvm" version "1.9.21"
+    id "io.swagger.core.v3.swagger-gradle-plugin" version "2.2.19"
 }
 
 version = project.mod_version
@@ -44,6 +45,14 @@ dependencies {
     // These are included in the Fabric API production distribution and allow you to update your mod to the latest modules at a later more convenient time.
 
     // modImplementation "net.fabricmc.fabric-api:fabric-api-deprecated:${project.fabric_version}"
+
+    // https://square.github.io/okhttp/#releases
+    implementation(platform("com.squareup.okhttp3:okhttp-bom:4.11.0"))
+    // Define any required OkHttp artifacts without version
+    implementation("com.squareup.okhttp3:okhttp")
+    implementation("com.squareup.okhttp3:logging-interceptor")
+    implementation("com.squareup.moshi:moshi:1.14.0")
+    implementation("com.squareup.moshi:moshi-kotlin:1.14.0")
 }
 
 processResources {
