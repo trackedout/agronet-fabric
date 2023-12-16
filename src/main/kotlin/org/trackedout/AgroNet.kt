@@ -1,9 +1,11 @@
 package org.trackedout
 
+import ServerTickListener
 import com.mojang.brigadier.arguments.IntegerArgumentType
 import com.mojang.brigadier.arguments.StringArgumentType
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
 import net.minecraft.command.argument.EntityArgumentType
 import net.minecraft.server.command.CommandManager.argument
 import net.minecraft.server.command.CommandManager.literal
@@ -29,6 +31,8 @@ object AgroNet : ModInitializer {
                 .callTimeout(30.seconds.toJavaDuration())
                 .build()
         )
+
+        ServerTickEvents.END_SERVER_TICK.register(ServerTickListener())
 
         CommandRegistrationCallback.EVENT.register { dispatcher, _, _ ->
             dispatcher.register(literal("log-event")
