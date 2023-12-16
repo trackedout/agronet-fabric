@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory
 import java.util.concurrent.ConcurrentMap
 
 class ServerTickListener : ServerTickEvents.EndTick {
-    private val logger = LoggerFactory.getLogger("agronet")
+    private val logger = LoggerFactory.getLogger("Agro-net")
     private val lastKnownObjectives: ConcurrentMap<String, Map<ScoreboardObjective, ScoreboardPlayerScore>> = Maps.newConcurrentMap()
 
 

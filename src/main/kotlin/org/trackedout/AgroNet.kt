@@ -21,7 +21,7 @@ import kotlin.time.toJavaDuration
 
 
 object AgroNet : ModInitializer {
-    private val logger = LoggerFactory.getLogger("agronet")
+    private val logger = LoggerFactory.getLogger("Agro-net")
 
     override fun onInitialize() {
         // This code runs as soon as Minecraft is in a mod-load-ready state.
