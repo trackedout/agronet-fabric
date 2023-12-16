@@ -7,6 +7,9 @@ import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
 import net.minecraft.command.argument.EntityArgumentType
+import net.minecraft.item.ItemStack
+import net.minecraft.item.Items
+import net.minecraft.nbt.StringNbtReader
 import net.minecraft.server.command.CommandManager.argument
 import net.minecraft.server.command.CommandManager.literal
 import net.minecraft.text.Text
@@ -33,6 +36,65 @@ object AgroNet : ModInitializer {
         )
 
         ServerTickEvents.END_SERVER_TICK.register(ServerTickListener())
+
+        CommandRegistrationCallback.EVENT.register { dispatcher, _, _ ->
+            dispatcher.register(literal("gief-shulker")
+                .requires { it.hasPermissionLevel(2) } // Command Blocks have permission level of 2
+                .executes { context ->
+                    if (context.source.player != null) {
+                        logger.info("Is player")
+                        val inventory = context.source.player!!.inventory
+
+                        val shulkerBox = ItemStack(Items.SHULKER_BOX)
+                        // TODO: Fetch this data from DungaDunga
+                        shulkerBox.nbt =
+                            StringNbtReader.parse("{BlockEntityTag:{Items:[{Count:1b,Slot:0b,id:\"minecraft:redstone\"},{Count:1b,Slot:1b,id:\"minecraft:chest\"},{Count:1b,Slot:2b,id:\"minecraft:slime_block\"},{Count:1b,Slot:3b,id:\"minecraft:redstone_torch\"},{Count:1b,Slot:4b,id:\"minecraft:redstone_block\"}],id:\"minecraft:shulker_box\"}}")
+//                        shulkerBox.nbt[BlockItem.BLOCK_ENTITY_TAG_KEY].toString() // FYI that's the tag for *just* the blocks inside the shulker
+                        inventory.insertStack(shulkerBox)
+                        inventory.updateItems()
+                    } else {
+                        logger.info("Not player, meh")
+                    }
+
+                    1
+                })
+        }
+
+        CommandRegistrationCallback.EVENT.register { dispatcher, _, _ ->
+            dispatcher.register(literal("take-shulker")
+                .requires { it.hasPermissionLevel(2) } // Command Blocks have permission level of 2
+                .executes { context ->
+                    if (context.source.player != null) {
+                        logger.info("Is player")
+                        val player = context.source.player!!
+                        val inventory = player.inventory
+                        inventory.remove(
+                            { item ->
+                                if (item.item.name == Items.SHULKER_BOX.name) {
+                                    logger.info("Removing shulker!")
+                                    val nbt = item.nbt
+                                    if (nbt != null) {
+                                        logger.info("NBT data: ${nbt.asString()}")
+                                    } else {
+                                        logger.warn("NBT data not present!")
+                                    }
+                                    true
+                                } else {
+                                    false
+                                }
+                            },
+                            -1,
+                            player.playerScreenHandler.craftingInput
+                        )
+
+                        inventory.updateItems()
+                    } else {
+                        logger.info("Not player, meh")
+                    }
+
+                    1
+                })
+        }
 
         CommandRegistrationCallback.EVENT.register { dispatcher, _, _ ->
             dispatcher.register(literal("log-event")
