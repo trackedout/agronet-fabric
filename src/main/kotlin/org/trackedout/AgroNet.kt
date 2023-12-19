@@ -9,7 +9,6 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
 import net.fabricmc.fabric.api.event.player.AttackBlockCallback
 import net.minecraft.block.Block
 import net.minecraft.block.BlockState
-import net.minecraft.command.argument.EntityArgumentType
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.ItemStack
 import net.minecraft.item.Items
@@ -120,23 +119,40 @@ object AgroNet : ModInitializer {
                 .requires { it.hasPermissionLevel(2) } // Command Blocks have permission level of 2
                 .then(
                     argument("event", StringArgumentType.word()) // words_with_underscores
-                        .then(
-                            argument("player", EntityArgumentType.player()) // Player that's in the game
-                                .then(argument(
-                                    "count", // Number of units for this event
-                                    IntegerArgumentType.integer(1)
-                                )
-                                    .executes { context ->
-                                        val event = StringArgumentType.getString(context, "event")
-                                        val player = EntityArgumentType.getPlayer(context, "player")
-                                        val count = IntegerArgumentType.getInteger(context, "count")
+                        .then(argument(
+                            "count", // Number of units for this event
+                            IntegerArgumentType.integer(1)
+                        )
+                            .executes { context ->
+                                val event = StringArgumentType.getString(context, "event")
+                                val count = IntegerArgumentType.getInteger(context, "count")
 
-                                        context.source.sendFeedback(
-                                            { Text.literal("Processing /log-event { event=${event}, player=${player.name}, count=${count} }") },
-                                            true
+                                val player = context.source.player
+                                if (player == null) {
+                                    logger.warn("Attempting to run /log-event { event=${event}, count=${count} }, but command is not run as a player, ignoring...")
+                                    context.source.sendFeedback(
+                                        { Text.literal("Attempting to run log-event command, but command is not run as a player, ignoring...") },
+                                        true
+                                    )
+
+                                    return@executes -1
+                                }
+
+                                val x = player.x
+                                val y = player.y
+                                val z = player.z
+
+                                context.source.sendFeedback(
+                                    {
+                                        Text.literal(
+                                            "Processing /log-event { event=${event}, count=${count} } for player ${player.name} " +
+                                                    "at location [$x, $y, $z]"
                                         )
+                                    },
+                                    true
+                                )
 
-                                        try {
+                                try {
 //                                            val someUser = eventsApi.eventsPost(
 //                                                EventsPostRequest(
 //                                                    name = event,
@@ -148,16 +164,15 @@ object AgroNet : ModInitializer {
 //                                                { Text.literal("Some user: $someUser") },
 //                                                true
 //                                            )
-                                        } catch (e: Exception) {
-                                            context.source.sendFeedback(
-                                                { Text.literal("Failed to call Users API: ${e.message}") },
-                                                true
-                                            )
-                                        }
+                                } catch (e: Exception) {
+                                    context.source.sendFeedback(
+                                        { Text.literal("Failed to call Users API: ${e.message}") },
+                                        true
+                                    )
+                                }
 
-                                        1
-                                    })
-                        )
+                                1
+                            })
                 )
             )
         }
@@ -207,6 +222,7 @@ object AgroNet : ModInitializer {
             player
         )
         player.server!!.commandManager.executeWithPrefix(commandSource, "/tp 14 137 136")
+        player.server!!.commandManager.executeWithPrefix(commandSource, "/proxycommand \"send ${player.name.string} lobby\"")
         player.playSound(SoundEvents.ENTITY_WARDEN_EMERGE, player.soundCategory, 1.0f, 1.0f)
 
         return ActionResult.SUCCESS
