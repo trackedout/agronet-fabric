@@ -20,9 +20,9 @@ import okhttp3.OkHttpClient
 import okhttp3.HttpUrl
 
 import org.trackedout.client.models.Error
+import org.trackedout.client.models.EventsIdPatchRequest
 import org.trackedout.client.models.User
 import org.trackedout.client.models.UsersGet200Response
-import org.trackedout.client.models.UsersIdPatchRequest
 import org.trackedout.client.models.UsersPostRequest
 
 import com.squareup.moshi.Json
@@ -299,7 +299,7 @@ class UsersApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClient =
      * Update a user
      * Logged in users can only update their own information. Only admins can update other users.
      * @param id User id
-     * @param usersIdPatchRequest 
+     * @param eventsIdPatchRequest 
      * @return User
      * @throws IllegalStateException If the request is not correctly configured
      * @throws IOException Rethrows the OkHttp execute method exception
@@ -309,8 +309,8 @@ class UsersApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClient =
      */
     @Suppress("UNCHECKED_CAST")
     @Throws(IllegalStateException::class, IOException::class, UnsupportedOperationException::class, ClientException::class, ServerException::class)
-    fun usersIdPatch(id: kotlin.String, usersIdPatchRequest: UsersIdPatchRequest) : User {
-        val localVarResponse = usersIdPatchWithHttpInfo(id = id, usersIdPatchRequest = usersIdPatchRequest)
+    fun usersIdPatch(id: kotlin.String, eventsIdPatchRequest: EventsIdPatchRequest) : User {
+        val localVarResponse = usersIdPatchWithHttpInfo(id = id, eventsIdPatchRequest = eventsIdPatchRequest)
 
         return when (localVarResponse.responseType) {
             ResponseType.Success -> (localVarResponse as Success<*>).data as User
@@ -331,17 +331,17 @@ class UsersApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClient =
      * Update a user
      * Logged in users can only update their own information. Only admins can update other users.
      * @param id User id
-     * @param usersIdPatchRequest 
+     * @param eventsIdPatchRequest 
      * @return ApiResponse<User?>
      * @throws IllegalStateException If the request is not correctly configured
      * @throws IOException Rethrows the OkHttp execute method exception
      */
     @Suppress("UNCHECKED_CAST")
     @Throws(IllegalStateException::class, IOException::class)
-    fun usersIdPatchWithHttpInfo(id: kotlin.String, usersIdPatchRequest: UsersIdPatchRequest) : ApiResponse<User?> {
-        val localVariableConfig = usersIdPatchRequestConfig(id = id, usersIdPatchRequest = usersIdPatchRequest)
+    fun usersIdPatchWithHttpInfo(id: kotlin.String, eventsIdPatchRequest: EventsIdPatchRequest) : ApiResponse<User?> {
+        val localVariableConfig = usersIdPatchRequestConfig(id = id, eventsIdPatchRequest = eventsIdPatchRequest)
 
-        return request<UsersIdPatchRequest, User>(
+        return request<EventsIdPatchRequest, User>(
             localVariableConfig
         )
     }
@@ -350,11 +350,11 @@ class UsersApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClient =
      * To obtain the request config of the operation usersIdPatch
      *
      * @param id User id
-     * @param usersIdPatchRequest 
+     * @param eventsIdPatchRequest 
      * @return RequestConfig
      */
-    fun usersIdPatchRequestConfig(id: kotlin.String, usersIdPatchRequest: UsersIdPatchRequest) : RequestConfig<UsersIdPatchRequest> {
-        val localVariableBody = usersIdPatchRequest
+    fun usersIdPatchRequestConfig(id: kotlin.String, eventsIdPatchRequest: EventsIdPatchRequest) : RequestConfig<EventsIdPatchRequest> {
+        val localVariableBody = eventsIdPatchRequest
         val localVariableQuery: MultiValueMap = mutableMapOf()
         val localVariableHeaders: MutableMap<String, String> = mutableMapOf()
         localVariableHeaders["Content-Type"] = "application/json"

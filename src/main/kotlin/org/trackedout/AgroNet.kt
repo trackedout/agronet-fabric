@@ -25,7 +25,9 @@ import net.minecraft.util.Formatting
 import net.minecraft.util.math.Vec2f
 import okhttp3.OkHttpClient
 import org.slf4j.LoggerFactory
-import org.trackedout.client.apis.UsersApi
+import org.trackedout.client.apis.EventsApi
+import org.trackedout.client.models.EventsPostRequest
+import java.net.InetAddress
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 
@@ -51,7 +53,11 @@ object AgroNet : ModInitializer {
         // However, some things (like resources) may still be uninitialized.
         // Proceed with mild caution.
 
-        val usersApi = UsersApi(
+        val serverName = getEnvOrDefault("SERVER_NAME", InetAddress.getLocalHost().hostName)
+        val dungaAPIPath = getEnvOrDefault("DUNGA_API", "http://localhost:3000/v1")
+
+        val eventsApi = EventsApi(
+            basePath = dungaAPIPath,
             client = OkHttpClient.Builder()
                 .connectTimeout(5.seconds.toJavaDuration())
                 .callTimeout(30.seconds.toJavaDuration())
@@ -145,7 +151,7 @@ object AgroNet : ModInitializer {
                                 context.source.sendFeedback(
                                     {
                                         Text.literal(
-                                            "Processing /log-event { event=${event}, count=${count} } for player ${player.name} " +
+                                            "Processing /log-event { event=${event}, count=${count} } for player ${player.name.string} " +
                                                     "at location [$x, $y, $z]"
                                         )
                                     },
@@ -153,20 +159,31 @@ object AgroNet : ModInitializer {
                                 )
 
                                 try {
-//                                            val someUser = eventsApi.eventsPost(
-//                                                EventsPostRequest(
-//                                                    name = event,
-//                                                    player = player,
-//                                                )
-//                                            )
+                                    val result = eventsApi.eventsPost(
+                                        EventsPostRequest(
+                                            name = event,
+                                            player = player.name.string,
+                                            server = serverName,
+                                            x, y, z, count
+                                        )
+                                    )
 
-//                                            context.source.sendFeedback(
-//                                                { Text.literal("Some user: $someUser") },
-//                                                true
-//                                            )
-                                } catch (e: Exception) {
                                     context.source.sendFeedback(
-                                        { Text.literal("Failed to call Users API: ${e.message}") },
+                                        {
+                                            Text.literal(
+                                                "Successfully sent event { event=${event}, count=${count} } for player ${player.name.string} " +
+                                                        "for location [$x, $y, $z] to Dunga Dunga"
+                                            )
+                                        },
+                                        true
+                                    )
+                                    context.source.sendFeedback({ Text.literal("Result: $result") }, true)
+
+                                } catch (e: Exception) {
+                                    logger.error("Failed to call Events API: ${e.message}")
+                                    e.printStackTrace()
+                                    context.source.sendFeedback(
+                                        { Text.literal("Failed to call Events API: ${e.message}") },
                                         true
                                     )
                                 }
@@ -177,7 +194,27 @@ object AgroNet : ModInitializer {
             )
         }
 
+        eventsApi.eventsPost(
+            EventsPostRequest(
+                name = "server-online",
+                player = "server",
+                server = serverName,
+                x = 0.0,
+                y = 0.0,
+                z = 0.0,
+                count = 1,
+            )
+        )
+
         logger.info("Agro-net online. Flee with extra flee!")
+    }
+
+    private fun getEnvOrDefault(key: String, default: String): String {
+        var value = System.getenv(key)
+        if (value == null || value.isEmpty()) {
+            value = default
+        }
+        return value
     }
 
     private fun attemptToEnterDungeon(player: PlayerEntity): ActionResult {
@@ -194,20 +231,20 @@ object AgroNet : ModInitializer {
         if (!player.isReadyToStartDungeonRun()) {
             if (!player.hasKeyInHand()) {
                 player.sendMessage(Text.literal("You need to be holding a key to enter the Dungeon!").copy().formatted(Formatting.RED))
-                logger.info("${player.name} smacked the door without holding a key, silly player.")
+                logger.info("${player.name.string} smacked the door without holding a key, silly player.")
             } else if (!player.hasShulkerInInventory()) {
                 player.sendMessage(
                     Text.literal("You need your deck (Shulker Box) in your inventory to enter the Dungeon!")
                         .copy().formatted(Formatting.RED)
                 )
-                logger.info("${player.name} smacked the door without their Shulker Box, silly player.")
+                logger.info("${player.name.string} smacked the door without their Shulker Box, silly player.")
             }
             return ActionResult.FAIL
         }
 
         // The player is ready to enter the dungeon!
         player.sendMessage(Text.literal("Entering dungeon, good luck!").copy().formatted(Formatting.BLUE))
-        logger.info("${player.name} is entering the dungeon!")
+        logger.info("${player.name.string} is entering the dungeon!")
         takeShulkerFromPlayer(player)
 
         val commandSource = ServerCommandSource(
@@ -216,7 +253,7 @@ object AgroNet : ModInitializer {
             Vec2f.ZERO,
             player.world as ServerWorld,
             2,
-            player.name.toString(),
+            player.name.string,
             player.displayName,
             player.world.server,
             player

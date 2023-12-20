@@ -1,23 +1,23 @@
-# UsersApi
+# EventsApi
 
 All URIs are relative to *http://localhost:3000/v1*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
-[**usersGet**](UsersApi.md#usersGet) | **GET** /users | Get all users
-[**usersIdDelete**](UsersApi.md#usersIdDelete) | **DELETE** /users/{id} | Delete a user
-[**usersIdGet**](UsersApi.md#usersIdGet) | **GET** /users/{id} | Get a user
-[**usersIdPatch**](UsersApi.md#usersIdPatch) | **PATCH** /users/{id} | Update a user
-[**usersPost**](UsersApi.md#usersPost) | **POST** /users | Create a user
+[**eventsGet**](EventsApi.md#eventsGet) | **GET** /events | Get all events
+[**eventsIdDelete**](EventsApi.md#eventsIdDelete) | **DELETE** /events/{id} | Delete an event
+[**eventsIdGet**](EventsApi.md#eventsIdGet) | **GET** /events/{id} | Get an event
+[**eventsIdPatch**](EventsApi.md#eventsIdPatch) | **PATCH** /events/{id} | Update an event
+[**eventsPost**](EventsApi.md#eventsPost) | **POST** /events | Create an event
 
 
-<a id="usersGet"></a>
-# **usersGet**
-> UsersGet200Response usersGet(name, role, sortBy, projectBy, limit, page)
+<a id="eventsGet"></a>
+# **eventsGet**
+> EventsGet200Response eventsGet(name, role, sortBy, projectBy, limit, page)
 
-Get all users
+Get all events
 
-Only admins can retrieve all users.
+Only admins can retrieve all events.
 
 ### Example
 ```kotlin
@@ -25,21 +25,21 @@ Only admins can retrieve all users.
 //import org.trackedout.client.infrastructure.*
 //import org.trackedout.client.models.*
 
-val apiInstance = UsersApi()
-val name : kotlin.String = name_example // kotlin.String | User name
-val role : kotlin.String = role_example // kotlin.String | User role
+val apiInstance = EventsApi()
+val name : kotlin.String = name_example // kotlin.String | Event name
+val role : kotlin.String = role_example // kotlin.String | Event role
 val sortBy : kotlin.String = sortBy_example // kotlin.String | sort by query in the form of field:desc/asc (ex. name:asc)
 val projectBy : kotlin.String = projectBy_example // kotlin.String | project by query in the form of field:hide/include (ex. name:hide)
-val limit : kotlin.Int = 56 // kotlin.Int | Maximum number of users
+val limit : kotlin.Int = 56 // kotlin.Int | Maximum number of events
 val page : kotlin.Int = 56 // kotlin.Int | Page number
 try {
-    val result : UsersGet200Response = apiInstance.usersGet(name, role, sortBy, projectBy, limit, page)
+    val result : EventsGet200Response = apiInstance.eventsGet(name, role, sortBy, projectBy, limit, page)
     println(result)
 } catch (e: ClientException) {
-    println("4xx response calling UsersApi#usersGet")
+    println("4xx response calling EventsApi#eventsGet")
     e.printStackTrace()
 } catch (e: ServerException) {
-    println("5xx response calling UsersApi#usersGet")
+    println("5xx response calling EventsApi#eventsGet")
     e.printStackTrace()
 }
 ```
@@ -48,16 +48,16 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **name** | **kotlin.String**| User name | [optional]
- **role** | **kotlin.String**| User role | [optional]
+ **name** | **kotlin.String**| Event name | [optional]
+ **role** | **kotlin.String**| Event role | [optional]
  **sortBy** | **kotlin.String**| sort by query in the form of field:desc/asc (ex. name:asc) | [optional]
  **projectBy** | **kotlin.String**| project by query in the form of field:hide/include (ex. name:hide) | [optional]
- **limit** | **kotlin.Int**| Maximum number of users | [optional]
+ **limit** | **kotlin.Int**| Maximum number of events | [optional]
  **page** | **kotlin.Int**| Page number | [optional] [default to 1]
 
 ### Return type
 
-[**UsersGet200Response**](UsersGet200Response.md)
+[**EventsGet200Response**](EventsGet200Response.md)
 
 ### Authorization
 
@@ -70,13 +70,13 @@ Configure bearerAuth:
  - **Content-Type**: Not defined
  - **Accept**: application/json
 
-<a id="usersIdDelete"></a>
-# **usersIdDelete**
-> usersIdDelete(id)
+<a id="eventsIdDelete"></a>
+# **eventsIdDelete**
+> eventsIdDelete(id)
 
-Delete a user
+Delete an event
 
-Logged in users can delete only themselves. Only admins can delete other users.
+Logged in events can delete only themselves. Only admins can delete other events.
 
 ### Example
 ```kotlin
@@ -84,15 +84,15 @@ Logged in users can delete only themselves. Only admins can delete other users.
 //import org.trackedout.client.infrastructure.*
 //import org.trackedout.client.models.*
 
-val apiInstance = UsersApi()
-val id : kotlin.String = id_example // kotlin.String | User id
+val apiInstance = EventsApi()
+val id : kotlin.String = id_example // kotlin.String | Event id
 try {
-    apiInstance.usersIdDelete(id)
+    apiInstance.eventsIdDelete(id)
 } catch (e: ClientException) {
-    println("4xx response calling UsersApi#usersIdDelete")
+    println("4xx response calling EventsApi#eventsIdDelete")
     e.printStackTrace()
 } catch (e: ServerException) {
-    println("5xx response calling UsersApi#usersIdDelete")
+    println("5xx response calling EventsApi#eventsIdDelete")
     e.printStackTrace()
 }
 ```
@@ -101,7 +101,7 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **id** | **kotlin.String**| User id |
+ **id** | **kotlin.String**| Event id |
 
 ### Return type
 
@@ -118,13 +118,13 @@ Configure bearerAuth:
  - **Content-Type**: Not defined
  - **Accept**: application/json
 
-<a id="usersIdGet"></a>
-# **usersIdGet**
-> User usersIdGet(id)
+<a id="eventsIdGet"></a>
+# **eventsIdGet**
+> Event eventsIdGet(id)
 
-Get a user
+Get an event
 
-Logged in users can fetch only their own user information. Only admins can fetch other users.
+Logged in events can fetch only their own event information. Only admins can fetch other events.
 
 ### Example
 ```kotlin
@@ -132,16 +132,16 @@ Logged in users can fetch only their own user information. Only admins can fetch
 //import org.trackedout.client.infrastructure.*
 //import org.trackedout.client.models.*
 
-val apiInstance = UsersApi()
-val id : kotlin.String = id_example // kotlin.String | User id
+val apiInstance = EventsApi()
+val id : kotlin.String = id_example // kotlin.String | Event id
 try {
-    val result : User = apiInstance.usersIdGet(id)
+    val result : Event = apiInstance.eventsIdGet(id)
     println(result)
 } catch (e: ClientException) {
-    println("4xx response calling UsersApi#usersIdGet")
+    println("4xx response calling EventsApi#eventsIdGet")
     e.printStackTrace()
 } catch (e: ServerException) {
-    println("5xx response calling UsersApi#usersIdGet")
+    println("5xx response calling EventsApi#eventsIdGet")
     e.printStackTrace()
 }
 ```
@@ -150,11 +150,11 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **id** | **kotlin.String**| User id |
+ **id** | **kotlin.String**| Event id |
 
 ### Return type
 
-[**User**](User.md)
+[**Event**](Event.md)
 
 ### Authorization
 
@@ -167,13 +167,13 @@ Configure bearerAuth:
  - **Content-Type**: Not defined
  - **Accept**: application/json
 
-<a id="usersIdPatch"></a>
-# **usersIdPatch**
-> User usersIdPatch(id, eventsIdPatchRequest)
+<a id="eventsIdPatch"></a>
+# **eventsIdPatch**
+> Event eventsIdPatch(id, eventsIdPatchRequest)
 
-Update a user
+Update an event
 
-Logged in users can only update their own information. Only admins can update other users.
+Logged in events can only update their own information. Only admins can update other events.
 
 ### Example
 ```kotlin
@@ -181,17 +181,17 @@ Logged in users can only update their own information. Only admins can update ot
 //import org.trackedout.client.infrastructure.*
 //import org.trackedout.client.models.*
 
-val apiInstance = UsersApi()
-val id : kotlin.String = id_example // kotlin.String | User id
+val apiInstance = EventsApi()
+val id : kotlin.String = id_example // kotlin.String | Event id
 val eventsIdPatchRequest : EventsIdPatchRequest =  // EventsIdPatchRequest | 
 try {
-    val result : User = apiInstance.usersIdPatch(id, eventsIdPatchRequest)
+    val result : Event = apiInstance.eventsIdPatch(id, eventsIdPatchRequest)
     println(result)
 } catch (e: ClientException) {
-    println("4xx response calling UsersApi#usersIdPatch")
+    println("4xx response calling EventsApi#eventsIdPatch")
     e.printStackTrace()
 } catch (e: ServerException) {
-    println("5xx response calling UsersApi#usersIdPatch")
+    println("5xx response calling EventsApi#eventsIdPatch")
     e.printStackTrace()
 }
 ```
@@ -200,12 +200,12 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **id** | **kotlin.String**| User id |
+ **id** | **kotlin.String**| Event id |
  **eventsIdPatchRequest** | [**EventsIdPatchRequest**](EventsIdPatchRequest.md)|  |
 
 ### Return type
 
-[**User**](User.md)
+[**Event**](Event.md)
 
 ### Authorization
 
@@ -218,13 +218,13 @@ Configure bearerAuth:
  - **Content-Type**: application/json
  - **Accept**: application/json
 
-<a id="usersPost"></a>
-# **usersPost**
-> User usersPost(usersPostRequest)
+<a id="eventsPost"></a>
+# **eventsPost**
+> Event eventsPost(eventsPostRequest)
 
-Create a user
+Create an event
 
-Only admins can create other users.
+Log a dungeon event from one of the Decked Out 2 instances.
 
 ### Example
 ```kotlin
@@ -232,16 +232,16 @@ Only admins can create other users.
 //import org.trackedout.client.infrastructure.*
 //import org.trackedout.client.models.*
 
-val apiInstance = UsersApi()
-val usersPostRequest : UsersPostRequest =  // UsersPostRequest | 
+val apiInstance = EventsApi()
+val eventsPostRequest : EventsPostRequest =  // EventsPostRequest | 
 try {
-    val result : User = apiInstance.usersPost(usersPostRequest)
+    val result : Event = apiInstance.eventsPost(eventsPostRequest)
     println(result)
 } catch (e: ClientException) {
-    println("4xx response calling UsersApi#usersPost")
+    println("4xx response calling EventsApi#eventsPost")
     e.printStackTrace()
 } catch (e: ServerException) {
-    println("5xx response calling UsersApi#usersPost")
+    println("5xx response calling EventsApi#eventsPost")
     e.printStackTrace()
 }
 ```
@@ -250,11 +250,11 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **usersPostRequest** | [**UsersPostRequest**](UsersPostRequest.md)|  |
+ **eventsPostRequest** | [**EventsPostRequest**](EventsPostRequest.md)|  |
 
 ### Return type
 
-[**User**](User.md)
+[**Event**](Event.md)
 
 ### Authorization
 

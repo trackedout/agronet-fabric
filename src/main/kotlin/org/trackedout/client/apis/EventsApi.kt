@@ -19,12 +19,11 @@ import java.io.IOException
 import okhttp3.OkHttpClient
 import okhttp3.HttpUrl
 
-import org.trackedout.client.models.AuthLoginPostRequest
-import org.trackedout.client.models.AuthLogoutPostRequest
-import org.trackedout.client.models.AuthRegisterPost201Response
-import org.trackedout.client.models.AuthRegisterPostRequest
 import org.trackedout.client.models.Error
-import org.trackedout.client.models.UserWithTokens
+import org.trackedout.client.models.Event
+import org.trackedout.client.models.EventsGet200Response
+import org.trackedout.client.models.EventsIdPatchRequest
+import org.trackedout.client.models.EventsPostRequest
 
 import com.squareup.moshi.Json
 
@@ -42,7 +41,7 @@ import org.trackedout.client.infrastructure.ResponseType
 import org.trackedout.client.infrastructure.Success
 import org.trackedout.client.infrastructure.toMultiValue
 
-class AuthApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClient = ApiClient.defaultClient) : ApiClient(basePath, client) {
+class EventsApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClient = ApiClient.defaultClient) : ApiClient(basePath, client) {
     companion object {
         @JvmStatic
         val defaultBasePath: String by lazy {
@@ -51,10 +50,15 @@ class AuthApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClient = 
     }
 
     /**
-     * Login
-     * 
-     * @param authLoginPostRequest 
-     * @return AuthRegisterPost201Response
+     * Get all events
+     * Only admins can retrieve all events.
+     * @param name Event name (optional)
+     * @param role Event role (optional)
+     * @param sortBy sort by query in the form of field:desc/asc (ex. name:asc) (optional)
+     * @param projectBy project by query in the form of field:hide/include (ex. name:hide) (optional)
+     * @param limit Maximum number of events (optional)
+     * @param page Page number (optional, default to 1)
+     * @return EventsGet200Response
      * @throws IllegalStateException If the request is not correctly configured
      * @throws IOException Rethrows the OkHttp execute method exception
      * @throws UnsupportedOperationException If the API returns an informational or redirection response
@@ -63,11 +67,11 @@ class AuthApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClient = 
      */
     @Suppress("UNCHECKED_CAST")
     @Throws(IllegalStateException::class, IOException::class, UnsupportedOperationException::class, ClientException::class, ServerException::class)
-    fun authLoginPost(authLoginPostRequest: AuthLoginPostRequest) : AuthRegisterPost201Response {
-        val localVarResponse = authLoginPostWithHttpInfo(authLoginPostRequest = authLoginPostRequest)
+    fun eventsGet(name: kotlin.String? = null, role: kotlin.String? = null, sortBy: kotlin.String? = null, projectBy: kotlin.String? = null, limit: kotlin.Int? = null, page: kotlin.Int? = 1) : EventsGet200Response {
+        val localVarResponse = eventsGetWithHttpInfo(name = name, role = role, sortBy = sortBy, projectBy = projectBy, limit = limit, page = page)
 
         return when (localVarResponse.responseType) {
-            ResponseType.Success -> (localVarResponse as Success<*>).data as AuthRegisterPost201Response
+            ResponseType.Success -> (localVarResponse as Success<*>).data as EventsGet200Response
             ResponseType.Informational -> throw UnsupportedOperationException("Client does not support Informational responses.")
             ResponseType.Redirection -> throw UnsupportedOperationException("Client does not support Redirection responses.")
             ResponseType.ClientError -> {
@@ -82,50 +86,79 @@ class AuthApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClient = 
     }
 
     /**
-     * Login
-     * 
-     * @param authLoginPostRequest 
-     * @return ApiResponse<AuthRegisterPost201Response?>
+     * Get all events
+     * Only admins can retrieve all events.
+     * @param name Event name (optional)
+     * @param role Event role (optional)
+     * @param sortBy sort by query in the form of field:desc/asc (ex. name:asc) (optional)
+     * @param projectBy project by query in the form of field:hide/include (ex. name:hide) (optional)
+     * @param limit Maximum number of events (optional)
+     * @param page Page number (optional, default to 1)
+     * @return ApiResponse<EventsGet200Response?>
      * @throws IllegalStateException If the request is not correctly configured
      * @throws IOException Rethrows the OkHttp execute method exception
      */
     @Suppress("UNCHECKED_CAST")
     @Throws(IllegalStateException::class, IOException::class)
-    fun authLoginPostWithHttpInfo(authLoginPostRequest: AuthLoginPostRequest) : ApiResponse<AuthRegisterPost201Response?> {
-        val localVariableConfig = authLoginPostRequestConfig(authLoginPostRequest = authLoginPostRequest)
+    fun eventsGetWithHttpInfo(name: kotlin.String?, role: kotlin.String?, sortBy: kotlin.String?, projectBy: kotlin.String?, limit: kotlin.Int?, page: kotlin.Int?) : ApiResponse<EventsGet200Response?> {
+        val localVariableConfig = eventsGetRequestConfig(name = name, role = role, sortBy = sortBy, projectBy = projectBy, limit = limit, page = page)
 
-        return request<AuthLoginPostRequest, AuthRegisterPost201Response>(
+        return request<Unit, EventsGet200Response>(
             localVariableConfig
         )
     }
 
     /**
-     * To obtain the request config of the operation authLoginPost
+     * To obtain the request config of the operation eventsGet
      *
-     * @param authLoginPostRequest 
+     * @param name Event name (optional)
+     * @param role Event role (optional)
+     * @param sortBy sort by query in the form of field:desc/asc (ex. name:asc) (optional)
+     * @param projectBy project by query in the form of field:hide/include (ex. name:hide) (optional)
+     * @param limit Maximum number of events (optional)
+     * @param page Page number (optional, default to 1)
      * @return RequestConfig
      */
-    fun authLoginPostRequestConfig(authLoginPostRequest: AuthLoginPostRequest) : RequestConfig<AuthLoginPostRequest> {
-        val localVariableBody = authLoginPostRequest
-        val localVariableQuery: MultiValueMap = mutableMapOf()
+    fun eventsGetRequestConfig(name: kotlin.String?, role: kotlin.String?, sortBy: kotlin.String?, projectBy: kotlin.String?, limit: kotlin.Int?, page: kotlin.Int?) : RequestConfig<Unit> {
+        val localVariableBody = null
+        val localVariableQuery: MultiValueMap = mutableMapOf<kotlin.String, kotlin.collections.List<kotlin.String>>()
+            .apply {
+                if (name != null) {
+                    put("name", listOf(name.toString()))
+                }
+                if (role != null) {
+                    put("role", listOf(role.toString()))
+                }
+                if (sortBy != null) {
+                    put("sortBy", listOf(sortBy.toString()))
+                }
+                if (projectBy != null) {
+                    put("projectBy", listOf(projectBy.toString()))
+                }
+                if (limit != null) {
+                    put("limit", listOf(limit.toString()))
+                }
+                if (page != null) {
+                    put("page", listOf(page.toString()))
+                }
+            }
         val localVariableHeaders: MutableMap<String, String> = mutableMapOf()
-        localVariableHeaders["Content-Type"] = "application/json"
         localVariableHeaders["Accept"] = "application/json"
 
         return RequestConfig(
-            method = RequestMethod.POST,
-            path = "/auth/login",
+            method = RequestMethod.GET,
+            path = "/events",
             query = localVariableQuery,
             headers = localVariableHeaders,
-            requiresAuthentication = false,
+            requiresAuthentication = true,
             body = localVariableBody
         )
     }
 
     /**
-     * Logout
-     * 
-     * @param authLogoutPostRequest 
+     * Delete an event
+     * Logged in events can delete only themselves. Only admins can delete other events.
+     * @param id Event id
      * @return void
      * @throws IllegalStateException If the request is not correctly configured
      * @throws IOException Rethrows the OkHttp execute method exception
@@ -134,8 +167,8 @@ class AuthApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClient = 
      * @throws ServerException If the API returns a server error response
      */
     @Throws(IllegalStateException::class, IOException::class, UnsupportedOperationException::class, ClientException::class, ServerException::class)
-    fun authLogoutPost(authLogoutPostRequest: AuthLogoutPostRequest) : Unit {
-        val localVarResponse = authLogoutPostWithHttpInfo(authLogoutPostRequest = authLogoutPostRequest)
+    fun eventsIdDelete(id: kotlin.String) : Unit {
+        val localVarResponse = eventsIdDeleteWithHttpInfo(id = id)
 
         return when (localVarResponse.responseType) {
             ResponseType.Success -> Unit
@@ -153,50 +186,49 @@ class AuthApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClient = 
     }
 
     /**
-     * Logout
-     * 
-     * @param authLogoutPostRequest 
+     * Delete an event
+     * Logged in events can delete only themselves. Only admins can delete other events.
+     * @param id Event id
      * @return ApiResponse<Unit?>
      * @throws IllegalStateException If the request is not correctly configured
      * @throws IOException Rethrows the OkHttp execute method exception
      */
     @Throws(IllegalStateException::class, IOException::class)
-    fun authLogoutPostWithHttpInfo(authLogoutPostRequest: AuthLogoutPostRequest) : ApiResponse<Unit?> {
-        val localVariableConfig = authLogoutPostRequestConfig(authLogoutPostRequest = authLogoutPostRequest)
+    fun eventsIdDeleteWithHttpInfo(id: kotlin.String) : ApiResponse<Unit?> {
+        val localVariableConfig = eventsIdDeleteRequestConfig(id = id)
 
-        return request<AuthLogoutPostRequest, Unit>(
+        return request<Unit, Unit>(
             localVariableConfig
         )
     }
 
     /**
-     * To obtain the request config of the operation authLogoutPost
+     * To obtain the request config of the operation eventsIdDelete
      *
-     * @param authLogoutPostRequest 
+     * @param id Event id
      * @return RequestConfig
      */
-    fun authLogoutPostRequestConfig(authLogoutPostRequest: AuthLogoutPostRequest) : RequestConfig<AuthLogoutPostRequest> {
-        val localVariableBody = authLogoutPostRequest
+    fun eventsIdDeleteRequestConfig(id: kotlin.String) : RequestConfig<Unit> {
+        val localVariableBody = null
         val localVariableQuery: MultiValueMap = mutableMapOf()
         val localVariableHeaders: MutableMap<String, String> = mutableMapOf()
-        localVariableHeaders["Content-Type"] = "application/json"
         localVariableHeaders["Accept"] = "application/json"
 
         return RequestConfig(
-            method = RequestMethod.POST,
-            path = "/auth/logout",
+            method = RequestMethod.DELETE,
+            path = "/events/{id}".replace("{"+"id"+"}", encodeURIComponent(id.toString())),
             query = localVariableQuery,
             headers = localVariableHeaders,
-            requiresAuthentication = false,
+            requiresAuthentication = true,
             body = localVariableBody
         )
     }
 
     /**
-     * Refresh auth tokens
-     * 
-     * @param authLogoutPostRequest 
-     * @return UserWithTokens
+     * Get an event
+     * Logged in events can fetch only their own event information. Only admins can fetch other events.
+     * @param id Event id
+     * @return Event
      * @throws IllegalStateException If the request is not correctly configured
      * @throws IOException Rethrows the OkHttp execute method exception
      * @throws UnsupportedOperationException If the API returns an informational or redirection response
@@ -205,11 +237,11 @@ class AuthApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClient = 
      */
     @Suppress("UNCHECKED_CAST")
     @Throws(IllegalStateException::class, IOException::class, UnsupportedOperationException::class, ClientException::class, ServerException::class)
-    fun authRefreshTokensPost(authLogoutPostRequest: AuthLogoutPostRequest) : UserWithTokens {
-        val localVarResponse = authRefreshTokensPostWithHttpInfo(authLogoutPostRequest = authLogoutPostRequest)
+    fun eventsIdGet(id: kotlin.String) : Event {
+        val localVarResponse = eventsIdGetWithHttpInfo(id = id)
 
         return when (localVarResponse.responseType) {
-            ResponseType.Success -> (localVarResponse as Success<*>).data as UserWithTokens
+            ResponseType.Success -> (localVarResponse as Success<*>).data as Event
             ResponseType.Informational -> throw UnsupportedOperationException("Client does not support Informational responses.")
             ResponseType.Redirection -> throw UnsupportedOperationException("Client does not support Redirection responses.")
             ResponseType.ClientError -> {
@@ -224,51 +256,51 @@ class AuthApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClient = 
     }
 
     /**
-     * Refresh auth tokens
-     * 
-     * @param authLogoutPostRequest 
-     * @return ApiResponse<UserWithTokens?>
+     * Get an event
+     * Logged in events can fetch only their own event information. Only admins can fetch other events.
+     * @param id Event id
+     * @return ApiResponse<Event?>
      * @throws IllegalStateException If the request is not correctly configured
      * @throws IOException Rethrows the OkHttp execute method exception
      */
     @Suppress("UNCHECKED_CAST")
     @Throws(IllegalStateException::class, IOException::class)
-    fun authRefreshTokensPostWithHttpInfo(authLogoutPostRequest: AuthLogoutPostRequest) : ApiResponse<UserWithTokens?> {
-        val localVariableConfig = authRefreshTokensPostRequestConfig(authLogoutPostRequest = authLogoutPostRequest)
+    fun eventsIdGetWithHttpInfo(id: kotlin.String) : ApiResponse<Event?> {
+        val localVariableConfig = eventsIdGetRequestConfig(id = id)
 
-        return request<AuthLogoutPostRequest, UserWithTokens>(
+        return request<Unit, Event>(
             localVariableConfig
         )
     }
 
     /**
-     * To obtain the request config of the operation authRefreshTokensPost
+     * To obtain the request config of the operation eventsIdGet
      *
-     * @param authLogoutPostRequest 
+     * @param id Event id
      * @return RequestConfig
      */
-    fun authRefreshTokensPostRequestConfig(authLogoutPostRequest: AuthLogoutPostRequest) : RequestConfig<AuthLogoutPostRequest> {
-        val localVariableBody = authLogoutPostRequest
+    fun eventsIdGetRequestConfig(id: kotlin.String) : RequestConfig<Unit> {
+        val localVariableBody = null
         val localVariableQuery: MultiValueMap = mutableMapOf()
         val localVariableHeaders: MutableMap<String, String> = mutableMapOf()
-        localVariableHeaders["Content-Type"] = "application/json"
         localVariableHeaders["Accept"] = "application/json"
 
         return RequestConfig(
-            method = RequestMethod.POST,
-            path = "/auth/refresh-tokens",
+            method = RequestMethod.GET,
+            path = "/events/{id}".replace("{"+"id"+"}", encodeURIComponent(id.toString())),
             query = localVariableQuery,
             headers = localVariableHeaders,
-            requiresAuthentication = false,
+            requiresAuthentication = true,
             body = localVariableBody
         )
     }
 
     /**
-     * Register as user
-     * 
-     * @param authRegisterPostRequest 
-     * @return AuthRegisterPost201Response
+     * Update an event
+     * Logged in events can only update their own information. Only admins can update other events.
+     * @param id Event id
+     * @param eventsIdPatchRequest 
+     * @return Event
      * @throws IllegalStateException If the request is not correctly configured
      * @throws IOException Rethrows the OkHttp execute method exception
      * @throws UnsupportedOperationException If the API returns an informational or redirection response
@@ -277,11 +309,11 @@ class AuthApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClient = 
      */
     @Suppress("UNCHECKED_CAST")
     @Throws(IllegalStateException::class, IOException::class, UnsupportedOperationException::class, ClientException::class, ServerException::class)
-    fun authRegisterPost(authRegisterPostRequest: AuthRegisterPostRequest) : AuthRegisterPost201Response {
-        val localVarResponse = authRegisterPostWithHttpInfo(authRegisterPostRequest = authRegisterPostRequest)
+    fun eventsIdPatch(id: kotlin.String, eventsIdPatchRequest: EventsIdPatchRequest) : Event {
+        val localVarResponse = eventsIdPatchWithHttpInfo(id = id, eventsIdPatchRequest = eventsIdPatchRequest)
 
         return when (localVarResponse.responseType) {
-            ResponseType.Success -> (localVarResponse as Success<*>).data as AuthRegisterPost201Response
+            ResponseType.Success -> (localVarResponse as Success<*>).data as Event
             ResponseType.Informational -> throw UnsupportedOperationException("Client does not support Informational responses.")
             ResponseType.Redirection -> throw UnsupportedOperationException("Client does not support Redirection responses.")
             ResponseType.ClientError -> {
@@ -296,31 +328,105 @@ class AuthApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClient = 
     }
 
     /**
-     * Register as user
-     * 
-     * @param authRegisterPostRequest 
-     * @return ApiResponse<AuthRegisterPost201Response?>
+     * Update an event
+     * Logged in events can only update their own information. Only admins can update other events.
+     * @param id Event id
+     * @param eventsIdPatchRequest 
+     * @return ApiResponse<Event?>
      * @throws IllegalStateException If the request is not correctly configured
      * @throws IOException Rethrows the OkHttp execute method exception
      */
     @Suppress("UNCHECKED_CAST")
     @Throws(IllegalStateException::class, IOException::class)
-    fun authRegisterPostWithHttpInfo(authRegisterPostRequest: AuthRegisterPostRequest) : ApiResponse<AuthRegisterPost201Response?> {
-        val localVariableConfig = authRegisterPostRequestConfig(authRegisterPostRequest = authRegisterPostRequest)
+    fun eventsIdPatchWithHttpInfo(id: kotlin.String, eventsIdPatchRequest: EventsIdPatchRequest) : ApiResponse<Event?> {
+        val localVariableConfig = eventsIdPatchRequestConfig(id = id, eventsIdPatchRequest = eventsIdPatchRequest)
 
-        return request<AuthRegisterPostRequest, AuthRegisterPost201Response>(
+        return request<EventsIdPatchRequest, Event>(
             localVariableConfig
         )
     }
 
     /**
-     * To obtain the request config of the operation authRegisterPost
+     * To obtain the request config of the operation eventsIdPatch
      *
-     * @param authRegisterPostRequest 
+     * @param id Event id
+     * @param eventsIdPatchRequest 
      * @return RequestConfig
      */
-    fun authRegisterPostRequestConfig(authRegisterPostRequest: AuthRegisterPostRequest) : RequestConfig<AuthRegisterPostRequest> {
-        val localVariableBody = authRegisterPostRequest
+    fun eventsIdPatchRequestConfig(id: kotlin.String, eventsIdPatchRequest: EventsIdPatchRequest) : RequestConfig<EventsIdPatchRequest> {
+        val localVariableBody = eventsIdPatchRequest
+        val localVariableQuery: MultiValueMap = mutableMapOf()
+        val localVariableHeaders: MutableMap<String, String> = mutableMapOf()
+        localVariableHeaders["Content-Type"] = "application/json"
+        localVariableHeaders["Accept"] = "application/json"
+
+        return RequestConfig(
+            method = RequestMethod.PATCH,
+            path = "/events/{id}".replace("{"+"id"+"}", encodeURIComponent(id.toString())),
+            query = localVariableQuery,
+            headers = localVariableHeaders,
+            requiresAuthentication = true,
+            body = localVariableBody
+        )
+    }
+
+    /**
+     * Create an event
+     * Log a dungeon event from one of the Decked Out 2 instances.
+     * @param eventsPostRequest 
+     * @return Event
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     * @throws UnsupportedOperationException If the API returns an informational or redirection response
+     * @throws ClientException If the API returns a client error response
+     * @throws ServerException If the API returns a server error response
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class, UnsupportedOperationException::class, ClientException::class, ServerException::class)
+    fun eventsPost(eventsPostRequest: EventsPostRequest) : Event {
+        val localVarResponse = eventsPostWithHttpInfo(eventsPostRequest = eventsPostRequest)
+
+        return when (localVarResponse.responseType) {
+            ResponseType.Success -> (localVarResponse as Success<*>).data as Event
+            ResponseType.Informational -> throw UnsupportedOperationException("Client does not support Informational responses.")
+            ResponseType.Redirection -> throw UnsupportedOperationException("Client does not support Redirection responses.")
+            ResponseType.ClientError -> {
+                val localVarError = localVarResponse as ClientError<*>
+                throw ClientException("Client error : ${localVarError.statusCode} ${localVarError.message.orEmpty()}", localVarError.statusCode, localVarResponse)
+            }
+            ResponseType.ServerError -> {
+                val localVarError = localVarResponse as ServerError<*>
+                throw ServerException("Server error : ${localVarError.statusCode} ${localVarError.message.orEmpty()} ${localVarError.body}", localVarError.statusCode, localVarResponse)
+            }
+        }
+    }
+
+    /**
+     * Create an event
+     * Log a dungeon event from one of the Decked Out 2 instances.
+     * @param eventsPostRequest 
+     * @return ApiResponse<Event?>
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class)
+    fun eventsPostWithHttpInfo(eventsPostRequest: EventsPostRequest) : ApiResponse<Event?> {
+        val localVariableConfig = eventsPostRequestConfig(eventsPostRequest = eventsPostRequest)
+
+        return request<EventsPostRequest, Event>(
+            localVariableConfig
+        )
+    }
+
+    /**
+     * To obtain the request config of the operation eventsPost
+     *
+     * @param eventsPostRequest 
+     * @return RequestConfig
+     */
+    fun eventsPostRequestConfig(eventsPostRequest: EventsPostRequest) : RequestConfig<EventsPostRequest> {
+        val localVariableBody = eventsPostRequest
         val localVariableQuery: MultiValueMap = mutableMapOf()
         val localVariableHeaders: MutableMap<String, String> = mutableMapOf()
         localVariableHeaders["Content-Type"] = "application/json"
@@ -328,10 +434,10 @@ class AuthApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClient = 
 
         return RequestConfig(
             method = RequestMethod.POST,
-            path = "/auth/register",
+            path = "/events",
             query = localVariableQuery,
             headers = localVariableHeaders,
-            requiresAuthentication = false,
+            requiresAuthentication = true,
             body = localVariableBody
         )
     }
