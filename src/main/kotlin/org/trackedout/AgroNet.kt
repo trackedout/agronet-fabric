@@ -288,16 +288,27 @@ object AgroNet : ModInitializer {
         player.inventory.updateItems()
     }
 
+    private const val RECEIVED_SHULKER = "do2.received_shulker"
+
     private fun giveShulkerToPlayer(player: PlayerEntity) {
         // TODO: Validate that the player does not already have their shulker
+        logger.debug("Player tags: {}", player.commandTags)
+        if (player.commandTags.contains(RECEIVED_SHULKER)) {
+            logger.info("Player ${player.name.string} already has their shulker box, refusing to give them another one")
+            return
+        }
+
         val shulkerBox = ItemStack(Items.SHULKER_BOX)
         // TODO: Fetch this data from DungaDunga
-        shulkerBox.nbt =
+        val shulkerNbt =
             StringNbtReader.parse("{BlockEntityTag:{Items:[{Count:1b,Slot:0b,id:\"minecraft:redstone\"},{Count:1b,Slot:1b,id:\"minecraft:chest\"},{Count:1b,Slot:2b,id:\"minecraft:slime_block\"},{Count:1b,Slot:3b,id:\"minecraft:redstone_torch\"},{Count:1b,Slot:4b,id:\"minecraft:redstone_block\"}],id:\"minecraft:shulker_box\"}}")
-        //                        shulkerBox.nbt[BlockItem.BLOCK_ENTITY_TAG_KEY].toString() // FYI that's the tag for *just* the blocks inside the shulker
+        // shulkerBox.nbt[BlockItem.BLOCK_ENTITY_TAG_KEY].toString() // FYI that's the tag for *just* the blocks inside the shulker
+        shulkerBox.nbt = shulkerNbt
 
         val inventory = player.inventory
         inventory.insertStack(shulkerBox)
         inventory.updateItems()
+
+        player.addCommandTag(RECEIVED_SHULKER)
     }
 }
