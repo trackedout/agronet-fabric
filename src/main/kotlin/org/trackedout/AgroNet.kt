@@ -10,8 +10,11 @@ import net.fabricmc.fabric.api.event.player.AttackBlockCallback
 import net.minecraft.block.Block
 import net.minecraft.block.BlockState
 import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.item.BlockItem
 import net.minecraft.item.ItemStack
 import net.minecraft.item.Items
+import net.minecraft.nbt.NbtCompound
+import net.minecraft.nbt.NbtList
 import net.minecraft.nbt.StringNbtReader
 import net.minecraft.server.command.CommandManager.argument
 import net.minecraft.server.command.CommandManager.literal
@@ -26,8 +29,11 @@ import net.minecraft.util.math.Vec2f
 import okhttp3.OkHttpClient
 import org.slf4j.LoggerFactory
 import org.trackedout.client.apis.EventsApi
+import org.trackedout.client.apis.InventoryApi
+import org.trackedout.client.models.Card
 import org.trackedout.client.models.EventsPostRequest
 import java.net.InetAddress
+import kotlin.random.Random
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 
@@ -57,6 +63,14 @@ object AgroNet : ModInitializer {
         val dungaAPIPath = getEnvOrDefault("DUNGA_API", "http://localhost:3000/v1")
 
         val eventsApi = EventsApi(
+            basePath = dungaAPIPath,
+            client = OkHttpClient.Builder()
+                .connectTimeout(5.seconds.toJavaDuration())
+                .callTimeout(30.seconds.toJavaDuration())
+                .build()
+        )
+
+        val inventoryApi = InventoryApi(
             basePath = dungaAPIPath,
             client = OkHttpClient.Builder()
                 .connectTimeout(5.seconds.toJavaDuration())
@@ -111,7 +125,8 @@ object AgroNet : ModInitializer {
                 .executes { context ->
                     val player = context.source.player
                     if (player != null) {
-                        giveShulkerToPlayer(player)
+                        val playerCards = inventoryApi.inventoryCardsGet(player = player.name.string, limit = 200, deckId = "1")
+                        giveShulkerToPlayer(player, playerCards.results!!)
                     } else {
                         logger.warn("Attempting to give shulker but command is not run as a player, ignoring...")
                     }
@@ -290,19 +305,27 @@ object AgroNet : ModInitializer {
 
     private const val RECEIVED_SHULKER = "do2.received_shulker"
 
-    private fun giveShulkerToPlayer(player: PlayerEntity) {
-        // TODO: Validate that the player does not already have their shulker
+    private fun giveShulkerToPlayer(player: PlayerEntity, cards: List<Card>) {
         logger.debug("Player tags: {}", player.commandTags)
         if (player.commandTags.contains(RECEIVED_SHULKER)) {
             logger.info("Player ${player.name.string} already has their shulker box, refusing to give them another one")
             return
         }
 
-        val shulkerBox = ItemStack(Items.SHULKER_BOX)
-        // TODO: Fetch this data from DungaDunga
         val shulkerNbt =
-            StringNbtReader.parse("{BlockEntityTag:{Items:[{Count:1b,Slot:0b,id:\"minecraft:redstone\"},{Count:1b,Slot:1b,id:\"minecraft:chest\"},{Count:1b,Slot:2b,id:\"minecraft:slime_block\"},{Count:1b,Slot:3b,id:\"minecraft:redstone_torch\"},{Count:1b,Slot:4b,id:\"minecraft:redstone_block\"}],id:\"minecraft:shulker_box\"}}")
-        // shulkerBox.nbt[BlockItem.BLOCK_ENTITY_TAG_KEY].toString() // FYI that's the tag for *just* the blocks inside the shulker
+            StringNbtReader.parse("{${BlockItem.BLOCK_ENTITY_TAG_KEY}:{Items:[],id:\"minecraft:shulker_box\"}}")
+        val blockCompound = shulkerNbt.getCompound(BlockItem.BLOCK_ENTITY_TAG_KEY)
+        val shulkerItems = blockCompound["Items"] as NbtList
+
+        val cardCount = cards.groupingBy { it.name!! }.eachCount()
+        var cardIndex = 0
+        cardCount.forEach { (cardName, count) ->
+            logger.info("${player.name.string}'s shulker should contain ${count}x $cardName")
+            shulkerItems.add(createCard(cardIndex++, cardName, count))
+        }
+        shulkerNbt.put(BlockItem.BLOCK_ENTITY_TAG_KEY, blockCompound)
+
+        val shulkerBox = ItemStack(Items.SHULKER_BOX)
         shulkerBox.nbt = shulkerNbt
 
         val inventory = player.inventory
@@ -310,5 +333,17 @@ object AgroNet : ModInitializer {
         inventory.updateItems()
 
         player.addCommandTag(RECEIVED_SHULKER)
+    }
+
+    private fun createCard(index: Int, cardName: String, count: Int): NbtCompound {
+        val nbt = NbtCompound()
+        ItemStack(Items.IRON_NUGGET, count).writeNbt(nbt)
+        val tag = NbtCompound()
+        // TODO: Use cardName to determine model data ID - https://pastebin.com/DxUsy5rb
+        tag.putInt("CustomModelData", Random.nextInt(0, 12345))
+        nbt.put("tag", tag)
+        nbt.putByte("Slot", index.toByte())
+
+        return nbt
     }
 }

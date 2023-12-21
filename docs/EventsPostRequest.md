@@ -11,6 +11,7 @@ Name | Type | Description | Notes
 **y** | **kotlin.Double** |  | 
 **z** | **kotlin.Double** |  | 
 **count** | **kotlin.Int** |  | 
+**sourceIP** | **kotlin.String** |  |  [optional]
 
 
 

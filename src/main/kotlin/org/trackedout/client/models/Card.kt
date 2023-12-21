@@ -22,42 +22,30 @@ import com.squareup.moshi.JsonClass
 /**
  * 
  *
+ * @param id 
  * @param name 
  * @param player 
  * @param server 
- * @param x 
- * @param y 
- * @param z 
- * @param count 
- * @param sourceIP 
+ * @param deckId 
  */
 
 
-data class EventsPostRequest (
+data class Card (
+
+    @Json(name = "id")
+    val id: kotlin.String? = null,
 
     @Json(name = "name")
-    val name: kotlin.String,
+    val name: kotlin.String? = null,
 
     @Json(name = "player")
-    val player: kotlin.String,
+    val player: kotlin.String? = null,
 
     @Json(name = "server")
-    val server: kotlin.String,
+    val server: kotlin.String? = null,
 
-    @Json(name = "x")
-    val x: kotlin.Double,
-
-    @Json(name = "y")
-    val y: kotlin.Double,
-
-    @Json(name = "z")
-    val z: kotlin.Double,
-
-    @Json(name = "count")
-    val count: kotlin.Int = 1,
-
-    @Json(name = "sourceIP")
-    val sourceIP: kotlin.String? = null
+    @Json(name = "deckId")
+    val deckId: kotlin.String? = null
 
 )
 

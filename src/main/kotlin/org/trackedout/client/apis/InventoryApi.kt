@@ -19,10 +19,9 @@ import java.io.IOException
 import okhttp3.OkHttpClient
 import okhttp3.HttpUrl
 
+import org.trackedout.client.models.Card
 import org.trackedout.client.models.Error
-import org.trackedout.client.models.Event
-import org.trackedout.client.models.EventsGet200Response
-import org.trackedout.client.models.EventsPostRequest
+import org.trackedout.client.models.InventoryCardsGet200Response
 
 import com.squareup.moshi.Json
 
@@ -40,7 +39,7 @@ import org.trackedout.client.infrastructure.ResponseType
 import org.trackedout.client.infrastructure.Success
 import org.trackedout.client.infrastructure.toMultiValue
 
-class EventsApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClient = ApiClient.defaultClient) : ApiClient(basePath, client) {
+class InventoryApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClient = ApiClient.defaultClient) : ApiClient(basePath, client) {
     companion object {
         @JvmStatic
         val defaultBasePath: String by lazy {
@@ -49,15 +48,10 @@ class EventsApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClient 
     }
 
     /**
-     * Get all events
-     * Only admins can retrieve all events.
-     * @param name Event name (optional)
-     * @param role Event role (optional)
-     * @param sortBy sort by query in the form of field:desc/asc (ex. name:asc) (optional)
-     * @param projectBy project by query in the form of field:hide/include (ex. name:hide) (optional)
-     * @param limit Maximum number of events (optional)
-     * @param page Page number (optional, default to 1)
-     * @return EventsGet200Response
+     * Add a card to a player&#39;s deck
+     * Add a card to a player&#39;s deck from one of the Decked Out 2 instances or the lobby server.
+     * @param card 
+     * @return Card
      * @throws IllegalStateException If the request is not correctly configured
      * @throws IOException Rethrows the OkHttp execute method exception
      * @throws UnsupportedOperationException If the API returns an informational or redirection response
@@ -66,11 +60,11 @@ class EventsApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClient 
      */
     @Suppress("UNCHECKED_CAST")
     @Throws(IllegalStateException::class, IOException::class, UnsupportedOperationException::class, ClientException::class, ServerException::class)
-    fun eventsGet(name: kotlin.String? = null, role: kotlin.String? = null, sortBy: kotlin.String? = null, projectBy: kotlin.String? = null, limit: kotlin.Int? = null, page: kotlin.Int? = 1) : EventsGet200Response {
-        val localVarResponse = eventsGetWithHttpInfo(name = name, role = role, sortBy = sortBy, projectBy = projectBy, limit = limit, page = page)
+    fun inventoryAddCardPost(card: Card) : Card {
+        val localVarResponse = inventoryAddCardPostWithHttpInfo(card = card)
 
         return when (localVarResponse.responseType) {
-            ResponseType.Success -> (localVarResponse as Success<*>).data as EventsGet200Response
+            ResponseType.Success -> (localVarResponse as Success<*>).data as Card
             ResponseType.Informational -> throw UnsupportedOperationException("Client does not support Informational responses.")
             ResponseType.Redirection -> throw UnsupportedOperationException("Client does not support Redirection responses.")
             ResponseType.ClientError -> {
@@ -85,48 +79,131 @@ class EventsApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClient 
     }
 
     /**
-     * Get all events
-     * Only admins can retrieve all events.
-     * @param name Event name (optional)
-     * @param role Event role (optional)
-     * @param sortBy sort by query in the form of field:desc/asc (ex. name:asc) (optional)
-     * @param projectBy project by query in the form of field:hide/include (ex. name:hide) (optional)
-     * @param limit Maximum number of events (optional)
-     * @param page Page number (optional, default to 1)
-     * @return ApiResponse<EventsGet200Response?>
+     * Add a card to a player&#39;s deck
+     * Add a card to a player&#39;s deck from one of the Decked Out 2 instances or the lobby server.
+     * @param card 
+     * @return ApiResponse<Card?>
      * @throws IllegalStateException If the request is not correctly configured
      * @throws IOException Rethrows the OkHttp execute method exception
      */
     @Suppress("UNCHECKED_CAST")
     @Throws(IllegalStateException::class, IOException::class)
-    fun eventsGetWithHttpInfo(name: kotlin.String?, role: kotlin.String?, sortBy: kotlin.String?, projectBy: kotlin.String?, limit: kotlin.Int?, page: kotlin.Int?) : ApiResponse<EventsGet200Response?> {
-        val localVariableConfig = eventsGetRequestConfig(name = name, role = role, sortBy = sortBy, projectBy = projectBy, limit = limit, page = page)
+    fun inventoryAddCardPostWithHttpInfo(card: Card) : ApiResponse<Card?> {
+        val localVariableConfig = inventoryAddCardPostRequestConfig(card = card)
 
-        return request<Unit, EventsGet200Response>(
+        return request<Card, Card>(
             localVariableConfig
         )
     }
 
     /**
-     * To obtain the request config of the operation eventsGet
+     * To obtain the request config of the operation inventoryAddCardPost
      *
-     * @param name Event name (optional)
-     * @param role Event role (optional)
+     * @param card 
+     * @return RequestConfig
+     */
+    fun inventoryAddCardPostRequestConfig(card: Card) : RequestConfig<Card> {
+        val localVariableBody = card
+        val localVariableQuery: MultiValueMap = mutableMapOf()
+        val localVariableHeaders: MutableMap<String, String> = mutableMapOf()
+        localVariableHeaders["Content-Type"] = "application/json"
+        localVariableHeaders["Accept"] = "application/json"
+
+        return RequestConfig(
+            method = RequestMethod.POST,
+            path = "/inventory/add-card",
+            query = localVariableQuery,
+            headers = localVariableHeaders,
+            requiresAuthentication = false,
+            body = localVariableBody
+        )
+    }
+
+    /**
+     * Get all cards
+     * Only admins can retrieve all cards.
+     * @param name Card name (optional)
+     * @param player Player (optional)
+     * @param deckId Deck ID (optional)
      * @param sortBy sort by query in the form of field:desc/asc (ex. name:asc) (optional)
      * @param projectBy project by query in the form of field:hide/include (ex. name:hide) (optional)
-     * @param limit Maximum number of events (optional)
+     * @param limit Maximum number of cards (optional)
+     * @param page Page number (optional, default to 1)
+     * @return InventoryCardsGet200Response
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     * @throws UnsupportedOperationException If the API returns an informational or redirection response
+     * @throws ClientException If the API returns a client error response
+     * @throws ServerException If the API returns a server error response
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class, UnsupportedOperationException::class, ClientException::class, ServerException::class)
+    fun inventoryCardsGet(name: kotlin.String? = null, player: kotlin.String? = null, deckId: kotlin.String? = null, sortBy: kotlin.String? = null, projectBy: kotlin.String? = null, limit: kotlin.Int? = null, page: kotlin.Int? = 1) : InventoryCardsGet200Response {
+        val localVarResponse = inventoryCardsGetWithHttpInfo(name = name, player = player, deckId = deckId, sortBy = sortBy, projectBy = projectBy, limit = limit, page = page)
+
+        return when (localVarResponse.responseType) {
+            ResponseType.Success -> (localVarResponse as Success<*>).data as InventoryCardsGet200Response
+            ResponseType.Informational -> throw UnsupportedOperationException("Client does not support Informational responses.")
+            ResponseType.Redirection -> throw UnsupportedOperationException("Client does not support Redirection responses.")
+            ResponseType.ClientError -> {
+                val localVarError = localVarResponse as ClientError<*>
+                throw ClientException("Client error : ${localVarError.statusCode} ${localVarError.message.orEmpty()}", localVarError.statusCode, localVarResponse)
+            }
+            ResponseType.ServerError -> {
+                val localVarError = localVarResponse as ServerError<*>
+                throw ServerException("Server error : ${localVarError.statusCode} ${localVarError.message.orEmpty()} ${localVarError.body}", localVarError.statusCode, localVarResponse)
+            }
+        }
+    }
+
+    /**
+     * Get all cards
+     * Only admins can retrieve all cards.
+     * @param name Card name (optional)
+     * @param player Player (optional)
+     * @param deckId Deck ID (optional)
+     * @param sortBy sort by query in the form of field:desc/asc (ex. name:asc) (optional)
+     * @param projectBy project by query in the form of field:hide/include (ex. name:hide) (optional)
+     * @param limit Maximum number of cards (optional)
+     * @param page Page number (optional, default to 1)
+     * @return ApiResponse<InventoryCardsGet200Response?>
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class)
+    fun inventoryCardsGetWithHttpInfo(name: kotlin.String?, player: kotlin.String?, deckId: kotlin.String?, sortBy: kotlin.String?, projectBy: kotlin.String?, limit: kotlin.Int?, page: kotlin.Int?) : ApiResponse<InventoryCardsGet200Response?> {
+        val localVariableConfig = inventoryCardsGetRequestConfig(name = name, player = player, deckId = deckId, sortBy = sortBy, projectBy = projectBy, limit = limit, page = page)
+
+        return request<Unit, InventoryCardsGet200Response>(
+            localVariableConfig
+        )
+    }
+
+    /**
+     * To obtain the request config of the operation inventoryCardsGet
+     *
+     * @param name Card name (optional)
+     * @param player Player (optional)
+     * @param deckId Deck ID (optional)
+     * @param sortBy sort by query in the form of field:desc/asc (ex. name:asc) (optional)
+     * @param projectBy project by query in the form of field:hide/include (ex. name:hide) (optional)
+     * @param limit Maximum number of cards (optional)
      * @param page Page number (optional, default to 1)
      * @return RequestConfig
      */
-    fun eventsGetRequestConfig(name: kotlin.String?, role: kotlin.String?, sortBy: kotlin.String?, projectBy: kotlin.String?, limit: kotlin.Int?, page: kotlin.Int?) : RequestConfig<Unit> {
+    fun inventoryCardsGetRequestConfig(name: kotlin.String?, player: kotlin.String?, deckId: kotlin.String?, sortBy: kotlin.String?, projectBy: kotlin.String?, limit: kotlin.Int?, page: kotlin.Int?) : RequestConfig<Unit> {
         val localVariableBody = null
         val localVariableQuery: MultiValueMap = mutableMapOf<kotlin.String, kotlin.collections.List<kotlin.String>>()
             .apply {
                 if (name != null) {
                     put("name", listOf(name.toString()))
                 }
-                if (role != null) {
-                    put("role", listOf(role.toString()))
+                if (player != null) {
+                    put("player", listOf(player.toString()))
+                }
+                if (deckId != null) {
+                    put("deckId", listOf(deckId.toString()))
                 }
                 if (sortBy != null) {
                     put("sortBy", listOf(sortBy.toString()))
@@ -146,32 +223,31 @@ class EventsApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClient 
 
         return RequestConfig(
             method = RequestMethod.GET,
-            path = "/events",
+            path = "/inventory/cards",
             query = localVariableQuery,
             headers = localVariableHeaders,
-            requiresAuthentication = true,
+            requiresAuthentication = false,
             body = localVariableBody
         )
     }
 
     /**
-     * Create an event
-     * Log a dungeon event from one of the Decked Out 2 instances.
-     * @param eventsPostRequest 
-     * @return Event
+     * Delete a card
+     * Remove a card from a player&#39;s deck. If multiple copies of this card exist, only one will be removed.
+     * @param card 
+     * @return void
      * @throws IllegalStateException If the request is not correctly configured
      * @throws IOException Rethrows the OkHttp execute method exception
      * @throws UnsupportedOperationException If the API returns an informational or redirection response
      * @throws ClientException If the API returns a client error response
      * @throws ServerException If the API returns a server error response
      */
-    @Suppress("UNCHECKED_CAST")
     @Throws(IllegalStateException::class, IOException::class, UnsupportedOperationException::class, ClientException::class, ServerException::class)
-    fun eventsPost(eventsPostRequest: EventsPostRequest) : Event {
-        val localVarResponse = eventsPostWithHttpInfo(eventsPostRequest = eventsPostRequest)
+    fun inventoryDeleteCardPost(card: Card) : Unit {
+        val localVarResponse = inventoryDeleteCardPostWithHttpInfo(card = card)
 
         return when (localVarResponse.responseType) {
-            ResponseType.Success -> (localVarResponse as Success<*>).data as Event
+            ResponseType.Success -> Unit
             ResponseType.Informational -> throw UnsupportedOperationException("Client does not support Informational responses.")
             ResponseType.Redirection -> throw UnsupportedOperationException("Client does not support Redirection responses.")
             ResponseType.ClientError -> {
@@ -186,31 +262,30 @@ class EventsApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClient 
     }
 
     /**
-     * Create an event
-     * Log a dungeon event from one of the Decked Out 2 instances.
-     * @param eventsPostRequest 
-     * @return ApiResponse<Event?>
+     * Delete a card
+     * Remove a card from a player&#39;s deck. If multiple copies of this card exist, only one will be removed.
+     * @param card 
+     * @return ApiResponse<Unit?>
      * @throws IllegalStateException If the request is not correctly configured
      * @throws IOException Rethrows the OkHttp execute method exception
      */
-    @Suppress("UNCHECKED_CAST")
     @Throws(IllegalStateException::class, IOException::class)
-    fun eventsPostWithHttpInfo(eventsPostRequest: EventsPostRequest) : ApiResponse<Event?> {
-        val localVariableConfig = eventsPostRequestConfig(eventsPostRequest = eventsPostRequest)
+    fun inventoryDeleteCardPostWithHttpInfo(card: Card) : ApiResponse<Unit?> {
+        val localVariableConfig = inventoryDeleteCardPostRequestConfig(card = card)
 
-        return request<EventsPostRequest, Event>(
+        return request<Card, Unit>(
             localVariableConfig
         )
     }
 
     /**
-     * To obtain the request config of the operation eventsPost
+     * To obtain the request config of the operation inventoryDeleteCardPost
      *
-     * @param eventsPostRequest 
+     * @param card 
      * @return RequestConfig
      */
-    fun eventsPostRequestConfig(eventsPostRequest: EventsPostRequest) : RequestConfig<EventsPostRequest> {
-        val localVariableBody = eventsPostRequest
+    fun inventoryDeleteCardPostRequestConfig(card: Card) : RequestConfig<Card> {
+        val localVariableBody = card
         val localVariableQuery: MultiValueMap = mutableMapOf()
         val localVariableHeaders: MutableMap<String, String> = mutableMapOf()
         localVariableHeaders["Content-Type"] = "application/json"
@@ -218,10 +293,10 @@ class EventsApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClient 
 
         return RequestConfig(
             method = RequestMethod.POST,
-            path = "/events",
+            path = "/inventory/delete-card",
             query = localVariableQuery,
             headers = localVariableHeaders,
-            requiresAuthentication = true,
+            requiresAuthentication = false,
             body = localVariableBody
         )
     }
