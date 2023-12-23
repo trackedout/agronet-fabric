@@ -158,6 +158,15 @@ object AgroNet : ModInitializer {
 
         val cardPurchasedCommand = CardPurchasedCommand(inventoryApi, serverName)
 
+        CommandRegistrationCallback.EVENT.register { dispatcher, _, _ ->
+            dispatcher.register(literal("card-bought")
+                .requires { it.hasPermissionLevel(2) } // Command Blocks have permission level of 2
+                .then(
+                    argument("card", StringArgumentType.word()) // words_with_underscores
+                        .executes(cardPurchasedCommand::run)
+                )
+            )
+        }
 
         eventsApi.eventsPost(
             EventsPostRequest(
