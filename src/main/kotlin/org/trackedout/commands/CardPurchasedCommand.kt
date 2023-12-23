@@ -4,10 +4,16 @@ import com.mojang.brigadier.arguments.StringArgumentType
 import com.mojang.brigadier.context.CommandContext
 import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.text.Text
+import org.trackedout.client.apis.EventsApi
 import org.trackedout.client.apis.InventoryApi
 import org.trackedout.client.models.Card
+import org.trackedout.client.models.EventsPostRequest
 
-class CardPurchasedCommand(private val inventoryApi: InventoryApi, private val serverName: String) : PlayerCommand {
+class CardPurchasedCommand(
+    private val inventoryApi: InventoryApi,
+    private val eventsApi: EventsApi,
+    private val serverName: String
+) : PlayerCommand {
     override fun run(context: CommandContext<ServerCommandSource>): Int {
         val cardName = StringArgumentType.getString(context, "card")
 
@@ -37,6 +43,15 @@ class CardPurchasedCommand(private val inventoryApi: InventoryApi, private val s
         )
 
         try {
+            eventsApi.eventsPost(
+                EventsPostRequest(
+                    name = "card-bought-${cardName.replace("_", "-")}",
+                    player = player.name.string,
+                    server = serverName,
+                    x, y, z, 1
+                )
+            )
+
             val result = inventoryApi.inventoryAddCardPost(
                 card = Card(
                     name = cardName,
