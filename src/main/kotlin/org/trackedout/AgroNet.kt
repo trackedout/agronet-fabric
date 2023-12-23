@@ -1,11 +1,10 @@
 package org.trackedout
 
-import ServerTickListener
 import com.mojang.brigadier.arguments.IntegerArgumentType
 import com.mojang.brigadier.arguments.StringArgumentType
+import com.mojang.brigadier.context.CommandContext
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
 import net.fabricmc.fabric.api.event.player.AttackBlockCallback
 import net.minecraft.block.Block
 import net.minecraft.block.BlockState
@@ -32,6 +31,8 @@ import org.trackedout.client.apis.EventsApi
 import org.trackedout.client.apis.InventoryApi
 import org.trackedout.client.models.Card
 import org.trackedout.client.models.EventsPostRequest
+import org.trackedout.commands.CardPurchasedCommand
+import org.trackedout.commands.LogEventCommand
 import java.net.InetAddress
 import kotlin.random.Random
 import kotlin.time.Duration.Companion.seconds
@@ -53,6 +54,17 @@ object AgroNet : ModInitializer {
     private fun PlayerEntity.hasShulkerInInventory() = this.inventory.containsAny(::isDeckedOutShulker)
 
     private fun PlayerEntity.hasKeyInHand(): Boolean = this.handItems.any(::isDeckedOutKey)
+
+    private val takeShulkerCommand = { context: CommandContext<ServerCommandSource> ->
+        val player = context.source.player
+        if (player != null) {
+            takeShulkerFromPlayer(player)
+        } else {
+            logger.warn("Attempting to take shulker but command is not run as a player, ignoring...")
+        }
+
+        1
+    }
 
     override fun onInitialize() {
         // This code runs as soon as Minecraft is in a mod-load-ready state.
@@ -78,7 +90,6 @@ object AgroNet : ModInitializer {
                 .build()
         )
 
-        ServerTickEvents.END_SERVER_TICK.register(ServerTickListener())
 
         AttackBlockCallback.EVENT.register { player, world, hand, pos, direction ->
             val state = world.getBlockState(pos)
@@ -107,16 +118,8 @@ object AgroNet : ModInitializer {
         CommandRegistrationCallback.EVENT.register { dispatcher, _, _ ->
             dispatcher.register(literal("take-shulker")
                 .requires { it.hasPermissionLevel(2) } // Command Blocks have permission level of 2
-                .executes { context ->
-                    val player = context.source.player
-                    if (player != null) {
-                        takeShulkerFromPlayer(player)
-                    } else {
-                        logger.warn("Attempting to take shulker but command is not run as a player, ignoring...")
-                    }
-
-                    1
-                })
+                .executes(takeShulkerCommand)
+            )
         }
 
         CommandRegistrationCallback.EVENT.register { dispatcher, _, _ ->
@@ -135,79 +138,26 @@ object AgroNet : ModInitializer {
                 })
         }
 
+        val logEventCommand = LogEventCommand(eventsApi, serverName)
+
         CommandRegistrationCallback.EVENT.register { dispatcher, _, _ ->
             dispatcher.register(literal("log-event")
                 .requires { it.hasPermissionLevel(2) } // Command Blocks have permission level of 2
                 .then(
                     argument("event", StringArgumentType.word()) // words_with_underscores
-                        .then(argument(
-                            "count", // Number of units for this event
-                            IntegerArgumentType.integer(1)
+                        .then(
+                            argument(
+                                "count", // Number of units for this event
+                                IntegerArgumentType.integer(1)
+                            )
+                                .executes(logEventCommand::run)
                         )
-                            .executes { context ->
-                                val event = StringArgumentType.getString(context, "event")
-                                val count = IntegerArgumentType.getInteger(context, "count")
-
-                                val player = context.source.player
-                                if (player == null) {
-                                    logger.warn("Attempting to run /log-event { event=${event}, count=${count} }, but command is not run as a player, ignoring...")
-                                    context.source.sendFeedback(
-                                        { Text.literal("Attempting to run log-event command, but command is not run as a player, ignoring...") },
-                                        true
-                                    )
-
-                                    return@executes -1
-                                }
-
-                                val x = player.x
-                                val y = player.y
-                                val z = player.z
-
-                                context.source.sendFeedback(
-                                    {
-                                        Text.literal(
-                                            "Processing /log-event { event=${event}, count=${count} } for player ${player.name.string} " +
-                                                    "at location [$x, $y, $z]"
-                                        )
-                                    },
-                                    true
-                                )
-
-                                try {
-                                    val result = eventsApi.eventsPost(
-                                        EventsPostRequest(
-                                            name = event,
-                                            player = player.name.string,
-                                            server = serverName,
-                                            x, y, z, count
-                                        )
-                                    )
-
-                                    context.source.sendFeedback(
-                                        {
-                                            Text.literal(
-                                                "Successfully sent event { event=${event}, count=${count} } for player ${player.name.string} " +
-                                                        "for location [$x, $y, $z] to Dunga Dunga"
-                                            )
-                                        },
-                                        true
-                                    )
-                                    context.source.sendFeedback({ Text.literal("Result: $result") }, true)
-
-                                } catch (e: Exception) {
-                                    logger.error("Failed to call Events API: ${e.message}")
-                                    e.printStackTrace()
-                                    context.source.sendFeedback(
-                                        { Text.literal("Failed to call Events API: ${e.message}") },
-                                        true
-                                    )
-                                }
-
-                                1
-                            })
                 )
             )
         }
+
+        val cardPurchasedCommand = CardPurchasedCommand(inventoryApi, serverName)
+
 
         eventsApi.eventsPost(
             EventsPostRequest(
