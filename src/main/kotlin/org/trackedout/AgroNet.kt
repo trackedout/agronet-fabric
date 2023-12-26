@@ -38,7 +38,6 @@ import kotlin.random.Random
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 
-
 object AgroNet : ModInitializer {
     private val logger = LoggerFactory.getLogger("Agro-net")
 
@@ -145,6 +144,7 @@ object AgroNet : ModInitializer {
                 .requires { it.hasPermissionLevel(2) } // Command Blocks have permission level of 2
                 .then(
                     argument("event", StringArgumentType.word()) // words_with_underscores
+                        .executes(logEventCommand::run)
                         .then(
                             argument(
                                 "count", // Number of units for this event
@@ -156,7 +156,7 @@ object AgroNet : ModInitializer {
             )
         }
 
-        val cardPurchasedCommand = CardPurchasedCommand(inventoryApi, serverName)
+        val cardPurchasedCommand = CardPurchasedCommand(inventoryApi, eventsApi, serverName)
 
         CommandRegistrationCallback.EVENT.register { dispatcher, _, _ ->
             dispatcher.register(literal("card-bought")

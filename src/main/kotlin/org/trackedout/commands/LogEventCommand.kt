@@ -11,17 +11,10 @@ import org.trackedout.client.models.EventsPostRequest
 class LogEventCommand(private val eventsApi: EventsApi, private val serverName: String) : PlayerCommand {
     override fun run(context: CommandContext<ServerCommandSource>): Int {
         val event = StringArgumentType.getString(context, "event")
-        val count = IntegerArgumentType.getInteger(context, "count")
-
-        val player = context.source.player
-        if (player == null) {
-            logger.warn("Attempting to run /log-event { event=${event}, count=${count} }, but command is not run as a player, ignoring...")
-            context.source.sendFeedback(
-                { Text.literal("Attempting to run log-event command, but command is not run as a player, ignoring...") },
-                true
-            )
-
-            return -1
+        val count = try {
+            IntegerArgumentType.getInteger(context, "count")
+        } catch (e: Exception) {
+            1
         }
 
         val position = if (context.source.player != null) {
