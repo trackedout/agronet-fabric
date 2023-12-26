@@ -24,14 +24,21 @@ class LogEventCommand(private val eventsApi: EventsApi, private val serverName: 
             return -1
         }
 
-        val x = player.x
-        val y = player.y
-        val z = player.z
+        val position = if (context.source.player != null) {
+            context.source.player!!.pos
+        } else {
+            context.source.position
+        }
 
+        val x = position.x
+        val y = position.y
+        val z = position.z
+
+        val sourceName = context.source.name // Either "@" or the player name
         context.source.sendFeedback(
             {
                 Text.literal(
-                    "Processing /log-event { event=${event}, count=${count} } for player ${player.name.string} " +
+                    "Processing /log-event { event=${event}, count=${count} } for $sourceName " +
                             "at location [$x, $y, $z]"
                 )
             },
@@ -42,7 +49,7 @@ class LogEventCommand(private val eventsApi: EventsApi, private val serverName: 
             val result = eventsApi.eventsPost(
                 EventsPostRequest(
                     name = event,
-                    player = player.name.string,
+                    player = sourceName,
                     server = serverName,
                     x, y, z, count
                 )
@@ -51,7 +58,7 @@ class LogEventCommand(private val eventsApi: EventsApi, private val serverName: 
             context.source.sendFeedback(
                 {
                     Text.literal(
-                        "Successfully sent event { event=${event}, count=${count} } for player ${player.name.string} " +
+                        "Successfully sent event { event=${event}, count=${count} } for $sourceName " +
                                 "for location [$x, $y, $z] to Dunga Dunga"
                     )
                 },
