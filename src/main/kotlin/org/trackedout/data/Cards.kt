@@ -39,10 +39,14 @@ class Cards {
             TREASURE_HUNTER("treasure_hunter", "✧ Treasure Hunter ✧", 103, "gray"),
         }
 
+        fun findCard(cardName: String): Card? {
+            return Card.entries.find { it.key == cardName || it.displayName == cardName }
+        }
+
         fun cardModelData(cardName: String): Int {
-            val data = Card.entries.find { it.key == cardName || it.displayName == cardName }?.let { it.modelData }
+            val data = findCard(cardName)
             if (data != null) {
-                return data
+                return data.modelData
             } else {
                 throw Exception("Card model data for $cardName not known")
             }
