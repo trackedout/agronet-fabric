@@ -6,6 +6,7 @@ import com.mojang.brigadier.context.CommandContext
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback
 import net.fabricmc.fabric.api.event.player.AttackBlockCallback
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents
 import net.minecraft.block.Block
 import net.minecraft.block.BlockState
 import net.minecraft.entity.player.PlayerEntity
@@ -30,8 +31,10 @@ import org.trackedout.client.apis.EventsApi
 import org.trackedout.client.apis.InventoryApi
 import org.trackedout.client.models.EventsPostRequest
 import org.trackedout.commands.CardPurchasedCommand
+import org.trackedout.commands.FetchPlayerDeckCommand
 import org.trackedout.commands.LogEventCommand
 import org.trackedout.data.Cards
+import org.trackedout.listeners.AgroNetServerPlayConnectionListener
 import java.net.InetAddress
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
@@ -165,6 +168,9 @@ object AgroNet : ModInitializer {
             )
         }
 
+        val fetchPlayerDeckCommand = FetchPlayerDeckCommand(inventoryApi)
+        ServerPlayConnectionEvents.JOIN.register(AgroNetServerPlayConnectionListener(fetchPlayerDeckCommand));
+
         eventsApi.eventsPost(
             EventsPostRequest(
                 name = "server-online",
@@ -264,6 +270,7 @@ object AgroNet : ModInitializer {
         }
 
         player.inventory.updateItems()
+        player.commandTags.remove(RECEIVED_SHULKER);
     }
 
     private const val RECEIVED_SHULKER = "do2.received_shulker"
