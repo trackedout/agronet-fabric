@@ -12,8 +12,10 @@ class AgroNetServerPlayConnectionListener(private val addDeckToPlayerInventoryAc
 
     override fun onPlayReady(handler: ServerPlayNetworkHandler?, sender: PacketSender?, server: MinecraftServer?) {
         logger.debug("onPlayReady", handler, sender, server);
-        if (handler?.player != null && server?.commandSource != null) {
-            addDeckToPlayerInventoryAction.execute(server.commandSource, handler.player!!)
+        handler?.player?.let {player ->
+            server?.commandSource?.let {commandSource ->
+                addDeckToPlayerInventoryAction.execute(commandSource, player)
+            }
         }
     }
 }
