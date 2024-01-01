@@ -21,7 +21,6 @@ import net.minecraft.server.command.CommandOutput
 import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.server.world.ServerWorld
 import net.minecraft.sound.SoundEvents
-import net.minecraft.text.Text
 import net.minecraft.util.ActionResult
 import net.minecraft.util.Formatting
 import net.minecraft.util.math.Vec2f
@@ -29,19 +28,18 @@ import okhttp3.OkHttpClient
 import org.slf4j.LoggerFactory
 import org.trackedout.client.apis.EventsApi
 import org.trackedout.client.apis.InventoryApi
-import org.trackedout.client.models.Card
 import org.trackedout.client.models.EventsPostRequest
 import org.trackedout.commands.CardPurchasedCommand
 import org.trackedout.commands.LogEventCommand
+import org.trackedout.data.Cards
 import java.net.InetAddress
-import kotlin.random.Random
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 
 object AgroNet : ModInitializer {
     private val logger = LoggerFactory.getLogger("Agro-net")
 
-    private fun isDeckedOutShulker(it: ItemStack) = it.item.name == Items.SHULKER_BOX.name
+    private fun isDeckedOutShulker(it: ItemStack) = it.item.name == Items.CYAN_SHULKER_BOX.name
     private fun isDeckedOutKey(it: ItemStack) = it.item.name == Items.ECHO_SHARD.name
 
     private fun isDeckedOutDoor(state: BlockState) = state.isOf(Block.getBlockFromItem(Items.BLACKSTONE))
@@ -127,8 +125,7 @@ object AgroNet : ModInitializer {
                 .executes { context ->
                     val player = context.source.player
                     if (player != null) {
-                        val playerCards = inventoryApi.inventoryCardsGet(player = player.name.string, limit = 200, deckId = "1")
-                        giveShulkerToPlayer(player, playerCards.results!!)
+                        giveShulkerToPlayer(context.source, player, inventoryApi)
                     } else {
                         logger.warn("Attempting to give shulker but command is not run as a player, ignoring...")
                     }
@@ -193,7 +190,7 @@ object AgroNet : ModInitializer {
 
     private fun attemptToEnterDungeon(player: PlayerEntity): ActionResult {
         if (player.isSpectator) {
-            player.sendMessage(Text.literal("Sorry, spectators may not enter the dungeon this way").copy().formatted(Formatting.RED))
+            player.sendMessage("Sorry, spectators may not enter the dungeon this way", Formatting.RED)
             logger.warn("Spectator attempting to enter dungeon, rejecting!")
             return ActionResult.FAIL
         }
@@ -204,20 +201,17 @@ object AgroNet : ModInitializer {
 
         if (!player.isReadyToStartDungeonRun()) {
             if (!player.hasKeyInHand()) {
-                player.sendMessage(Text.literal("You need to be holding a key to enter the Dungeon!").copy().formatted(Formatting.RED))
+                player.sendMessage("You need to be holding a key to enter the Dungeon!", Formatting.RED)
                 logger.info("${player.name.string} smacked the door without holding a key, silly player.")
             } else if (!player.hasShulkerInInventory()) {
-                player.sendMessage(
-                    Text.literal("You need your deck (Shulker Box) in your inventory to enter the Dungeon!")
-                        .copy().formatted(Formatting.RED)
-                )
+                player.sendMessage("You need your deck (Shulker Box) in your inventory to enter the Dungeon!", Formatting.RED)
                 logger.info("${player.name.string} smacked the door without their Shulker Box, silly player.")
             }
             return ActionResult.FAIL
         }
 
         // The player is ready to enter the dungeon!
-        player.sendMessage(Text.literal("Entering dungeon, good luck!").copy().formatted(Formatting.BLUE))
+        player.sendMessage("Entering dungeon, good luck!", Formatting.BLUE)
         logger.info("${player.name.string} is entering the dungeon!")
         takeShulkerFromPlayer(player)
 
@@ -240,16 +234,18 @@ object AgroNet : ModInitializer {
     }
 
     private fun takeShulkerFromPlayer(player: PlayerEntity) {
-        player.inventory.remove(
+        val removedItems = player.inventory.remove(
             { item ->
                 if (isDeckedOutShulker(item)) {
-                    logger.info("Removing shulker!")
+                    player.debug("Removing Decked Out 2 shulker from your inventory")
+                    logger.info("Removing ${player.name.string}'s shulker from their inventory")
                     val nbt = item.nbt
                     if (nbt != null) {
                         logger.info("NBT data: ${nbt.asString()}")
                     } else {
                         logger.warn("NBT data not present!")
                     }
+
                     true
                 } else {
                     false
@@ -259,47 +255,89 @@ object AgroNet : ModInitializer {
             player.playerScreenHandler.craftingInput
         )
 
+        if (removedItems > 0) {
+            player.commandTags.remove(RECEIVED_SHULKER)
+            player.sendMessage("Your Decked Out shulker has been removed your inventory (it's stored in Dunga Dunga)", Formatting.GREEN)
+        } else {
+            logger.info("${player.name}'s inventory does not contain a Decked Out Shulker")
+            player.sendMessage("Your inventory does not contain a Decked Out Shulker", Formatting.RED)
+        }
+
         player.inventory.updateItems()
     }
 
     private const val RECEIVED_SHULKER = "do2.received_shulker"
 
-    private fun giveShulkerToPlayer(player: PlayerEntity, cards: List<Card>) {
+    private fun giveShulkerToPlayer(source: ServerCommandSource, player: PlayerEntity, inventoryApi: InventoryApi) {
+        player.debug("Player tags: {}".format(player.commandTags))
         logger.debug("Player tags: {}", player.commandTags)
         if (player.commandTags.contains(RECEIVED_SHULKER)) {
-            logger.info("Player ${player.name.string} already has their shulker box, refusing to give them another one")
+            source.sendMessage("Player ${player.name.string} already has their shulker box, refusing to give them another one", Formatting.RED)
+            player.debug("You already have your shulker box, refusing to give you another one")
+            logger.warn("Player ${player.name.string} already has their shulker box, refusing to give them another one")
             return
         }
 
+        player.sendMessage("Fetching your Decked Out shulker from Dunga Dunga...", Formatting.GRAY)
+        val cards = inventoryApi.inventoryCardsGet(player = player.name.string, limit = 200, deckId = "1").results!!
+
         val shulkerNbt =
-            StringNbtReader.parse("{${BlockItem.BLOCK_ENTITY_TAG_KEY}:{Items:[],id:\"minecraft:shulker_box\"}}")
+            StringNbtReader.parse("{${BlockItem.BLOCK_ENTITY_TAG_KEY}:{Items:[],id:\"minecraft:cyan_shulker_box\"}}")
         val blockCompound = shulkerNbt.getCompound(BlockItem.BLOCK_ENTITY_TAG_KEY)
         val shulkerItems = blockCompound["Items"] as NbtList
 
+        val nameJson = "{\"text\":\"❄☠ Frozen Assets ☠❄\"}"
+        val display = NbtCompound()
+        display.putString("Name", nameJson)
+        shulkerNbt.put("display", display)
+        shulkerNbt.putString("owner", player.name.string)
+        shulkerNbt.putUuid("owner-id", player.uuid)
+
         val cardCount = cards.groupingBy { it.name!! }.eachCount()
         var cardIndex = 0
+        player.debug("Your shulker should contain ${cards.size} cards:")
         cardCount.forEach { (cardName, count) ->
+            player.debug("- ${count}x $cardName")
             logger.info("${player.name.string}'s shulker should contain ${count}x $cardName")
-            shulkerItems.add(createCard(cardIndex++, cardName, count))
+
+            val card = Cards.findCard(cardName)
+            if (card == null) {
+                player.sendMessage("Unknown card '${cardName}', Agronet will not add it to your deck", Formatting.RED)
+                logger.error("Unknown card '${cardName}', Agronet cannot add it to ${player.name.string}'s deck")
+            } else {
+                val cardData = createCard(cardIndex++, card, count)
+                shulkerItems.add(cardData)
+            }
         }
         shulkerNbt.put(BlockItem.BLOCK_ENTITY_TAG_KEY, blockCompound)
 
-        val shulkerBox = ItemStack(Items.SHULKER_BOX)
+        val shulkerBox = ItemStack(Items.CYAN_SHULKER_BOX)
         shulkerBox.nbt = shulkerNbt
 
         val inventory = player.inventory
-        inventory.insertStack(shulkerBox)
+        if (!inventory.insertStack(shulkerBox)) {
+            logger.warn("Failed to give ${player.name} a Decked Out Shulker as their inventory is full")
+            player.sendMessage("Failed to give you your Decked Out Shulker as your inventory is full", Formatting.RED)
+            return
+        }
         inventory.updateItems()
 
         player.addCommandTag(RECEIVED_SHULKER)
+        player.sendMessage("Your Decked Out shulker has been placed in your inventory", Formatting.GREEN)
     }
 
-    private fun createCard(index: Int, cardName: String, count: Int): NbtCompound {
+    private fun createCard(index: Int, card: Cards.Companion.Card, count: Int): NbtCompound {
         val nbt = NbtCompound()
         ItemStack(Items.IRON_NUGGET, count).writeNbt(nbt)
         val tag = NbtCompound()
-        // TODO: Use cardName to determine model data ID - https://pastebin.com/DxUsy5rb
-        tag.putInt("CustomModelData", Random.nextInt(0, 12345))
+
+        val nameJson = "{\"color\":\"${card.colour}\",\"text\":\"${card.displayName}\"}"
+        val display = NbtCompound()
+        display.putString("Name", nameJson)
+        display.putString("NameFormat", "{\"color\":\"${card.colour}\",\"OriginalName\":\"${nameJson}\"}")
+        tag.put("display", display)
+
+        tag.putInt("CustomModelData", card.modelData)
         nbt.put("tag", tag)
         nbt.putByte("Slot", index.toByte())
 
