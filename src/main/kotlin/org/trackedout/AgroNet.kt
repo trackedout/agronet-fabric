@@ -6,15 +6,12 @@ import com.mojang.brigadier.context.CommandContext
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback
 import net.fabricmc.fabric.api.event.player.AttackBlockCallback
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents
 import net.minecraft.block.Block
 import net.minecraft.block.BlockState
 import net.minecraft.entity.player.PlayerEntity
-import net.minecraft.item.BlockItem
 import net.minecraft.item.ItemStack
 import net.minecraft.item.Items
-import net.minecraft.nbt.NbtCompound
-import net.minecraft.nbt.NbtList
-import net.minecraft.nbt.StringNbtReader
 import net.minecraft.server.command.CommandManager.argument
 import net.minecraft.server.command.CommandManager.literal
 import net.minecraft.server.command.CommandOutput
@@ -30,12 +27,14 @@ import org.trackedout.client.apis.EventsApi
 import org.trackedout.client.apis.InventoryApi
 import org.trackedout.client.models.EventsPostRequest
 import org.trackedout.commands.CardPurchasedCommand
+import org.trackedout.actions.AddDeckToPlayerInventoryAction
 import org.trackedout.commands.LogEventCommand
-import org.trackedout.data.Cards
+import org.trackedout.listeners.AgroNetServerPlayConnectionListener
 import java.net.InetAddress
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 
+const val RECEIVED_SHULKER = "do2.received_shulker"
 object AgroNet : ModInitializer {
     private val logger = LoggerFactory.getLogger("Agro-net")
 
@@ -87,6 +86,8 @@ object AgroNet : ModInitializer {
                 .build()
         )
 
+        val addDeckToPlayerInventoryAction = AddDeckToPlayerInventoryAction(inventoryApi)
+
 
         AttackBlockCallback.EVENT.register { player, world, hand, pos, direction ->
             val state = world.getBlockState(pos)
@@ -125,7 +126,7 @@ object AgroNet : ModInitializer {
                 .executes { context ->
                     val player = context.source.player
                     if (player != null) {
-                        giveShulkerToPlayer(context.source, player, inventoryApi)
+                        addDeckToPlayerInventoryAction.execute(context.source, player)
                     } else {
                         logger.warn("Attempting to give shulker but command is not run as a player, ignoring...")
                     }
@@ -164,6 +165,8 @@ object AgroNet : ModInitializer {
                 )
             )
         }
+
+        ServerPlayConnectionEvents.JOIN.register(AgroNetServerPlayConnectionListener(addDeckToPlayerInventoryAction));
 
         eventsApi.eventsPost(
             EventsPostRequest(
@@ -264,83 +267,7 @@ object AgroNet : ModInitializer {
         }
 
         player.inventory.updateItems()
+        player.commandTags.remove(RECEIVED_SHULKER);
     }
 
-    private const val RECEIVED_SHULKER = "do2.received_shulker"
-
-    private fun giveShulkerToPlayer(source: ServerCommandSource, player: PlayerEntity, inventoryApi: InventoryApi) {
-        player.debug("Player tags: {}".format(player.commandTags))
-        logger.debug("Player tags: {}", player.commandTags)
-        if (player.commandTags.contains(RECEIVED_SHULKER)) {
-            source.sendMessage("Player ${player.name.string} already has their shulker box, refusing to give them another one", Formatting.RED)
-            player.debug("You already have your shulker box, refusing to give you another one")
-            logger.warn("Player ${player.name.string} already has their shulker box, refusing to give them another one")
-            return
-        }
-
-        player.sendMessage("Fetching your Decked Out shulker from Dunga Dunga...", Formatting.GRAY)
-        val cards = inventoryApi.inventoryCardsGet(player = player.name.string, limit = 200, deckId = "1").results!!
-
-        val shulkerNbt =
-            StringNbtReader.parse("{${BlockItem.BLOCK_ENTITY_TAG_KEY}:{Items:[],id:\"minecraft:cyan_shulker_box\"}}")
-        val blockCompound = shulkerNbt.getCompound(BlockItem.BLOCK_ENTITY_TAG_KEY)
-        val shulkerItems = blockCompound["Items"] as NbtList
-
-        val nameJson = "{\"text\":\"❄☠ Frozen Assets ☠❄\"}"
-        val display = NbtCompound()
-        display.putString("Name", nameJson)
-        shulkerNbt.put("display", display)
-        shulkerNbt.putString("owner", player.name.string)
-        shulkerNbt.putUuid("owner-id", player.uuid)
-
-        val cardCount = cards.groupingBy { it.name!! }.eachCount()
-        var cardIndex = 0
-        player.debug("Your shulker should contain ${cards.size} cards:")
-        cardCount.forEach { (cardName, count) ->
-            player.debug("- ${count}x $cardName")
-            logger.info("${player.name.string}'s shulker should contain ${count}x $cardName")
-
-            val card = Cards.findCard(cardName)
-            if (card == null) {
-                player.sendMessage("Unknown card '${cardName}', Agronet will not add it to your deck", Formatting.RED)
-                logger.error("Unknown card '${cardName}', Agronet cannot add it to ${player.name.string}'s deck")
-            } else {
-                val cardData = createCard(cardIndex++, card, count)
-                shulkerItems.add(cardData)
-            }
-        }
-        shulkerNbt.put(BlockItem.BLOCK_ENTITY_TAG_KEY, blockCompound)
-
-        val shulkerBox = ItemStack(Items.CYAN_SHULKER_BOX)
-        shulkerBox.nbt = shulkerNbt
-
-        val inventory = player.inventory
-        if (!inventory.insertStack(shulkerBox)) {
-            logger.warn("Failed to give ${player.name} a Decked Out Shulker as their inventory is full")
-            player.sendMessage("Failed to give you your Decked Out Shulker as your inventory is full", Formatting.RED)
-            return
-        }
-        inventory.updateItems()
-
-        player.addCommandTag(RECEIVED_SHULKER)
-        player.sendMessage("Your Decked Out shulker has been placed in your inventory", Formatting.GREEN)
-    }
-
-    private fun createCard(index: Int, card: Cards.Companion.Card, count: Int): NbtCompound {
-        val nbt = NbtCompound()
-        ItemStack(Items.IRON_NUGGET, count).writeNbt(nbt)
-        val tag = NbtCompound()
-
-        val nameJson = "{\"color\":\"${card.colour}\",\"text\":\"${card.displayName}\"}"
-        val display = NbtCompound()
-        display.putString("Name", nameJson)
-        display.putString("NameFormat", "{\"color\":\"${card.colour}\",\"OriginalName\":\"${nameJson}\"}")
-        tag.put("display", display)
-
-        tag.putInt("CustomModelData", card.modelData)
-        nbt.put("tag", tag)
-        nbt.putByte("Slot", index.toByte())
-
-        return nbt
-    }
 }
