@@ -1,6 +1,5 @@
 package org.trackedout.actions
 
-import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.BlockItem
 import net.minecraft.item.ItemStack
 import net.minecraft.item.Items
@@ -11,12 +10,11 @@ import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.util.Formatting
 import org.slf4j.LoggerFactory
-import org.trackedout.AgroNet
+import org.trackedout.RECEIVED_SHULKER
 import org.trackedout.client.apis.InventoryApi
 import org.trackedout.data.Cards
 import org.trackedout.debug
 import org.trackedout.sendMessage
-import kotlin.random.Random
 
 class AddDeckToPlayerInventoryAction (
     private val inventoryApi: InventoryApi
@@ -28,7 +26,7 @@ class AddDeckToPlayerInventoryAction (
 
         player.debug("Player tags: {}".format(player.commandTags))
         logger.debug("Player tags: {}", player.commandTags)
-        if (player.commandTags.contains(AgroNet.RECEIVED_SHULKER)) {
+        if (player.commandTags.contains(RECEIVED_SHULKER)) {
             source.sendMessage("Player ${player.name.string} already has their shulker box, refusing to give them another one", Formatting.RED)
             player.debug("You already have your shulker box, refusing to give you another one")
             logger.warn("Player ${player.name.string} already has their shulker box, refusing to give them another one")
@@ -79,7 +77,7 @@ class AddDeckToPlayerInventoryAction (
         }
         inventory.updateItems()
 
-        player.addCommandTag(AgroNet.RECEIVED_SHULKER)
+        player.addCommandTag(RECEIVED_SHULKER)
         player.sendMessage("Your Decked Out shulker has been placed in your inventory", Formatting.GREEN)
     }
 
