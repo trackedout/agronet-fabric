@@ -3,7 +3,10 @@ package org.trackedout.actions
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.util.Formatting
 import org.slf4j.LoggerFactory
-import org.trackedout.*
+import org.trackedout.RECEIVED_SHULKER
+import org.trackedout.debug
+import org.trackedout.isDeckedOutShulker
+import org.trackedout.sendMessage
 
 class RemoveDeckFromPlayerInventoryAction {
     private val logger = LoggerFactory.getLogger("Agro-net")
@@ -33,13 +36,13 @@ class RemoveDeckFromPlayerInventoryAction {
 
         if (removedItems > 0) {
             player.commandTags.remove(RECEIVED_SHULKER)
-            player.sendMessage("Your Decked Out shulker has been removed your inventory (it's stored in Dunga Dunga)", Formatting.GREEN)
+            player.sendMessage("Your Decked Out shulker has been removed from your inventory (it's stored in Dunga Dunga)", Formatting.GREEN)
         } else {
             logger.info("${player.name}'s inventory does not contain a Decked Out Shulker")
             player.sendMessage("Your inventory does not contain a Decked Out Shulker", Formatting.RED)
         }
 
         player.inventory.updateItems()
-        player.commandTags.remove(RECEIVED_SHULKER);
+        player.commandTags.remove(RECEIVED_SHULKER)
     }
 }

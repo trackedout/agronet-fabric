@@ -31,6 +31,7 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 
 const val RECEIVED_SHULKER = "do2.received_shulker"
+
 object AgroNet : ModInitializer {
     private val logger = LoggerFactory.getLogger("Agro-net")
 
@@ -149,7 +150,7 @@ object AgroNet : ModInitializer {
             )
         }
 
-        ServerPlayConnectionEvents.JOIN.register(AgroNetServerPlayConnectionListener(addDeckToPlayerInventoryAction));
+        ServerPlayConnectionEvents.JOIN.register(AgroNetServerPlayConnectionListener(addDeckToPlayerInventoryAction))
 
         eventsApi.eventsPost(
             EventsPostRequest(
@@ -221,5 +222,4 @@ object AgroNet : ModInitializer {
 
         return ActionResult.SUCCESS
     }
-
 }
