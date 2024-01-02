@@ -2,16 +2,11 @@ package org.trackedout
 
 import com.mojang.brigadier.arguments.IntegerArgumentType
 import com.mojang.brigadier.arguments.StringArgumentType
-import com.mojang.brigadier.context.CommandContext
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback
 import net.fabricmc.fabric.api.event.player.AttackBlockCallback
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents
-import net.minecraft.block.Block
-import net.minecraft.block.BlockState
 import net.minecraft.entity.player.PlayerEntity
-import net.minecraft.item.ItemStack
-import net.minecraft.item.Items
 import net.minecraft.server.command.CommandManager.argument
 import net.minecraft.server.command.CommandManager.literal
 import net.minecraft.server.command.CommandOutput
@@ -23,11 +18,12 @@ import net.minecraft.util.Formatting
 import net.minecraft.util.math.Vec2f
 import okhttp3.OkHttpClient
 import org.slf4j.LoggerFactory
+import org.trackedout.actions.AddDeckToPlayerInventoryAction
+import org.trackedout.actions.RemoveDeckFromPlayerInventoryAction
 import org.trackedout.client.apis.EventsApi
 import org.trackedout.client.apis.InventoryApi
 import org.trackedout.client.models.EventsPostRequest
 import org.trackedout.commands.CardPurchasedCommand
-import org.trackedout.actions.AddDeckToPlayerInventoryAction
 import org.trackedout.commands.LogEventCommand
 import org.trackedout.listeners.AgroNetServerPlayConnectionListener
 import java.net.InetAddress
@@ -37,30 +33,6 @@ import kotlin.time.toJavaDuration
 const val RECEIVED_SHULKER = "do2.received_shulker"
 object AgroNet : ModInitializer {
     private val logger = LoggerFactory.getLogger("Agro-net")
-
-    private fun isDeckedOutShulker(it: ItemStack) = it.item.name == Items.CYAN_SHULKER_BOX.name
-    private fun isDeckedOutKey(it: ItemStack) = it.item.name == Items.ECHO_SHARD.name
-
-    private fun isDeckedOutDoor(state: BlockState) = state.isOf(Block.getBlockFromItem(Items.BLACKSTONE))
-
-    private fun PlayerEntity.isReadyToStartDungeonRun(): Boolean {
-        return hasShulkerInInventory() && this.hasKeyInHand()
-    }
-
-    private fun PlayerEntity.hasShulkerInInventory() = this.inventory.containsAny(::isDeckedOutShulker)
-
-    private fun PlayerEntity.hasKeyInHand(): Boolean = this.handItems.any(::isDeckedOutKey)
-
-    private val takeShulkerCommand = { context: CommandContext<ServerCommandSource> ->
-        val player = context.source.player
-        if (player != null) {
-            takeShulkerFromPlayer(player)
-        } else {
-            logger.warn("Attempting to take shulker but command is not run as a player, ignoring...")
-        }
-
-        1
-    }
 
     override fun onInitialize() {
         // This code runs as soon as Minecraft is in a mod-load-ready state.
@@ -87,11 +59,12 @@ object AgroNet : ModInitializer {
         )
 
         val addDeckToPlayerInventoryAction = AddDeckToPlayerInventoryAction(inventoryApi)
+        val removeDeckFromPlayerInventoryAction = RemoveDeckFromPlayerInventoryAction()
 
 
         AttackBlockCallback.EVENT.register { player, world, hand, pos, direction ->
             val state = world.getBlockState(pos)
-            if (!isDeckedOutDoor(state)) {
+            if (state.isDeckedOutDoor()) {
                 return@register ActionResult.PASS
             }
 
@@ -110,13 +83,23 @@ object AgroNet : ModInitializer {
                     }
 
                     1
-                })
+                }
+            )
         }
 
         CommandRegistrationCallback.EVENT.register { dispatcher, _, _ ->
             dispatcher.register(literal("take-shulker")
                 .requires { it.hasPermissionLevel(2) } // Command Blocks have permission level of 2
-                .executes(takeShulkerCommand)
+                .executes { context ->
+                    val player = context.source.player
+                    if (player != null) {
+                        removeDeckFromPlayerInventoryAction.execute(player)
+                    } else {
+                        logger.warn("Attempting to take shulker but command is not run as a player, ignoring...")
+                    }
+
+                    1
+                }
             )
         }
 
@@ -191,6 +174,7 @@ object AgroNet : ModInitializer {
         return value
     }
 
+    //TODO Refactor to an action
     private fun attemptToEnterDungeon(player: PlayerEntity): ActionResult {
         if (player.isSpectator) {
             player.sendMessage("Sorry, spectators may not enter the dungeon this way", Formatting.RED)
@@ -216,7 +200,9 @@ object AgroNet : ModInitializer {
         // The player is ready to enter the dungeon!
         player.sendMessage("Entering dungeon, good luck!", Formatting.BLUE)
         logger.info("${player.name.string} is entering the dungeon!")
-        takeShulkerFromPlayer(player)
+
+        val removeDeckFromPlayerInventoryAction = RemoveDeckFromPlayerInventoryAction()
+        removeDeckFromPlayerInventoryAction.execute(player)
 
         val commandSource = ServerCommandSource(
             CommandOutput.DUMMY,
@@ -234,40 +220,6 @@ object AgroNet : ModInitializer {
         player.playSound(SoundEvents.ENTITY_WARDEN_EMERGE, player.soundCategory, 1.0f, 1.0f)
 
         return ActionResult.SUCCESS
-    }
-
-    private fun takeShulkerFromPlayer(player: PlayerEntity) {
-        val removedItems = player.inventory.remove(
-            { item ->
-                if (isDeckedOutShulker(item)) {
-                    player.debug("Removing Decked Out 2 shulker from your inventory")
-                    logger.info("Removing ${player.name.string}'s shulker from their inventory")
-                    val nbt = item.nbt
-                    if (nbt != null) {
-                        logger.info("NBT data: ${nbt.asString()}")
-                    } else {
-                        logger.warn("NBT data not present!")
-                    }
-
-                    true
-                } else {
-                    false
-                }
-            },
-            -1,
-            player.playerScreenHandler.craftingInput
-        )
-
-        if (removedItems > 0) {
-            player.commandTags.remove(RECEIVED_SHULKER)
-            player.sendMessage("Your Decked Out shulker has been removed your inventory (it's stored in Dunga Dunga)", Formatting.GREEN)
-        } else {
-            logger.info("${player.name}'s inventory does not contain a Decked Out Shulker")
-            player.sendMessage("Your inventory does not contain a Decked Out Shulker", Formatting.RED)
-        }
-
-        player.inventory.updateItems()
-        player.commandTags.remove(RECEIVED_SHULKER);
     }
 
 }
