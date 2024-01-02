@@ -149,7 +149,7 @@ class EventsApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClient 
             path = "/events",
             query = localVariableQuery,
             headers = localVariableHeaders,
-            requiresAuthentication = true,
+            requiresAuthentication = false,
             body = localVariableBody
         )
     }
@@ -221,7 +221,7 @@ class EventsApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClient 
             path = "/events",
             query = localVariableQuery,
             headers = localVariableHeaders,
-            requiresAuthentication = true,
+            requiresAuthentication = false,
             body = localVariableBody
         )
     }

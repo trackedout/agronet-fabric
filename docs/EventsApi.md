@@ -58,9 +58,7 @@ Name | Type | Description  | Notes
 
 ### Authorization
 
-
-Configure bearerAuth:
-    ApiClient.accessToken = ""
+No authorization required
 
 ### HTTP request headers
 
@@ -107,9 +105,7 @@ Name | Type | Description  | Notes
 
 ### Authorization
 
-
-Configure bearerAuth:
-    ApiClient.accessToken = ""
+No authorization required
 
 ### HTTP request headers
 

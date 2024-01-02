@@ -6,8 +6,13 @@ docs/EventsGet200Response.md
 docs/EventsPostRequest.md
 docs/InventoryApi.md
 docs/InventoryCardsGet200Response.md
+docs/Task.md
+docs/TasksApi.md
+docs/TasksGet200Response.md
+docs/TasksIdPatchRequest.md
 src/main/kotlin/org/trackedout/client/apis/EventsApi.kt
 src/main/kotlin/org/trackedout/client/apis/InventoryApi.kt
+src/main/kotlin/org/trackedout/client/apis/TasksApi.kt
 src/main/kotlin/org/trackedout/client/infrastructure/ApiAbstractions.kt
 src/main/kotlin/org/trackedout/client/infrastructure/ApiClient.kt
 src/main/kotlin/org/trackedout/client/infrastructure/ApiResponse.kt
@@ -31,3 +36,6 @@ src/main/kotlin/org/trackedout/client/models/Event.kt
 src/main/kotlin/org/trackedout/client/models/EventsGet200Response.kt
 src/main/kotlin/org/trackedout/client/models/EventsPostRequest.kt
 src/main/kotlin/org/trackedout/client/models/InventoryCardsGet200Response.kt
+src/main/kotlin/org/trackedout/client/models/Task.kt
+src/main/kotlin/org/trackedout/client/models/TasksGet200Response.kt
+src/main/kotlin/org/trackedout/client/models/TasksIdPatchRequest.kt
