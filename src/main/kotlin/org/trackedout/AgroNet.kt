@@ -65,7 +65,7 @@ object AgroNet : ModInitializer {
 
         AttackBlockCallback.EVENT.register { player, world, hand, pos, direction ->
             val state = world.getBlockState(pos)
-            if (state.isDeckedOutDoor()) {
+            if (!state.isDeckedOutDoor()) {
                 return@register ActionResult.PASS
             }
 
