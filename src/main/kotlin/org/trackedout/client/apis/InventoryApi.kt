@@ -38,6 +38,7 @@ import org.trackedout.client.infrastructure.RequestMethod
 import org.trackedout.client.infrastructure.ResponseType
 import org.trackedout.client.infrastructure.Success
 import org.trackedout.client.infrastructure.toMultiValue
+import java.net.InetAddress
 
 class InventoryApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClient = ApiClient.defaultClient) : ApiClient(basePath, client) {
     companion object {
@@ -301,6 +302,43 @@ class InventoryApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClie
         )
     }
 
+    fun inventoryOverwritePlayersDeck(player: kotlin.String, deckId: kotlin.String, cards: kotlin.Array<kotlin.String>) {
+        val queryParams: MultiValueMap = mutableMapOf(
+            "player" to listOf(player),
+            "deckId" to listOf(deckId),
+            "server" to listOf(InetAddress.getLocalHost().hostName)
+        )
+
+        val headers: MutableMap<String, String> = mutableMapOf(
+            "Content-Type" to "application/json",
+            "Accept" to "application/json"
+        )
+
+        val requestConfig = RequestConfig(
+            method = RequestMethod.PUT,
+            path = "/inventory/overwrite-player-deck",
+            query = queryParams,
+            headers = headers,
+            requiresAuthentication = false,
+            body = cards
+        )
+
+        val response = request<Array<String>, Unit>(requestConfig)
+
+        return when (response.responseType) {
+            ResponseType.Success -> Unit
+            ResponseType.Informational -> throw UnsupportedOperationException("Client does not support Informational responses.")
+            ResponseType.Redirection -> throw UnsupportedOperationException("Client does not support Redirection responses.")
+            ResponseType.ClientError -> {
+                val localVarError = response as ClientError<*>
+                throw ClientException("Client error : ${localVarError.statusCode} ${localVarError.message.orEmpty()}", localVarError.statusCode, response)
+            }
+            ResponseType.ServerError -> {
+                val localVarError = response as ServerError<*>
+                throw ServerException("Server error : ${localVarError.statusCode} ${localVarError.message.orEmpty()} ${localVarError.body}", localVarError.statusCode, response)
+            }
+        }
+    }
 
     private fun encodeURIComponent(uriComponent: kotlin.String): kotlin.String =
         HttpUrl.Builder().scheme("http").host("localhost").addPathSegment(uriComponent).build().encodedPathSegments[0]
