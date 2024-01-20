@@ -16,7 +16,7 @@ import org.trackedout.data.Cards
 import org.trackedout.debug
 import org.trackedout.sendMessage
 
-class AddDeckToPlayerInventoryAction (
+class AddDeckToPlayerInventoryAction(
     private val inventoryApi: InventoryApi
 ) {
     private val logger = LoggerFactory.getLogger("Agro-net")
@@ -24,7 +24,7 @@ class AddDeckToPlayerInventoryAction (
     fun execute(source: ServerCommandSource, player: ServerPlayerEntity) {
         logger.debug("Fetch player deck command")
 
-        player.debug("Player tags: {}".format(player.commandTags))
+        player.debug("Player tags: ${player.commandTags}")
         logger.debug("Player tags: {}", player.commandTags)
         if (player.commandTags.contains(RECEIVED_SHULKER)) {
             source.sendMessage("Player ${player.name.string} already has their shulker box, refusing to give them another one", Formatting.RED)

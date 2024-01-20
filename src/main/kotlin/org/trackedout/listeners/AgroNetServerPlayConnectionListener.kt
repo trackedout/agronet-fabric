@@ -11,9 +11,9 @@ class AgroNetServerPlayConnectionListener(private val addDeckToPlayerInventoryAc
     private val logger = LoggerFactory.getLogger("ServerPlayConnectionJoin")
 
     override fun onPlayReady(handler: ServerPlayNetworkHandler?, sender: PacketSender?, server: MinecraftServer?) {
-        logger.debug("onPlayReady", handler, sender, server);
-        handler?.player?.let {player ->
-            server?.commandSource?.let {commandSource ->
+        logger.debug("onPlayReady", handler, sender, server)
+        handler?.player?.let { player ->
+            server?.commandSource?.let { commandSource ->
                 addDeckToPlayerInventoryAction.execute(commandSource, player)
             }
         }
