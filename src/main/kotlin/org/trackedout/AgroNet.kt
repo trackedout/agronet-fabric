@@ -17,7 +17,9 @@ import org.trackedout.client.models.EventsPostRequest
 import org.trackedout.commands.CardPurchasedCommand
 import org.trackedout.commands.LogEventCommand
 import org.trackedout.listeners.AgroNetServerPlayConnectionListener
+import redis.clients.jedis.Jedis
 import java.net.InetAddress
+import java.util.concurrent.CompletableFuture
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 
@@ -114,6 +116,25 @@ object AgroNet : ModInitializer {
                         .executes(cardPurchasedCommand::run)
                 )
             )
+        }
+
+        CommandRegistrationCallback.EVENT.register { dispatcher, _, _ ->
+            dispatcher.register(literal("update-datapack")
+                    .requires { it.hasPermissionLevel(2) } // Player should have permission level of 2
+                    .executes { _ ->
+                        CompletableFuture.runAsync(Runnable {
+                            try {
+                                val redisIp = System.getenv("REDIS_IP") ?: "redis";
+                                val redisPort = System.getenv("REDIS_PORT")?.toIntOrNull() ?: 6379;
+                                val redisPassword = System.getenv("REDIS_PASSWORD");
+                                val jedis = Jedis(redisIp, redisPort).apply { auth(redisPassword) }
+                                jedis.use { it.publish("datapack-updates", "request-update") }
+                            } catch (e: Exception) {
+                                logger.error("Error publishing to Redis: ${e.message}");
+                            }
+                        })
+                        1
+                    })
         }
 
         ServerPlayConnectionEvents.JOIN.register(AgroNetServerPlayConnectionListener(addDeckToPlayerInventoryAction))

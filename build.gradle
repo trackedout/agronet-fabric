@@ -59,6 +59,9 @@ dependencies {
     include modImplementation("com.squareup.moshi:moshi-kotlin:1.14.0")
 
     include modImplementation("com.squareup.okio:okio-jvm:3.0.0")
+
+    // Redis database connection
+    implementation "redis.clients:jedis:5.0.0"
 }
 
 processResources {
