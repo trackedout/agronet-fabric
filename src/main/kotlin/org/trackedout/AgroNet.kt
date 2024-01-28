@@ -1,5 +1,6 @@
 package org.trackedout
 
+
 import com.mojang.brigadier.arguments.IntegerArgumentType
 import com.mojang.brigadier.arguments.StringArgumentType
 import net.fabricmc.api.ModInitializer
@@ -17,11 +18,17 @@ import org.trackedout.client.models.EventsPostRequest
 import org.trackedout.commands.CardPurchasedCommand
 import org.trackedout.commands.LogEventCommand
 import org.trackedout.listeners.AgroNetServerPlayConnectionListener
+import redis.clients.jedis.DefaultJedisClientConfig
 import redis.clients.jedis.Jedis
+import redis.clients.jedis.JedisClientConfig
 import java.net.InetAddress
 import java.util.concurrent.CompletableFuture
+import kotlin.system.exitProcess
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
+import java.net.Socket
+
+
 
 const val RECEIVED_SHULKER = "do2.received_shulker"
 
@@ -118,21 +125,58 @@ object AgroNet : ModInitializer {
             )
         }
 
+
         CommandRegistrationCallback.EVENT.register { dispatcher, _, _ ->
             dispatcher.register(literal("update-datapack")
                     .requires { it.hasPermissionLevel(2) } // Player should have permission level of 2
                     .executes { _ ->
                         CompletableFuture.runAsync(Runnable {
+                            val redisIp = System.getenv("REDIS_IP") ?: "redis"
+                            val redisPort = System.getenv("REDIS_PORT")?.toIntOrNull() ?: 6379
+                            val redisPassword = System.getenv("REDIS_PASSWORD") ?: "a-password"
+
+                            // TEST 1
                             try {
-                                val redisIp = System.getenv("REDIS_IP") ?: "redis";
-                                val redisPort = System.getenv("REDIS_PORT")?.toIntOrNull() ?: 6379;
-                                val redisPassword = System.getenv("REDIS_PASSWORD");
-                                val jedis = Jedis(redisIp, redisPort).apply { auth(redisPassword) }
-                                logger.info("Logging into redis with credentials: {host: ${redisIp}, port: ${redisPort}, password: ${redisPassword}}")
-                                jedis.use { it.publish("datapack-updates", "test-request-update") }
+                                val socket = Socket(redisIp, redisPort)
+                                socket.close()
+                                logger.info("Successfully established a socket connection to Redis.")
                             } catch (e: Exception) {
-                                logger.error("Error publishing to Redis: ${e.message}");
+                                logger.error("Failed to establish a socket connection to Redis: ${e.message}")
+                                e.printStackTrace()
                             }
+
+                            // TEST 2
+                            try {
+                                val address = InetAddress.getByName(redisIp)
+                                if (address.isReachable(5000)) { // Timeout in milliseconds
+                                    logger.info("Host $redisIp is reachable.")
+                                } else {
+                                    logger.error("Host $redisIp is not reachable.")
+                                }
+                            } catch (e: Exception) {
+                                logger.error("Error checking host reachability: ${e.message}")
+                                e.printStackTrace()
+                            }
+
+
+                            logger.info("[AGRONET]: Logging into redis with credentials: {host: ${redisIp}, port: ${redisPort}, password: ${redisPassword}}")
+                            try {
+                                val jedis = Jedis(redisIp, redisPort)
+                                logger.info("[AGRONET]: Authenticating jedis")
+                                jedis.auth(redisPassword)
+                                logger.info("[AGRONET]: Jedis connection status: ${jedis.isConnected}")
+                                jedis.use {
+                                    logger.info("[AGRONET]: going to publish on Jedis instance")
+                                    it.publish("datapack-updates", "test-request-update")
+                                    logger.info("[AGRONET]: Redis message sent successfully.")
+                                }
+                                exitProcess(100)
+                            } catch (e: Exception) {
+                                logger.error("[AGRONET]: Error publishing to Redis: ${e.message}")
+                                e.printStackTrace()
+                                exitProcess(101)
+                            }
+                            exitProcess(102)
                         })
                         1
                     })
