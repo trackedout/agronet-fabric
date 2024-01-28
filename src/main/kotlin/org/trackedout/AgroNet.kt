@@ -128,7 +128,8 @@ object AgroNet : ModInitializer {
                                 val redisPort = System.getenv("REDIS_PORT")?.toIntOrNull() ?: 6379;
                                 val redisPassword = System.getenv("REDIS_PASSWORD");
                                 val jedis = Jedis(redisIp, redisPort).apply { auth(redisPassword) }
-                                jedis.use { it.publish("datapack-updates", "request-update") }
+                                logger.info("Logging into redis with credentials: {host: ${redisIp}, port: ${redisPort}, password: ${redisPassword}}")
+                                jedis.use { it.publish("datapack-updates", "test-request-update") }
                             } catch (e: Exception) {
                                 logger.error("Error publishing to Redis: ${e.message}");
                             }
