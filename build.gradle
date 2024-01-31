@@ -3,8 +3,6 @@ plugins {
     id 'maven-publish'
     id "org.jetbrains.kotlin.jvm" version "1.9.21"
     id "io.swagger.core.v3.swagger-gradle-plugin" version "2.2.19"
-    // shadow plugin for bundling dependencies
-    id 'com.github.johnrengelman.shadow' version '8.1.1'
 }
 
 version = project.mod_version
@@ -33,9 +31,7 @@ loom {
             sourceSet sourceSets.client
         }
     }
-
 }
-
 
 dependencies {
     // To change the versions see the gradle.properties file
@@ -45,10 +41,7 @@ dependencies {
 
     // Fabric API. This is technically optional, but you probably want it anyway.
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-
-    // !! VERY BAD AND UNWISE !!
-    // modImplementation "net.fabricmc:fabric-language-kotlin:${project.fabric_kotlin_version}"
-    implementation("net.fabricmc:fabric-language-kotlin:${project.fabric_kotlin_version}")
+    modImplementation "net.fabricmc:fabric-language-kotlin:${project.fabric_kotlin_version}"
 
     // Uncomment the following line to enable the deprecated Fabric API modules.
     // These are included in the Fabric API production distribution and allow you to update your mod to the latest modules at a later more convenient time.
@@ -69,7 +62,7 @@ dependencies {
 
     // Redis database connection
     implementation("org.jetbrains.kotlin:kotlin-stdlib")
-    implementation("redis.clients:jedis:5.1.0")
+    include modImplementation("redis.clients:jedis:5.1.0")
 }
 
 processResources {
@@ -99,20 +92,6 @@ java {
     sourceCompatibility = JavaVersion.VERSION_17
     targetCompatibility = JavaVersion.VERSION_17
 }
-
-shadowJar {
-    archiveClassifier.set('all')
-    configurations = [project.configurations.runtimeClasspath]
-    from("LICENSE") {
-        rename { "${it}_${project.base.archivesName.get()}" }
-    }
-    duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
-    mergeServiceFiles()
-}
-
-
-//build {dependsOn(shadowJar) }
-assemble { dependsOn(shadowJar) }
 
 jar {
     from("LICENSE") {
