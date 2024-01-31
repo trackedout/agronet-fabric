@@ -187,7 +187,7 @@ object AgroNet : ModInitializer {
         jedis.auth(redisPassword)
         var numRecipients = 0L
         try {
-            numRecipients = jedis.publish("datapack-updates", "test-request-update")
+            numRecipients = jedis.publish("datapack-updates", "request-update")
         } catch (e: Exception) {
             logger.error("[AGRONET]: Error publishing to Redis: ${e.message}")
             e.printStackTrace()
