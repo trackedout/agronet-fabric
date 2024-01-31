@@ -8,6 +8,7 @@ import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents
 import net.minecraft.server.command.CommandManager.argument
 import net.minecraft.server.command.CommandManager.literal
+import net.minecraft.util.Formatting
 import okhttp3.OkHttpClient
 import org.slf4j.LoggerFactory
 import org.trackedout.actions.AddDeckToPlayerInventoryAction
@@ -18,16 +19,11 @@ import org.trackedout.client.models.EventsPostRequest
 import org.trackedout.commands.CardPurchasedCommand
 import org.trackedout.commands.LogEventCommand
 import org.trackedout.listeners.AgroNetServerPlayConnectionListener
-import redis.clients.jedis.DefaultJedisClientConfig
 import redis.clients.jedis.Jedis
-import redis.clients.jedis.JedisClientConfig
 import java.net.InetAddress
-import java.util.concurrent.CompletableFuture
-import kotlin.system.exitProcess
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 import java.net.Socket
-
 
 
 const val RECEIVED_SHULKER = "do2.received_shulker"
@@ -62,6 +58,7 @@ object AgroNet : ModInitializer {
         val addDeckToPlayerInventoryAction = AddDeckToPlayerInventoryAction(inventoryApi)
         val removeDeckFromPlayerInventoryAction = RemoveDeckFromPlayerInventoryAction()
 
+//        sendUpdateRequest()
 
         CommandRegistrationCallback.EVENT.register { dispatcher, _, _ ->
             dispatcher.register(literal("take-shulker")
@@ -128,58 +125,17 @@ object AgroNet : ModInitializer {
 
         CommandRegistrationCallback.EVENT.register { dispatcher, _, _ ->
             dispatcher.register(literal("update-datapack")
-                    .requires { it.hasPermissionLevel(2) } // Player should have permission level of 2
-                    .executes { _ ->
-                        CompletableFuture.runAsync(Runnable {
-                            val redisIp = System.getenv("REDIS_IP") ?: "redis"
-                            val redisPort = System.getenv("REDIS_PORT")?.toIntOrNull() ?: 6379
-                            val redisPassword = System.getenv("REDIS_PASSWORD") ?: "a-password"
-
-                            // TEST 1
-                            try {
-                                val socket = Socket(redisIp, redisPort)
-                                socket.close()
-                                logger.info("Successfully established a socket connection to Redis.")
-                            } catch (e: Exception) {
-                                logger.error("Failed to establish a socket connection to Redis: ${e.message}")
-                                e.printStackTrace()
-                            }
-
-                            // TEST 2
-                            try {
-                                val address = InetAddress.getByName(redisIp)
-                                if (address.isReachable(5000)) { // Timeout in milliseconds
-                                    logger.info("Host $redisIp is reachable.")
-                                } else {
-                                    logger.error("Host $redisIp is not reachable.")
-                                }
-                            } catch (e: Exception) {
-                                logger.error("Error checking host reachability: ${e.message}")
-                                e.printStackTrace()
-                            }
-
-
-                            logger.info("[AGRONET]: Logging into redis with credentials: {host: ${redisIp}, port: ${redisPort}, password: ${redisPassword}}")
-                            try {
-                                val jedis = Jedis(redisIp, redisPort)
-                                logger.info("[AGRONET]: Authenticating jedis")
-                                jedis.auth(redisPassword)
-                                logger.info("[AGRONET]: Jedis connection status: ${jedis.isConnected}")
-                                jedis.use {
-                                    logger.info("[AGRONET]: going to publish on Jedis instance")
-                                    it.publish("datapack-updates", "test-request-update")
-                                    logger.info("[AGRONET]: Redis message sent successfully.")
-                                }
-                                exitProcess(100)
-                            } catch (e: Exception) {
-                                logger.error("[AGRONET]: Error publishing to Redis: ${e.message}")
-                                e.printStackTrace()
-                                exitProcess(101)
-                            }
-                            exitProcess(102)
-                        })
-                        1
-                    })
+                .requires { it.hasPermissionLevel(2) } // Player should have permission level of 2
+                .executes { context ->
+                    val numRecipients = sendUpdateRequest()
+                    var response = "Message received"
+                    if (numRecipients == 0L) {
+                        response = "Failed to send message"
+                    }
+                    logger.info("[AGRONET]: [update-datapack]: $response")
+//                    context.source.player?.sendMessage(response, Formatting.GRAY)
+                    1
+                })
         }
 
         ServerPlayConnectionEvents.JOIN.register(AgroNetServerPlayConnectionListener(addDeckToPlayerInventoryAction))
@@ -197,6 +153,46 @@ object AgroNet : ModInitializer {
         )
 
         logger.info("Agro-net online. Flee with extra flee!")
+    }
+
+    private fun sendUpdateRequest(): Long {
+        val redisIp = System.getenv("REDIS_IP") ?: "10.150.0.6"
+        val redisPort = System.getenv("REDIS_PORT")?.toIntOrNull() ?: 6379
+        val redisPassword = System.getenv("REDIS_PASSWORD") ?: "freehand-cleft-barbados-brooch"
+
+        // TEST 1
+        try {
+            val socket = Socket(redisIp, redisPort)
+            socket.close()
+            logger.info("Successfully established a socket connection to Redis.")
+        } catch (e: Exception) {
+            logger.error("Failed to establish a socket connection to Redis: ${e.message}")
+            e.printStackTrace()
+        }
+
+        // TEST 2
+        try {
+            val address = InetAddress.getByName(redisIp)
+            if (address.isReachable(5000)) { // Timeout in milliseconds
+                logger.info("Host $redisIp is reachable.")
+            } else {
+                logger.error("Host $redisIp is not reachable.")
+            }
+        } catch (e: Exception) {
+            logger.error("Error checking host reachability: ${e.message}")
+            e.printStackTrace()
+        }
+
+        val jedis = Jedis(redisIp, redisPort)
+        jedis.auth(redisPassword)
+        var numRecipients = 0L
+        try {
+            numRecipients = jedis.publish("datapack-updates", "test-request-update")
+        } catch (e: Exception) {
+            logger.error("[AGRONET]: Error publishing to Redis: ${e.message}")
+            e.printStackTrace()
+        }
+        return numRecipients
     }
 
     private fun getEnvOrDefault(key: String, default: String): String {
