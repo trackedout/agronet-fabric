@@ -20,6 +20,8 @@ repositories {
     // for more information about repositories.
 
     mavenCentral()
+    maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
+
 }
 
 loom {
@@ -63,6 +65,9 @@ dependencies {
     // Redis database connection
     implementation("org.jetbrains.kotlin:kotlin-stdlib")
     include modImplementation("redis.clients:jedis:5.1.0")
+
+    // Fabric permissions
+    include(modImplementation('me.lucko:fabric-permissions-api:0.2-SNAPSHOT'))
 }
 
 processResources {
