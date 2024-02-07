@@ -2,6 +2,13 @@ package org.trackedout.data
 
 class Cards {
     companion object {
+
+        /*
+            Icon legend:
+            ✧ - Standard
+            ✲ - Ethereal
+            ≡ - Permanent
+        */
         enum class Card(val key: String, val displayName: String, val modelData: Int, val colour: String) {
             ADRENALINE_RUSH("adrenaline_rush", "✧ Adrenaline Rush ✧", 123, "#80C71F"),
             BEAST_SENSE("beast_sense", "✧ Beast Sense ✧", 115, "#80C71F"),
@@ -37,6 +44,7 @@ class Cards {
             TACTICAL_APPROACH("tactical_approach", "✲≡ Tactical Approach ≡✲", 108, "#FED83D"),
             TREAD_LIGHTLY("tread_lightly", "✧ Tread Lightly ✧", 113, "#80C71F"),
             TREASURE_HUNTER("treasure_hunter", "✧ Treasure Hunter ✧", 103, "gray"),
+            DUNGEON_LACKEY("dungeon_lackey", "✲≡ Dungeon Lackey ≡✲", 141, "gray"),
         }
 
         fun findCard(cardName: String): Card? {
@@ -50,6 +58,16 @@ class Cards {
             } else {
                 throw Exception("Card model data for $cardName not known")
             }
+        }
+
+        fun etherealCards(): List<Card> {
+            return listOf(
+                Card.MOMENT_OF_CLARITY,
+                Card.PAY_TO_WIN,
+                Card.PORK_CHOP_POWER,
+                Card.TACTICAL_APPROACH,
+                Card.DUNGEON_LACKEY,
+            )
         }
     }
 }

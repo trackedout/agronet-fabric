@@ -1,13 +1,14 @@
 package org.trackedout
 
-
 import com.mojang.brigadier.arguments.IntegerArgumentType
 import com.mojang.brigadier.arguments.StringArgumentType
+import me.lucko.fabric.api.permissions.v0.Permissions
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents
 import net.minecraft.server.command.CommandManager.argument
 import net.minecraft.server.command.CommandManager.literal
+import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.util.Formatting
 import okhttp3.OkHttpClient
 import org.slf4j.LoggerFactory
@@ -16,17 +17,14 @@ import org.trackedout.actions.RemoveDeckFromPlayerInventoryAction
 import org.trackedout.client.apis.EventsApi
 import org.trackedout.client.apis.InventoryApi
 import org.trackedout.client.models.EventsPostRequest
-import org.trackedout.commands.CardPurchasedCommand
+import org.trackedout.commands.CardInteractionCommand
 import org.trackedout.commands.LogEventCommand
 import org.trackedout.listeners.AgroNetServerPlayConnectionListener
 import redis.clients.jedis.Jedis
 import java.net.InetAddress
+import java.net.Socket
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
-import java.net.Socket
-import me.lucko.fabric.api.permissions.v0.Permissions
-import net.minecraft.command.CommandSource
-import net.minecraft.server.command.ServerCommandSource
 
 
 const val RECEIVED_SHULKER = "do2.received_shulker"
@@ -111,16 +109,20 @@ object AgroNet : ModInitializer {
             )
         }
 
-        val cardPurchasedCommand = CardPurchasedCommand(inventoryApi, eventsApi, serverName)
+        val cardInteractionCommand = CardInteractionCommand(inventoryApi, eventsApi, serverName)
 
-        CommandRegistrationCallback.EVENT.register { dispatcher, _, _ ->
-            dispatcher.register(literal("card-bought")
-                .requires { it.hasPermissionLevel(2) } // Command Blocks have permission level of 2
-                .then(
-                    argument("card", StringArgumentType.word()) // words_with_underscores
-                        .executes(cardPurchasedCommand::run)
+        listOf("card-bought", "card-played", "card-available").forEach { action ->
+            CommandRegistrationCallback.EVENT.register { dispatcher, _, _ ->
+                dispatcher.register(literal(action)
+                    .requires { it.hasPermissionLevel(2) } // Command Blocks have permission level of 2
+                    .then(
+                        argument("card", StringArgumentType.word()) // words_with_underscores
+                            .executes { context ->
+                                cardInteractionCommand.run(context, action)
+                            }
+                    )
                 )
-            )
+            }
         }
 
         // todo: could add syntax like `/scale-worker <machine> <num_instances>
@@ -137,7 +139,7 @@ object AgroNet : ModInitializer {
             dispatcher.register(literal("update-workers")
                 .requires(Permissions.require("trackedout.serveradmin.update-workers", 4))
                 .executes { context ->
-                    sendRedisMessage(context.source,"server-hosts", "update-workers")
+                    sendRedisMessage(context.source, "server-hosts", "update-workers")
                     1
                 })
         }
