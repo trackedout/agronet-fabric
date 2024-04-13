@@ -23,6 +23,10 @@ import org.trackedout.listeners.AgroNetServerPlayConnectionListener
 import redis.clients.jedis.Jedis
 import java.net.InetAddress
 import java.net.Socket
+import java.util.concurrent.Executors
+import java.util.concurrent.SynchronousQueue
+import java.util.concurrent.ThreadPoolExecutor
+import java.util.concurrent.TimeUnit
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 
@@ -31,6 +35,7 @@ const val RECEIVED_SHULKER = "do2.received_shulker"
 
 object AgroNet : ModInitializer {
     private val logger = LoggerFactory.getLogger("Agro-net")
+    private val threadPool = Executors.newScheduledThreadPool(1)
 
     override fun onInitialize() {
         // This code runs as soon as Minecraft is in a mod-load-ready state.
@@ -155,6 +160,16 @@ object AgroNet : ModInitializer {
 
         ServerPlayConnectionEvents.JOIN.register(AgroNetServerPlayConnectionListener(addDeckToPlayerInventoryAction))
 
+        sendServerOnlineEvent(eventsApi, serverName)
+        threadPool.scheduleAtFixedRate({
+            logger.debug("Sending server-online event")
+            sendServerOnlineEvent(eventsApi, serverName)
+        }, 0, 15, TimeUnit.SECONDS)
+
+        logger.info("Agro-net online. Flee with extra flee!")
+    }
+
+    private fun sendServerOnlineEvent(eventsApi: EventsApi, serverName: String) {
         eventsApi.eventsPost(
             EventsPostRequest(
                 name = "server-online",
@@ -166,8 +181,6 @@ object AgroNet : ModInitializer {
                 count = 1,
             )
         )
-
-        logger.info("Agro-net online. Flee with extra flee!")
     }
 
     private fun sendRedisMessage(commandSource: ServerCommandSource, redisChannel: String, redisMessage: String): Long {
