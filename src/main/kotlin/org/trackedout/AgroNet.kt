@@ -5,12 +5,15 @@ import com.mojang.brigadier.arguments.StringArgumentType
 import me.lucko.fabric.api.permissions.v0.Permissions
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents
 import net.minecraft.server.command.CommandManager.argument
 import net.minecraft.server.command.CommandManager.literal
 import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.util.Formatting
 import okhttp3.OkHttpClient
+import org.apache.logging.log4j.core.util.ShutdownCallbackRegistry
 import org.slf4j.LoggerFactory
 import org.trackedout.actions.AddDeckToPlayerInventoryAction
 import org.trackedout.actions.RemoveDeckFromPlayerInventoryAction
@@ -24,8 +27,6 @@ import redis.clients.jedis.Jedis
 import java.net.InetAddress
 import java.net.Socket
 import java.util.concurrent.Executors
-import java.util.concurrent.SynchronousQueue
-import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
@@ -36,6 +37,7 @@ const val RECEIVED_SHULKER = "do2.received_shulker"
 object AgroNet : ModInitializer {
     private val logger = LoggerFactory.getLogger("Agro-net")
     private val threadPool = Executors.newScheduledThreadPool(1)
+    private var playerList: List<String> = emptyList()
 
     override fun onInitialize() {
         // This code runs as soon as Minecraft is in a mod-load-ready state.
@@ -163,16 +165,41 @@ object AgroNet : ModInitializer {
 
         ServerPlayConnectionEvents.JOIN.register(AgroNetServerPlayConnectionListener(addDeckToPlayerInventoryAction))
 
-        sendServerOnlineEvent(eventsApi, serverName)
+        ServerTickEvents.START_SERVER_TICK.register {
+            playerList = it.playerManager.playerList
+                .filter { player -> !player.commandTags.contains("do2.spectating") }
+                .map { player -> player.gameProfile.name }
+                .toList()
+        }
+
+        sendServerOnlineEvent(eventsApi, serverName, playerList)
         threadPool.scheduleAtFixedRate({
-            logger.debug("Sending server-online event")
-            sendServerOnlineEvent(eventsApi, serverName)
+            logger.info("Sending server-online event (with player count)")
+            sendServerOnlineEvent(eventsApi, serverName, playerList)
         }, 0, 15, TimeUnit.SECONDS)
+
+        ServerLifecycleEvents.SERVER_STOPPING.register {
+            logger.warn("Server shutting down! Sending server-closing event")
+
+            threadPool.shutdown()
+
+            eventsApi.eventsPost(
+                EventsPostRequest(
+                    name = "server-closing",
+                    player = "server",
+                    server = serverName,
+                    x = 0.0,
+                    y = 0.0,
+                    z = 0.0,
+                    count = 1,
+                )
+            )
+        }
 
         logger.info("Agro-net online. Flee with extra flee!")
     }
 
-    private fun sendServerOnlineEvent(eventsApi: EventsApi, serverName: String) {
+    private fun sendServerOnlineEvent(eventsApi: EventsApi, serverName: String, playerList: List<String>) {
         eventsApi.eventsPost(
             EventsPostRequest(
                 name = "server-online",
@@ -181,7 +208,7 @@ object AgroNet : ModInitializer {
                 x = 0.0,
                 y = 0.0,
                 z = 0.0,
-                count = 1,
+                count = playerList.size,
             )
         )
     }
