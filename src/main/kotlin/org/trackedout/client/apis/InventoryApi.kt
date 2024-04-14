@@ -22,6 +22,8 @@ import okhttp3.HttpUrl
 import org.trackedout.client.models.Card
 import org.trackedout.client.models.Error
 import org.trackedout.client.models.InventoryCardsGet200Response
+import org.trackedout.client.models.InventoryItemsGet200Response
+import org.trackedout.client.models.Item
 
 import com.squareup.moshi.Json
 
@@ -38,7 +40,6 @@ import org.trackedout.client.infrastructure.RequestMethod
 import org.trackedout.client.infrastructure.ResponseType
 import org.trackedout.client.infrastructure.Success
 import org.trackedout.client.infrastructure.toMultiValue
-import java.net.InetAddress
 
 class InventoryApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClient = ApiClient.defaultClient) : ApiClient(basePath, client) {
     companion object {
@@ -113,6 +114,78 @@ class InventoryApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClie
         return RequestConfig(
             method = RequestMethod.POST,
             path = "/inventory/add-card",
+            query = localVariableQuery,
+            headers = localVariableHeaders,
+            requiresAuthentication = false,
+            body = localVariableBody
+        )
+    }
+
+    /**
+     * Add a item to a player&#39;s deck
+     * Add a item to a player&#39;s deck from one of the Decked Out 2 instances or the lobby server.
+     * @param item 
+     * @return Item
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     * @throws UnsupportedOperationException If the API returns an informational or redirection response
+     * @throws ClientException If the API returns a client error response
+     * @throws ServerException If the API returns a server error response
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class, UnsupportedOperationException::class, ClientException::class, ServerException::class)
+    fun inventoryAddItemPost(item: Item) : Item {
+        val localVarResponse = inventoryAddItemPostWithHttpInfo(item = item)
+
+        return when (localVarResponse.responseType) {
+            ResponseType.Success -> (localVarResponse as Success<*>).data as Item
+            ResponseType.Informational -> throw UnsupportedOperationException("Client does not support Informational responses.")
+            ResponseType.Redirection -> throw UnsupportedOperationException("Client does not support Redirection responses.")
+            ResponseType.ClientError -> {
+                val localVarError = localVarResponse as ClientError<*>
+                throw ClientException("Client error : ${localVarError.statusCode} ${localVarError.message.orEmpty()}", localVarError.statusCode, localVarResponse)
+            }
+            ResponseType.ServerError -> {
+                val localVarError = localVarResponse as ServerError<*>
+                throw ServerException("Server error : ${localVarError.statusCode} ${localVarError.message.orEmpty()} ${localVarError.body}", localVarError.statusCode, localVarResponse)
+            }
+        }
+    }
+
+    /**
+     * Add a item to a player&#39;s deck
+     * Add a item to a player&#39;s deck from one of the Decked Out 2 instances or the lobby server.
+     * @param item 
+     * @return ApiResponse<Item?>
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class)
+    fun inventoryAddItemPostWithHttpInfo(item: Item) : ApiResponse<Item?> {
+        val localVariableConfig = inventoryAddItemPostRequestConfig(item = item)
+
+        return request<Item, Item>(
+            localVariableConfig
+        )
+    }
+
+    /**
+     * To obtain the request config of the operation inventoryAddItemPost
+     *
+     * @param item 
+     * @return RequestConfig
+     */
+    fun inventoryAddItemPostRequestConfig(item: Item) : RequestConfig<Item> {
+        val localVariableBody = item
+        val localVariableQuery: MultiValueMap = mutableMapOf()
+        val localVariableHeaders: MutableMap<String, String> = mutableMapOf()
+        localVariableHeaders["Content-Type"] = "application/json"
+        localVariableHeaders["Accept"] = "application/json"
+
+        return RequestConfig(
+            method = RequestMethod.POST,
+            path = "/inventory/add-item",
             query = localVariableQuery,
             headers = localVariableHeaders,
             requiresAuthentication = false,
@@ -302,43 +375,278 @@ class InventoryApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClie
         )
     }
 
-    fun inventoryOverwritePlayersDeck(player: kotlin.String, deckId: kotlin.String, cards: kotlin.Array<kotlin.String>) {
-        val queryParams: MultiValueMap = mutableMapOf(
-            "player" to listOf(player),
-            "deckId" to listOf(deckId),
-            "server" to listOf(InetAddress.getLocalHost().hostName)
-        )
+    /**
+     * Delete a item
+     * Remove a item from a player&#39;s deck. If multiple copies of this item exist, only one will be removed.
+     * @param item 
+     * @return void
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     * @throws UnsupportedOperationException If the API returns an informational or redirection response
+     * @throws ClientException If the API returns a client error response
+     * @throws ServerException If the API returns a server error response
+     */
+    @Throws(IllegalStateException::class, IOException::class, UnsupportedOperationException::class, ClientException::class, ServerException::class)
+    fun inventoryDeleteItemPost(item: Item) : Unit {
+        val localVarResponse = inventoryDeleteItemPostWithHttpInfo(item = item)
 
-        val headers: MutableMap<String, String> = mutableMapOf(
-            "Content-Type" to "application/json",
-            "Accept" to "application/json"
-        )
-
-        val requestConfig = RequestConfig(
-            method = RequestMethod.PUT,
-            path = "/inventory/overwrite-player-deck",
-            query = queryParams,
-            headers = headers,
-            requiresAuthentication = false,
-            body = cards
-        )
-
-        val response = request<Array<String>, Unit>(requestConfig)
-
-        return when (response.responseType) {
+        return when (localVarResponse.responseType) {
             ResponseType.Success -> Unit
             ResponseType.Informational -> throw UnsupportedOperationException("Client does not support Informational responses.")
             ResponseType.Redirection -> throw UnsupportedOperationException("Client does not support Redirection responses.")
             ResponseType.ClientError -> {
-                val localVarError = response as ClientError<*>
-                throw ClientException("Client error : ${localVarError.statusCode} ${localVarError.message.orEmpty()}", localVarError.statusCode, response)
+                val localVarError = localVarResponse as ClientError<*>
+                throw ClientException("Client error : ${localVarError.statusCode} ${localVarError.message.orEmpty()}", localVarError.statusCode, localVarResponse)
             }
             ResponseType.ServerError -> {
-                val localVarError = response as ServerError<*>
-                throw ServerException("Server error : ${localVarError.statusCode} ${localVarError.message.orEmpty()} ${localVarError.body}", localVarError.statusCode, response)
+                val localVarError = localVarResponse as ServerError<*>
+                throw ServerException("Server error : ${localVarError.statusCode} ${localVarError.message.orEmpty()} ${localVarError.body}", localVarError.statusCode, localVarResponse)
             }
         }
     }
+
+    /**
+     * Delete a item
+     * Remove a item from a player&#39;s deck. If multiple copies of this item exist, only one will be removed.
+     * @param item 
+     * @return ApiResponse<Unit?>
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     */
+    @Throws(IllegalStateException::class, IOException::class)
+    fun inventoryDeleteItemPostWithHttpInfo(item: Item) : ApiResponse<Unit?> {
+        val localVariableConfig = inventoryDeleteItemPostRequestConfig(item = item)
+
+        return request<Item, Unit>(
+            localVariableConfig
+        )
+    }
+
+    /**
+     * To obtain the request config of the operation inventoryDeleteItemPost
+     *
+     * @param item 
+     * @return RequestConfig
+     */
+    fun inventoryDeleteItemPostRequestConfig(item: Item) : RequestConfig<Item> {
+        val localVariableBody = item
+        val localVariableQuery: MultiValueMap = mutableMapOf()
+        val localVariableHeaders: MutableMap<String, String> = mutableMapOf()
+        localVariableHeaders["Content-Type"] = "application/json"
+        localVariableHeaders["Accept"] = "application/json"
+
+        return RequestConfig(
+            method = RequestMethod.POST,
+            path = "/inventory/delete-item",
+            query = localVariableQuery,
+            headers = localVariableHeaders,
+            requiresAuthentication = false,
+            body = localVariableBody
+        )
+    }
+
+    /**
+     * Get all items
+     * Only admins can retrieve all items.
+     * @param name Item name (optional)
+     * @param player Player (optional)
+     * @param deckId Deck ID (optional)
+     * @param sortBy sort by query in the form of field:desc/asc (ex. name:asc) (optional)
+     * @param projectBy project by query in the form of field:hide/include (ex. name:hide) (optional)
+     * @param limit Maximum number of items (optional)
+     * @param page Page number (optional, default to 1)
+     * @return InventoryItemsGet200Response
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     * @throws UnsupportedOperationException If the API returns an informational or redirection response
+     * @throws ClientException If the API returns a client error response
+     * @throws ServerException If the API returns a server error response
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class, UnsupportedOperationException::class, ClientException::class, ServerException::class)
+    fun inventoryItemsGet(name: kotlin.String? = null, player: kotlin.String? = null, deckId: kotlin.String? = null, sortBy: kotlin.String? = null, projectBy: kotlin.String? = null, limit: kotlin.Int? = null, page: kotlin.Int? = 1) : InventoryItemsGet200Response {
+        val localVarResponse = inventoryItemsGetWithHttpInfo(name = name, player = player, deckId = deckId, sortBy = sortBy, projectBy = projectBy, limit = limit, page = page)
+
+        return when (localVarResponse.responseType) {
+            ResponseType.Success -> (localVarResponse as Success<*>).data as InventoryItemsGet200Response
+            ResponseType.Informational -> throw UnsupportedOperationException("Client does not support Informational responses.")
+            ResponseType.Redirection -> throw UnsupportedOperationException("Client does not support Redirection responses.")
+            ResponseType.ClientError -> {
+                val localVarError = localVarResponse as ClientError<*>
+                throw ClientException("Client error : ${localVarError.statusCode} ${localVarError.message.orEmpty()}", localVarError.statusCode, localVarResponse)
+            }
+            ResponseType.ServerError -> {
+                val localVarError = localVarResponse as ServerError<*>
+                throw ServerException("Server error : ${localVarError.statusCode} ${localVarError.message.orEmpty()} ${localVarError.body}", localVarError.statusCode, localVarResponse)
+            }
+        }
+    }
+
+    /**
+     * Get all items
+     * Only admins can retrieve all items.
+     * @param name Item name (optional)
+     * @param player Player (optional)
+     * @param deckId Deck ID (optional)
+     * @param sortBy sort by query in the form of field:desc/asc (ex. name:asc) (optional)
+     * @param projectBy project by query in the form of field:hide/include (ex. name:hide) (optional)
+     * @param limit Maximum number of items (optional)
+     * @param page Page number (optional, default to 1)
+     * @return ApiResponse<InventoryItemsGet200Response?>
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class)
+    fun inventoryItemsGetWithHttpInfo(name: kotlin.String?, player: kotlin.String?, deckId: kotlin.String?, sortBy: kotlin.String?, projectBy: kotlin.String?, limit: kotlin.Int?, page: kotlin.Int?) : ApiResponse<InventoryItemsGet200Response?> {
+        val localVariableConfig = inventoryItemsGetRequestConfig(name = name, player = player, deckId = deckId, sortBy = sortBy, projectBy = projectBy, limit = limit, page = page)
+
+        return request<Unit, InventoryItemsGet200Response>(
+            localVariableConfig
+        )
+    }
+
+    /**
+     * To obtain the request config of the operation inventoryItemsGet
+     *
+     * @param name Item name (optional)
+     * @param player Player (optional)
+     * @param deckId Deck ID (optional)
+     * @param sortBy sort by query in the form of field:desc/asc (ex. name:asc) (optional)
+     * @param projectBy project by query in the form of field:hide/include (ex. name:hide) (optional)
+     * @param limit Maximum number of items (optional)
+     * @param page Page number (optional, default to 1)
+     * @return RequestConfig
+     */
+    fun inventoryItemsGetRequestConfig(name: kotlin.String?, player: kotlin.String?, deckId: kotlin.String?, sortBy: kotlin.String?, projectBy: kotlin.String?, limit: kotlin.Int?, page: kotlin.Int?) : RequestConfig<Unit> {
+        val localVariableBody = null
+        val localVariableQuery: MultiValueMap = mutableMapOf<kotlin.String, kotlin.collections.List<kotlin.String>>()
+            .apply {
+                if (name != null) {
+                    put("name", listOf(name.toString()))
+                }
+                if (player != null) {
+                    put("player", listOf(player.toString()))
+                }
+                if (deckId != null) {
+                    put("deckId", listOf(deckId.toString()))
+                }
+                if (sortBy != null) {
+                    put("sortBy", listOf(sortBy.toString()))
+                }
+                if (projectBy != null) {
+                    put("projectBy", listOf(projectBy.toString()))
+                }
+                if (limit != null) {
+                    put("limit", listOf(limit.toString()))
+                }
+                if (page != null) {
+                    put("page", listOf(page.toString()))
+                }
+            }
+        val localVariableHeaders: MutableMap<String, String> = mutableMapOf()
+        localVariableHeaders["Accept"] = "application/json"
+
+        return RequestConfig(
+            method = RequestMethod.GET,
+            path = "/inventory/items",
+            query = localVariableQuery,
+            headers = localVariableHeaders,
+            requiresAuthentication = false,
+            body = localVariableBody
+        )
+    }
+
+    /**
+     * Overwrites the player&#39;s deck with the supplied list of items
+     * Remove all existing items and create a new deck with the list of items provided.
+     * @param requestBody 
+     * @param player Player (optional)
+     * @param server Server (optional)
+     * @param deckId Deck ID (optional)
+     * @return void
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     * @throws UnsupportedOperationException If the API returns an informational or redirection response
+     * @throws ClientException If the API returns a client error response
+     * @throws ServerException If the API returns a server error response
+     */
+    @Throws(IllegalStateException::class, IOException::class, UnsupportedOperationException::class, ClientException::class, ServerException::class)
+    fun inventoryOverwritePlayerDeckPut(requestBody: kotlin.collections.List<kotlin.String>, player: kotlin.String? = null, server: kotlin.String? = null, deckId: kotlin.String? = null) : Unit {
+        val localVarResponse = inventoryOverwritePlayerDeckPutWithHttpInfo(requestBody = requestBody, player = player, server = server, deckId = deckId)
+
+        return when (localVarResponse.responseType) {
+            ResponseType.Success -> Unit
+            ResponseType.Informational -> throw UnsupportedOperationException("Client does not support Informational responses.")
+            ResponseType.Redirection -> throw UnsupportedOperationException("Client does not support Redirection responses.")
+            ResponseType.ClientError -> {
+                val localVarError = localVarResponse as ClientError<*>
+                throw ClientException("Client error : ${localVarError.statusCode} ${localVarError.message.orEmpty()}", localVarError.statusCode, localVarResponse)
+            }
+            ResponseType.ServerError -> {
+                val localVarError = localVarResponse as ServerError<*>
+                throw ServerException("Server error : ${localVarError.statusCode} ${localVarError.message.orEmpty()} ${localVarError.body}", localVarError.statusCode, localVarResponse)
+            }
+        }
+    }
+
+    /**
+     * Overwrites the player&#39;s deck with the supplied list of items
+     * Remove all existing items and create a new deck with the list of items provided.
+     * @param requestBody 
+     * @param player Player (optional)
+     * @param server Server (optional)
+     * @param deckId Deck ID (optional)
+     * @return ApiResponse<Unit?>
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     */
+    @Throws(IllegalStateException::class, IOException::class)
+    fun inventoryOverwritePlayerDeckPutWithHttpInfo(requestBody: kotlin.collections.List<kotlin.String>, player: kotlin.String?, server: kotlin.String?, deckId: kotlin.String?) : ApiResponse<Unit?> {
+        val localVariableConfig = inventoryOverwritePlayerDeckPutRequestConfig(requestBody = requestBody, player = player, server = server, deckId = deckId)
+
+        return request<kotlin.collections.List<kotlin.String>, Unit>(
+            localVariableConfig
+        )
+    }
+
+    /**
+     * To obtain the request config of the operation inventoryOverwritePlayerDeckPut
+     *
+     * @param requestBody 
+     * @param player Player (optional)
+     * @param server Server (optional)
+     * @param deckId Deck ID (optional)
+     * @return RequestConfig
+     */
+    fun inventoryOverwritePlayerDeckPutRequestConfig(requestBody: kotlin.collections.List<kotlin.String>, player: kotlin.String?, server: kotlin.String?, deckId: kotlin.String?) : RequestConfig<kotlin.collections.List<kotlin.String>> {
+        val localVariableBody = requestBody
+        val localVariableQuery: MultiValueMap = mutableMapOf<kotlin.String, kotlin.collections.List<kotlin.String>>()
+            .apply {
+                if (player != null) {
+                    put("player", listOf(player.toString()))
+                }
+                if (server != null) {
+                    put("server", listOf(server.toString()))
+                }
+                if (deckId != null) {
+                    put("deckId", listOf(deckId.toString()))
+                }
+            }
+        val localVariableHeaders: MutableMap<String, String> = mutableMapOf()
+        localVariableHeaders["Content-Type"] = "application/json"
+        localVariableHeaders["Accept"] = "application/json"
+
+        return RequestConfig(
+            method = RequestMethod.PUT,
+            path = "/inventory/overwrite-player-deck",
+            query = localVariableQuery,
+            headers = localVariableHeaders,
+            requiresAuthentication = false,
+            body = localVariableBody
+        )
+    }
+
 
     private fun encodeURIComponent(uriComponent: kotlin.String): kotlin.String =
         HttpUrl.Builder().scheme("http").host("localhost").addPathSegment(uriComponent).build().encodedPathSegments[0]

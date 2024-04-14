@@ -45,6 +45,9 @@ object AgroNet : ModInitializer {
         val serverName = getEnvOrDefault("SERVER_NAME", InetAddress.getLocalHost().hostName)
         val dungaAPIPath = getEnvOrDefault("DUNGA_API", "http://localhost:3000/v1")
 
+        logger.info("Agro-net server name: $serverName")
+        logger.info("Dunga-dunga API path: $dungaAPIPath")
+
         val eventsApi = EventsApi(
             basePath = dungaAPIPath,
             client = OkHttpClient.Builder()
