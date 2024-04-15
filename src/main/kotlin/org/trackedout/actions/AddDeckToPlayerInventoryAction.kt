@@ -36,8 +36,9 @@ class AddDeckToPlayerInventoryAction(
         player.sendMessage("Fetching your Decked Out shulker from Dunga Dunga...", Formatting.GRAY)
         val cards = inventoryApi.inventoryCardsGet(player = player.name.string, limit = 200, deckId = "1").results!!
 
+        val canPlaceOn = "CanPlaceOn: [\"redstone_lamp\"]"
         val shulkerNbt =
-            StringNbtReader.parse("{${BlockItem.BLOCK_ENTITY_TAG_KEY}:{Items:[],id:\"minecraft:cyan_shulker_box\"}}")
+            StringNbtReader.parse("{${BlockItem.BLOCK_ENTITY_TAG_KEY}:{Items:[],id:\"minecraft:cyan_shulker_box\"}, $canPlaceOn }")
         val blockCompound = shulkerNbt.getCompound(BlockItem.BLOCK_ENTITY_TAG_KEY)
         val shulkerItems = blockCompound["Items"] as NbtList
 
