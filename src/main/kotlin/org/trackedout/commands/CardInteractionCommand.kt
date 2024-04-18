@@ -23,7 +23,7 @@ class CardInteractionCommand(
         get() = LoggerFactory.getLogger("Agro-net")
 
     fun run(context: CommandContext<ServerCommandSource>, operation: String): Int {
-        val cardName = StringArgumentType.getString(context, "card")
+        val cardName = StringArgumentType.getString(context, "card").replace("-", "_")
 
         val player = context.source.player
         if (player == null) {
