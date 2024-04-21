@@ -7,13 +7,15 @@ import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
+import net.fabricmc.fabric.api.networking.v1.PacketSender
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents
+import net.minecraft.server.MinecraftServer
 import net.minecraft.server.command.CommandManager.argument
 import net.minecraft.server.command.CommandManager.literal
 import net.minecraft.server.command.ServerCommandSource
+import net.minecraft.server.network.ServerPlayNetworkHandler
 import net.minecraft.util.Formatting
 import okhttp3.OkHttpClient
-import org.apache.logging.log4j.core.util.ShutdownCallbackRegistry
 import org.slf4j.LoggerFactory
 import org.trackedout.actions.AddDeckToPlayerInventoryAction
 import org.trackedout.actions.RemoveDeckFromPlayerInventoryAction
@@ -164,6 +166,14 @@ object AgroNet : ModInitializer {
         }
 
         ServerPlayConnectionEvents.JOIN.register(AgroNetServerPlayConnectionListener(addDeckToPlayerInventoryAction))
+        ServerPlayConnectionEvents.JOIN.register { _: ServerPlayNetworkHandler, _: PacketSender, server: MinecraftServer ->
+            val playerListAfterJoin = server.playerManager.playerList
+                .filter { player -> !player.commandTags.contains("do2.spectating") }
+                .map { player -> player.gameProfile.name }
+                .toList()
+
+            sendServerOnlineEvent(eventsApi, serverName, playerListAfterJoin)
+        }
 
         ServerTickEvents.START_SERVER_TICK.register {
             playerList = it.playerManager.playerList
@@ -176,6 +186,10 @@ object AgroNet : ModInitializer {
         threadPool.scheduleAtFixedRate({
             logger.info("Sending server-online event (with player count)")
             sendServerOnlineEvent(eventsApi, serverName, playerList)
+
+            playerList.forEach {
+                sendPlayerSeenEvent(eventsApi, serverName, it)
+            }
         }, 0, 15, TimeUnit.SECONDS)
 
         ServerLifecycleEvents.SERVER_STOPPING.register {
@@ -200,17 +214,39 @@ object AgroNet : ModInitializer {
     }
 
     private fun sendServerOnlineEvent(eventsApi: EventsApi, serverName: String, playerList: List<String>) {
-        eventsApi.eventsPost(
-            EventsPostRequest(
-                name = "server-online",
-                player = "server",
-                server = serverName,
-                x = 0.0,
-                y = 0.0,
-                z = 0.0,
-                count = playerList.size,
+        try {
+            eventsApi.eventsPost(
+                EventsPostRequest(
+                    name = "server-online",
+                    player = "server",
+                    server = serverName,
+                    x = 0.0,
+                    y = 0.0,
+                    z = 0.0,
+                    count = playerList.size,
+                )
             )
-        )
+        } catch (e: Exception) {
+            logger.error("Failed to send 'server-online' event: ${e.message}")
+        }
+    }
+
+    private fun sendPlayerSeenEvent(eventsApi: EventsApi, serverName: String, playerName: String) {
+        try {
+            eventsApi.eventsPost(
+                EventsPostRequest(
+                    name = "player-seen",
+                    player = playerName,
+                    server = serverName,
+                    x = 0.0,
+                    y = 0.0,
+                    z = 0.0,
+                    count = 1,
+                )
+            )
+        } catch (e: Exception) {
+            logger.error("Failed to send 'player-seen' event: ${e.message}")
+        }
     }
 
     private fun sendRedisMessage(commandSource: ServerCommandSource, redisChannel: String, redisMessage: String): Long {
