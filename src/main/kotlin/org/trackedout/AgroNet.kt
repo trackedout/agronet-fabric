@@ -173,6 +173,9 @@ object AgroNet : ModInitializer {
                 .toList()
 
             sendServerOnlineEvent(eventsApi, serverName, playerListAfterJoin)
+            playerList.forEach {
+                sendPlayerSeenEvent(eventsApi, serverName, it)
+            }
         }
 
         ServerTickEvents.START_SERVER_TICK.register {
