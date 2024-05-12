@@ -1,5 +1,6 @@
 package org.trackedout.commands
 
+import com.mojang.brigadier.arguments.IntegerArgumentType
 import com.mojang.brigadier.arguments.StringArgumentType
 import com.mojang.brigadier.context.CommandContext
 import net.minecraft.server.command.ServerCommandSource
@@ -11,19 +12,25 @@ import org.trackedout.client.apis.EventsApi
 import org.trackedout.client.apis.InventoryApi
 import org.trackedout.client.models.Card
 import org.trackedout.client.models.EventsPostRequest
+import org.trackedout.client.models.Item
 import org.trackedout.data.Cards
 import org.trackedout.sendMessage
 
 class CardInteractionCommand(
     private val inventoryApi: InventoryApi,
     private val eventsApi: EventsApi,
-    private val serverName: String
+    private val serverName: String,
 ) {
     private val logger: Logger
         get() = LoggerFactory.getLogger("Agro-net")
 
     fun run(context: CommandContext<ServerCommandSource>, operation: String): Int {
         val cardName = StringArgumentType.getString(context, "card").replace("-", "_")
+        val count = try {
+            IntegerArgumentType.getInteger(context, "count")
+        } catch (e: Exception) {
+            1
+        }
 
         val player = context.source.player
         if (player == null) {
@@ -45,7 +52,7 @@ class CardInteractionCommand(
             {
                 Text.literal(
                     "Processing /$operation { cardName=${cardName} } for player $playerName " +
-                            "at location [$x, $y, $z]"
+                        "at location [$x, $y, $z]"
                 )
             },
             true
@@ -57,7 +64,7 @@ class CardInteractionCommand(
                     name = "$operation-${cardName.replace("_", "-")}",
                     player = playerName,
                     server = serverName,
-                    x, y, z, 1
+                    x, y, z, count
                 )
             )
 
@@ -95,6 +102,22 @@ class CardInteractionCommand(
                         context.source.sendMessage(
                             "$cardName is NOT an ethereal card, keeping it in $playerName's deck",
                             Formatting.GRAY
+                        )
+                    }
+                }
+
+                "add-item" -> {
+                    context.source.sendMessage(
+                        "Adding $count copies of $cardName to $playerName's deck",
+                        Formatting.GRAY
+                    )
+                    for (i in 1 until count + 1) {
+                        inventoryApi.storageAddItemPost(
+                            item = Item(
+                                name = cardName,
+                                player = playerName,
+                                server = serverName,
+                            )
                         )
                     }
                 }

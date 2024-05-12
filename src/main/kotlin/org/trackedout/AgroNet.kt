@@ -137,6 +137,23 @@ object AgroNet : ModInitializer {
             }
         }
 
+        val itemInteractionCommand = CardInteractionCommand(inventoryApi, eventsApi, serverName)
+        listOf("add-item").forEach { action ->
+            CommandRegistrationCallback.EVENT.register { dispatcher, _, _ ->
+                dispatcher.register(literal(action)
+                    .requires { it.hasPermissionLevel(2) } // Command Blocks have permission level of 2
+                    .then(
+                        argument("card", StringArgumentType.word())
+                            .then(argument("count", IntegerArgumentType.integer(1))
+                                .executes { context ->
+                                    itemInteractionCommand.run(context, action)
+                                }
+                            )
+                    )
+                )
+            }
+        }
+
         // todo: could add syntax like `/scale-worker <machine> <num_instances>
 //        CommandRegistrationCallback.EVENT.register { dispatcher, _, _ ->
 //            dispatcher.register(literal("scale-worker")
