@@ -85,15 +85,42 @@ class AddDeckToPlayerInventoryAction(
     private fun createCard(index: Int, card: Cards.Companion.Card, count: Int): NbtCompound {
         val nbt = NbtCompound()
         ItemStack(Items.IRON_NUGGET, count).writeNbt(nbt)
+
+        /*
+        Expected result:
+        {
+          "CustomRoleplayData": 1,
+          "tracked": 0,
+          "NameFormat": {
+            "OriginalName": "{\"color\":\"gray\",\"text\":\"✲ Moment of Clarity ✲\"}",
+            "color": "gray",
+            "ModifiedName": "{\"color\":\"gray\",\"text\":\"✲ Moment of Clarity ✲\"}"
+          },
+          "CustomModelData": 106,
+          "display": {
+            "Name": "{\"color\":\"gray\",\"text\":\"✲ Moment of Clarity ✲\"}"
+          }
+        }
+         */
+
         val tag = NbtCompound()
 
+        tag.putByte("CustomRoleplayData", 1)
+        tag.putByte("tracked", 0)
+
         val nameJson = "{\"color\":\"${card.colour}\",\"text\":\"${card.displayName}\"}"
-        val display = NbtCompound()
-        display.putString("Name", nameJson)
-        display.putString("NameFormat", "{\"color\":\"${card.colour}\",\"OriginalName\":\"${nameJson}\"}")
-        tag.put("display", display)
+        val nameFormat = NbtCompound()
+        nameFormat.putString("OriginalName", nameJson)
+        nameFormat.putString("color", card.colour.lowercase())
+        nameFormat.putString("ModifiedName", nameJson)
+        tag.put("NameFormat", nameFormat)
 
         tag.putInt("CustomModelData", card.modelData)
+
+        val display = NbtCompound()
+        display.putString("Name", nameJson)
+        tag.put("display", display)
+
         nbt.put("tag", tag)
         nbt.putByte("Slot", index.toByte())
 
