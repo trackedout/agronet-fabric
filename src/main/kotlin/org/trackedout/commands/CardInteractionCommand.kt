@@ -85,7 +85,7 @@ class CardInteractionCommand(
                 }
 
                 "card-played" -> {
-                    if (Cards.etherealCards().find { it.name == cardName } != null) {
+                    if (Cards.etherealCards().find { it.key == cardName } != null) {
                         context.source.sendMessage(
                             "Deleting $cardName from $playerName's deck as it is an ethereal card",
                             Formatting.GRAY
