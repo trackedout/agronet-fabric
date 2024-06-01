@@ -13,11 +13,12 @@ import org.slf4j.LoggerFactory
 import org.trackedout.RECEIVED_SHULKER
 import org.trackedout.client.apis.InventoryApi
 import org.trackedout.data.Cards
+import org.trackedout.data.Cards.Companion.Card
 import org.trackedout.debug
 import org.trackedout.sendMessage
 
 class AddDeckToPlayerInventoryAction(
-    private val inventoryApi: InventoryApi
+    private val inventoryApi: InventoryApi,
 ) {
     private val logger = LoggerFactory.getLogger("Agro-net")
 
@@ -82,7 +83,7 @@ class AddDeckToPlayerInventoryAction(
         player.sendMessage("Your Decked Out shulker has been placed in your inventory", Formatting.GREEN)
     }
 
-    private fun createCard(index: Int, card: Cards.Companion.Card, count: Int): NbtCompound {
+    private fun createCard(index: Int, card: Card, count: Int): NbtCompound {
         val nbt = NbtCompound()
         ItemStack(Items.IRON_NUGGET, count).writeNbt(nbt)
 
@@ -109,8 +110,13 @@ class AddDeckToPlayerInventoryAction(
         tag.putByte("tracked", 0)
 
         val nameJson = "{\"color\":\"${card.colour}\",\"text\":\"${card.displayName}\"}"
+        var originalName = nameJson
+        if (listOf(Card.PAY_TO_WIN, Card.PIRATES_BOOTY, Card.DUNGEON_LACKEY).map(Card::key).contains(card.key)) {
+            originalName = "{\"text\":\"${card.displayName}\"}"
+        }
+
         val nameFormat = NbtCompound()
-        nameFormat.putString("OriginalName", nameJson)
+        nameFormat.putString("OriginalName", originalName)
         nameFormat.putString("color", card.colour.lowercase())
         nameFormat.putString("ModifiedName", nameJson)
         tag.put("NameFormat", nameFormat)
