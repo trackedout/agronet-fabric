@@ -111,7 +111,9 @@ class AddDeckToPlayerInventoryAction(
 
         val nameJson = "{\"color\":\"${card.colour}\",\"text\":\"${card.displayName}\"}"
         var originalName = nameJson
-        if (listOf(Card.PAY_TO_WIN, Card.PIRATES_BOOTY, Card.DUNGEON_LACKEY).map(Card::key).contains(card.key)) {
+        if (Card.PORK_CHOP_POWER.key == card.key) {
+            originalName = "{\"color\":\"gray\",\"text\":\"${card.displayName}\"}"
+        } else if (listOf(Card.PAY_TO_WIN, Card.PIRATES_BOOTY, Card.DUNGEON_LACKEY).map(Card::key).contains(card.key)) {
             originalName = "{\"text\":\"${card.displayName}\"}"
         }
 
