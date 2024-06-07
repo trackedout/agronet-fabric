@@ -182,6 +182,14 @@ object AgroNet : ModInitializer {
                 })
         }
 
+        if (!serverName.equals("builders", ignoreCase = true)) {
+            CommandRegistrationCallback.EVENT.register { dispatcher, _, _ ->
+                dispatcher.register(literal("is-dungeon-instance")
+                    .requires { it.hasPermissionLevel(2) } // Command Blocks have permission level of 2
+                    .executes { _ -> 1 })
+            }
+        }
+
         ServerPlayConnectionEvents.JOIN.register(AgroNetServerPlayConnectionListener(addDeckToPlayerInventoryAction))
         ServerPlayConnectionEvents.JOIN.register { _: ServerPlayNetworkHandler, _: PacketSender, server: MinecraftServer ->
             val playerListAfterJoin = server.playerManager.playerList
