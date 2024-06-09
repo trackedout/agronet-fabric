@@ -21,10 +21,12 @@ import org.trackedout.actions.AddDeckToPlayerInventoryAction
 import org.trackedout.actions.RemoveDeckFromPlayerInventoryAction
 import org.trackedout.client.apis.EventsApi
 import org.trackedout.client.apis.InventoryApi
+import org.trackedout.client.apis.ScoreApi
 import org.trackedout.client.apis.TasksApi
 import org.trackedout.client.models.EventsPostRequest
 import org.trackedout.commands.CardInteractionCommand
 import org.trackedout.commands.LogEventCommand
+import org.trackedout.listeners.AgroNetPlayerScoreListener
 import org.trackedout.listeners.AgroNetServerPlayConnectionListener
 import redis.clients.jedis.Jedis
 import java.net.InetAddress
@@ -70,6 +72,14 @@ object AgroNet : ModInitializer {
         )
 
         val tasksApi = TasksApi(
+            basePath = dungaAPIPath,
+            client = OkHttpClient.Builder()
+                .connectTimeout(5.seconds.toJavaDuration())
+                .callTimeout(30.seconds.toJavaDuration())
+                .build()
+        )
+
+        val scoreApi = ScoreApi(
             basePath = dungaAPIPath,
             client = OkHttpClient.Builder()
                 .connectTimeout(5.seconds.toJavaDuration())
@@ -211,6 +221,10 @@ object AgroNet : ModInitializer {
                 sendPlayerSeenEvent(eventsApi, serverName, it)
             }
         }
+
+        val scoreListener = AgroNetPlayerScoreListener(scoreApi)
+        ServerPlayConnectionEvents.JOIN.register(scoreListener)
+        ServerPlayConnectionEvents.DISCONNECT.register(scoreListener)
 
         ServerTickEvents.START_SERVER_TICK.register {
             playerList = it.playerManager.playerList

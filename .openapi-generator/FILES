@@ -1,5 +1,6 @@
 src/main/kotlin/org/trackedout/client/apis/EventsApi.kt
 src/main/kotlin/org/trackedout/client/apis/InventoryApi.kt
+src/main/kotlin/org/trackedout/client/apis/ScoreApi.kt
 src/main/kotlin/org/trackedout/client/apis/StatusApi.kt
 src/main/kotlin/org/trackedout/client/apis/TasksApi.kt
 src/main/kotlin/org/trackedout/client/infrastructure/ApiAbstractions.kt
@@ -26,6 +27,8 @@ src/main/kotlin/org/trackedout/client/models/EventsGet200Response.kt
 src/main/kotlin/org/trackedout/client/models/EventsPostRequest.kt
 src/main/kotlin/org/trackedout/client/models/InventoryCardsGet200Response.kt
 src/main/kotlin/org/trackedout/client/models/Item.kt
+src/main/kotlin/org/trackedout/client/models/Score.kt
+src/main/kotlin/org/trackedout/client/models/ScoresGet200Response.kt
 src/main/kotlin/org/trackedout/client/models/StatusSection.kt
 src/main/kotlin/org/trackedout/client/models/StatusSectionLinesInner.kt
 src/main/kotlin/org/trackedout/client/models/StorageItemsGet200Response.kt
