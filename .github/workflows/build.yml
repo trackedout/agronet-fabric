@@ -1,5 +1,7 @@
 name: build-and-release
 on: [ pull_request, push ]
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -40,8 +42,6 @@ jobs:
           path: build/libs/
 
       - name: release
-        permissions:
-          contents: write
         uses: softprops/action-gh-release@v2
         if: ${{ startsWith(github.ref, 'refs/tags/') && runner.os == 'Linux' && matrix.java == '17' }}
         with:
