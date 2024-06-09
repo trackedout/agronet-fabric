@@ -8,6 +8,9 @@ import net.minecraft.item.Items
 import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.text.Text
 import net.minecraft.util.Formatting
+import org.trackedout.client.apis.TasksApi
+import org.trackedout.client.models.Task
+import org.trackedout.client.models.TasksIdPatchRequest
 
 fun PlayerEntity.sendMessage(message: String, format: Formatting) {
     this.sendMessage(Text.literal(message).formatted(format))
@@ -45,4 +48,8 @@ fun ItemStack.isDeckedOutKey(): Boolean {
 
 fun BlockState.isDeckedOutDoor(): Boolean {
     return this.isOf(Block.getBlockFromItem(Items.BLACKSTONE))
+}
+
+fun Task.updateState(api: TasksApi, state: String) {
+    api.tasksIdPatch(this.id!!, TasksIdPatchRequest(state))
 }

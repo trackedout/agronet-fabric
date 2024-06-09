@@ -21,6 +21,7 @@ import org.trackedout.actions.AddDeckToPlayerInventoryAction
 import org.trackedout.actions.RemoveDeckFromPlayerInventoryAction
 import org.trackedout.client.apis.EventsApi
 import org.trackedout.client.apis.InventoryApi
+import org.trackedout.client.apis.TasksApi
 import org.trackedout.client.models.EventsPostRequest
 import org.trackedout.commands.CardInteractionCommand
 import org.trackedout.commands.LogEventCommand
@@ -38,7 +39,7 @@ const val RECEIVED_SHULKER = "do2.received_shulker"
 
 object AgroNet : ModInitializer {
     private val logger = LoggerFactory.getLogger("Agro-net")
-    private val threadPool = Executors.newScheduledThreadPool(1)
+    private val threadPool = Executors.newScheduledThreadPool(2)
     private var playerList: List<String> = emptyList()
 
     override fun onInitialize() {
@@ -61,6 +62,14 @@ object AgroNet : ModInitializer {
         )
 
         val inventoryApi = InventoryApi(
+            basePath = dungaAPIPath,
+            client = OkHttpClient.Builder()
+                .connectTimeout(5.seconds.toJavaDuration())
+                .callTimeout(30.seconds.toJavaDuration())
+                .build()
+        )
+
+        val tasksApi = TasksApi(
             basePath = dungaAPIPath,
             client = OkHttpClient.Builder()
                 .connectTimeout(5.seconds.toJavaDuration())
@@ -219,6 +228,17 @@ object AgroNet : ModInitializer {
                 sendPlayerSeenEvent(eventsApi, serverName, it)
             }
         }, 0, 15, TimeUnit.SECONDS)
+
+        ServerLifecycleEvents.SERVER_STARTED.register { server: MinecraftServer ->
+            val taskManager = TaskManagement(tasksApi, serverName)
+            threadPool.scheduleAtFixedRate({
+                try {
+                    taskManager.fetchAndExecuteTasks(server)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }, 0, 3, TimeUnit.SECONDS)
+        }
 
         ServerLifecycleEvents.SERVER_STOPPING.register {
             logger.warn("Server shutting down! Sending server-closing event")
