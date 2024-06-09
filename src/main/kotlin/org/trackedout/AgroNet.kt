@@ -222,9 +222,11 @@ object AgroNet : ModInitializer {
             }
         }
 
-        val scoreListener = AgroNetPlayerScoreListener(scoreApi)
-        ServerPlayConnectionEvents.JOIN.register(scoreListener)
-        ServerPlayConnectionEvents.DISCONNECT.register(scoreListener)
+        if (!serverName.equals("builders", ignoreCase = true)) {
+            val scoreListener = AgroNetPlayerScoreListener(scoreApi)
+            ServerPlayConnectionEvents.JOIN.register(scoreListener)
+            ServerPlayConnectionEvents.DISCONNECT.register(scoreListener)
+        }
 
         ServerTickEvents.START_SERVER_TICK.register {
             playerList = it.playerManager.playerList
