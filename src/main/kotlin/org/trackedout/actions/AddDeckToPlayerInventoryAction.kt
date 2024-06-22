@@ -35,7 +35,7 @@ class AddDeckToPlayerInventoryAction(
         }
 
         player.sendMessage("Fetching your Decked Out shulker from Dunga Dunga...", Formatting.GRAY)
-        val cards = inventoryApi.inventoryCardsGet(player = player.name.string, limit = 200, deckId = "1").results!!
+        val cards = inventoryApi.inventoryCardsGet(player = player.name.string, limit = 200, deckId = "active").results!!
 
         val canPlaceOn = "CanPlaceOn: [\"redstone_lamp\"]"
         val shulkerNbt =
