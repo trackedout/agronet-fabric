@@ -41,11 +41,21 @@ jobs:
           name: Artifacts
           path: build/libs/
 
-      - name: release
+      - name: release-tag
         uses: softprops/action-gh-release@v2
         if: ${{ startsWith(github.ref, 'refs/tags/') && runner.os == 'Linux' && matrix.java == '17' }}
         with:
           make_latest: true
+          files: |
+            build/libs/agronet-*
+            LICENSE
+
+      - name: release-latest
+        uses: softprops/action-gh-release@v2
+        if: github.ref == 'refs/heads/main'
+        with:
+          make_latest: true
+          tag_name: latest
           files: |
             build/libs/agronet-*
             LICENSE
