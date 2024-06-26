@@ -14,7 +14,11 @@ class AgroNetServerPlayConnectionListener(private val addDeckToPlayerInventoryAc
         logger.debug("onPlayReady", handler, sender, server)
         handler?.player?.let { player ->
             server?.commandSource?.let { commandSource ->
-                addDeckToPlayerInventoryAction.execute(commandSource, player)
+                try {
+                    addDeckToPlayerInventoryAction.execute(commandSource, player)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             }
         }
     }

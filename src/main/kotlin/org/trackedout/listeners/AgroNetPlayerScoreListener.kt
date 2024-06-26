@@ -68,16 +68,20 @@ class AgroNetPlayerScoreListener(
         logger.info("Storing ${batchMap.size} objectives for player $playerName")
         logger.info("BatchMap: ${Json.encodeToString(batchMap)}")
 
-        scoreApi.scoresPost(
-            batchMap.map {
-                Score(
-                    player = playerName,
-                    key = it.key,
-                    value = it.value.toBigDecimal(),
-                )
-            }
-        )
+        try {
+            scoreApi.scoresPost(
+                batchMap.map {
+                    Score(
+                        player = playerName,
+                        key = it.key,
+                        value = it.value.toBigDecimal(),
+                    )
+                }
+            )
 
-        logger.info("Successfully stored ${batchMap.size} objectives for player $playerName")
+            logger.info("Successfully stored ${batchMap.size} objectives for player $playerName")
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 }
