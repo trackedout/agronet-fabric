@@ -9,7 +9,7 @@ import org.trackedout.isDeckedOutShulker
 import org.trackedout.sendMessage
 
 class RemoveDeckFromPlayerInventoryAction {
-    private val logger = LoggerFactory.getLogger("Agro-net")
+    private val logger = LoggerFactory.getLogger("Agronet")
 
     fun execute(player: PlayerEntity) {
 

@@ -8,21 +8,21 @@ import net.minecraft.text.Text
 import net.minecraft.util.Formatting
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.trackedout.client.apis.EventsApi
+import org.trackedout.EventsApiWithContext
 import org.trackedout.client.apis.InventoryApi
 import org.trackedout.client.models.Card
-import org.trackedout.client.models.EventsPostRequest
+import org.trackedout.client.models.Event
 import org.trackedout.client.models.Item
 import org.trackedout.data.Cards
 import org.trackedout.sendMessage
 
 class CardInteractionCommand(
     private val inventoryApi: InventoryApi,
-    private val eventsApi: EventsApi,
+    private val eventsApi: EventsApiWithContext,
     private val serverName: String,
 ) {
     private val logger: Logger
-        get() = LoggerFactory.getLogger("Agro-net")
+        get() = LoggerFactory.getLogger("Agronet")
 
     fun run(context: CommandContext<ServerCommandSource>, operation: String): Int {
         val cardName = StringArgumentType.getString(context, "card").replace("-", "_")
@@ -60,11 +60,13 @@ class CardInteractionCommand(
 
         try {
             eventsApi.eventsPost(
-                EventsPostRequest(
+                Event(
                     name = "$operation-${cardName.replace("_", "-")}",
                     player = playerName,
-                    server = serverName,
-                    x, y, z, count
+                    x = x,
+                    y = y,
+                    z = z,
+                    count = count,
                 )
             )
 

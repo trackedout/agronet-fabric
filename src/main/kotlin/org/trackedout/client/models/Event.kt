@@ -30,6 +30,7 @@ import com.squareup.moshi.JsonClass
  * @param y 
  * @param z 
  * @param server 
+ * @param runId 
  * @param sourceIP 
  */
 
@@ -46,19 +47,22 @@ data class Event (
     val player: kotlin.String? = null,
 
     @Json(name = "count")
-    val count: java.math.BigDecimal? = null,
+    val count: kotlin.Int? = null,
 
     @Json(name = "x")
-    val x: java.math.BigDecimal? = null,
+    val x: kotlin.Double? = null,
 
     @Json(name = "y")
-    val y: java.math.BigDecimal? = null,
+    val y: kotlin.Double? = null,
 
     @Json(name = "z")
-    val z: java.math.BigDecimal? = null,
+    val z: kotlin.Double? = null,
 
     @Json(name = "server")
     val server: kotlin.String? = null,
+
+    @Json(name = "runId")
+    val runId: kotlin.String? = null,
 
     @Json(name = "sourceIP")
     val sourceIP: kotlin.String? = null

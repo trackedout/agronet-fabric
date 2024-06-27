@@ -9,7 +9,7 @@ class TaskManagement(
     private val tasksApi: TasksApi,
     private val serverName: String,
 ) {
-    private val logger = LoggerFactory.getLogger("Agro-net")
+    private val logger = LoggerFactory.getLogger("Agronet")
 
     fun fetchAndExecuteTasks(server: MinecraftServer) {
         logger.debug("Fetching Tasks from Dunga Dunga")

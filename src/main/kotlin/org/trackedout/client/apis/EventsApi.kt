@@ -15,30 +15,22 @@
 
 package org.trackedout.client.apis
 
-import java.io.IOException
-import okhttp3.OkHttpClient
 import okhttp3.HttpUrl
-
-import org.trackedout.client.models.Error
-import org.trackedout.client.models.Event
-import org.trackedout.client.models.EventsGet200Response
-import org.trackedout.client.models.EventsPostRequest
-
-import com.squareup.moshi.Json
-
+import okhttp3.OkHttpClient
 import org.trackedout.client.infrastructure.ApiClient
 import org.trackedout.client.infrastructure.ApiResponse
-import org.trackedout.client.infrastructure.ClientException
 import org.trackedout.client.infrastructure.ClientError
-import org.trackedout.client.infrastructure.ServerException
-import org.trackedout.client.infrastructure.ServerError
+import org.trackedout.client.infrastructure.ClientException
 import org.trackedout.client.infrastructure.MultiValueMap
-import org.trackedout.client.infrastructure.PartConfig
 import org.trackedout.client.infrastructure.RequestConfig
 import org.trackedout.client.infrastructure.RequestMethod
 import org.trackedout.client.infrastructure.ResponseType
+import org.trackedout.client.infrastructure.ServerError
+import org.trackedout.client.infrastructure.ServerException
 import org.trackedout.client.infrastructure.Success
-import org.trackedout.client.infrastructure.toMultiValue
+import org.trackedout.client.models.Event
+import org.trackedout.client.models.EventsGet200Response
+import java.io.IOException
 
 class EventsApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClient = ApiClient.defaultClient) : ApiClient(basePath, client) {
     companion object {
@@ -157,7 +149,7 @@ class EventsApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClient 
     /**
      * Create an event
      * Log a dungeon event from one of the Decked Out 2 instances.
-     * @param eventsPostRequest 
+     * @param event 
      * @return Event
      * @throws IllegalStateException If the request is not correctly configured
      * @throws IOException Rethrows the OkHttp execute method exception
@@ -167,8 +159,8 @@ class EventsApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClient 
      */
     @Suppress("UNCHECKED_CAST")
     @Throws(IllegalStateException::class, IOException::class, UnsupportedOperationException::class, ClientException::class, ServerException::class)
-    fun eventsPost(eventsPostRequest: EventsPostRequest) : Event {
-        val localVarResponse = eventsPostWithHttpInfo(eventsPostRequest = eventsPostRequest)
+    fun eventsPost(event: Event) : Event {
+        val localVarResponse = eventsPostWithHttpInfo(event = event)
 
         return when (localVarResponse.responseType) {
             ResponseType.Success -> (localVarResponse as Success<*>).data as Event
@@ -188,17 +180,17 @@ class EventsApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClient 
     /**
      * Create an event
      * Log a dungeon event from one of the Decked Out 2 instances.
-     * @param eventsPostRequest 
+     * @param event 
      * @return ApiResponse<Event?>
      * @throws IllegalStateException If the request is not correctly configured
      * @throws IOException Rethrows the OkHttp execute method exception
      */
     @Suppress("UNCHECKED_CAST")
     @Throws(IllegalStateException::class, IOException::class)
-    fun eventsPostWithHttpInfo(eventsPostRequest: EventsPostRequest) : ApiResponse<Event?> {
-        val localVariableConfig = eventsPostRequestConfig(eventsPostRequest = eventsPostRequest)
+    fun eventsPostWithHttpInfo(event: Event) : ApiResponse<Event?> {
+        val localVariableConfig = eventsPostRequestConfig(event = event)
 
-        return request<EventsPostRequest, Event>(
+        return request<Event, Event>(
             localVariableConfig
         )
     }
@@ -206,11 +198,11 @@ class EventsApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClient 
     /**
      * To obtain the request config of the operation eventsPost
      *
-     * @param eventsPostRequest 
+     * @param event 
      * @return RequestConfig
      */
-    fun eventsPostRequestConfig(eventsPostRequest: EventsPostRequest) : RequestConfig<EventsPostRequest> {
-        val localVariableBody = eventsPostRequest
+    fun eventsPostRequestConfig(event: Event) : RequestConfig<Event> {
+        val localVariableBody = event
         val localVariableQuery: MultiValueMap = mutableMapOf()
         val localVariableHeaders: MutableMap<String, String> = mutableMapOf()
         localVariableHeaders["Content-Type"] = "application/json"

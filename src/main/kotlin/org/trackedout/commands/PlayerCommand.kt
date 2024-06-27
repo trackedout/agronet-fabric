@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory
 
 interface PlayerCommand {
     val logger: Logger
-        get() = LoggerFactory.getLogger("Agro-net")
+        get() = LoggerFactory.getLogger("Agronet")
 
     fun run(context: CommandContext<ServerCommandSource>): Int
 }

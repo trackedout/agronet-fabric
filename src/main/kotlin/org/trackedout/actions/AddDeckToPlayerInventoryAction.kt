@@ -20,7 +20,7 @@ import org.trackedout.sendMessage
 class AddDeckToPlayerInventoryAction(
     private val inventoryApi: InventoryApi,
 ) {
-    private val logger = LoggerFactory.getLogger("Agro-net")
+    private val logger = LoggerFactory.getLogger("Agronet")
 
     fun execute(source: ServerCommandSource, player: ServerPlayerEntity) {
         logger.debug("Fetch player deck command")

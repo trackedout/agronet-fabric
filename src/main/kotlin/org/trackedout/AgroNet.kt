@@ -23,7 +23,7 @@ import org.trackedout.client.apis.EventsApi
 import org.trackedout.client.apis.InventoryApi
 import org.trackedout.client.apis.ScoreApi
 import org.trackedout.client.apis.TasksApi
-import org.trackedout.client.models.EventsPostRequest
+import org.trackedout.client.models.Event
 import org.trackedout.commands.CardInteractionCommand
 import org.trackedout.commands.LogEventCommand
 import org.trackedout.listeners.AgroNetPlayerScoreListener
@@ -31,16 +31,16 @@ import org.trackedout.listeners.AgroNetServerPlayConnectionListener
 import redis.clients.jedis.Jedis
 import java.net.InetAddress
 import java.net.Socket
+import java.util.UUID
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 
-
 const val RECEIVED_SHULKER = "do2.received_shulker"
 
 object AgroNet : ModInitializer {
-    private val logger = LoggerFactory.getLogger("Agro-net")
+    private val logger = LoggerFactory.getLogger("Agronet")
     private val threadPool = Executors.newScheduledThreadPool(2)
     private var playerList: List<String> = emptyList()
 
@@ -51,16 +51,19 @@ object AgroNet : ModInitializer {
 
         val serverName = getEnvOrDefault("SERVER_NAME", InetAddress.getLocalHost().hostName)
         val dungaAPIPath = getEnvOrDefault("DUNGA_API", "http://localhost:3000/v1")
+        val runId = UUID.randomUUID().toString()
 
-        logger.info("Agro-net server name: $serverName")
+        logger.info("Agronet server name: $serverName (run ID: $runId)")
         logger.info("Dunga-dunga API path: $dungaAPIPath")
 
-        val eventsApi = EventsApi(
-            basePath = dungaAPIPath,
-            client = OkHttpClient.Builder()
-                .connectTimeout(5.seconds.toJavaDuration())
-                .callTimeout(30.seconds.toJavaDuration())
-                .build()
+        val eventsApi = EventsApiWithContext(
+            EventsApi(
+                basePath = dungaAPIPath,
+                client = OkHttpClient.Builder()
+                    .connectTimeout(5.seconds.toJavaDuration())
+                    .callTimeout(30.seconds.toJavaDuration())
+                    .build()
+            ), serverName, runId
         )
 
         val inventoryApi = InventoryApi(
@@ -121,7 +124,7 @@ object AgroNet : ModInitializer {
                 })
         }
 
-        val logEventCommand = LogEventCommand(eventsApi, serverName)
+        val logEventCommand = LogEventCommand(eventsApi)
 
         CommandRegistrationCallback.EVENT.register { dispatcher, _, _ ->
             dispatcher.register(literal("log-event")
@@ -216,7 +219,7 @@ object AgroNet : ModInitializer {
                 .map { player -> player.gameProfile.name }
                 .toList()
 
-            sendServerOnlineEvent(eventsApi, serverName, playerListAfterJoin)
+            sendServerOnlineEvent(eventsApi, playerListAfterJoin)
             playerList.forEach {
                 sendPlayerSeenEvent(eventsApi, serverName, it)
             }
@@ -235,10 +238,10 @@ object AgroNet : ModInitializer {
                 .toList()
         }
 
-        sendServerOnlineEvent(eventsApi, serverName, playerList)
+        sendServerOnlineEvent(eventsApi, playerList)
         threadPool.scheduleAtFixedRate({
             logger.info("Sending server-online event (with player count)")
-            sendServerOnlineEvent(eventsApi, serverName, playerList)
+            sendServerOnlineEvent(eventsApi, playerList)
 
             playerList.forEach {
                 sendPlayerSeenEvent(eventsApi, serverName, it)
@@ -262,10 +265,9 @@ object AgroNet : ModInitializer {
             threadPool.shutdown()
 
             eventsApi.eventsPost(
-                EventsPostRequest(
+                Event(
                     name = "server-closing",
                     player = "server",
-                    server = serverName,
                     x = 0.0,
                     y = 0.0,
                     z = 0.0,
@@ -274,16 +276,15 @@ object AgroNet : ModInitializer {
             )
         }
 
-        logger.info("Agro-net online. Flee with extra flee!")
+        logger.info("Agronet online. Flee with extra flee!")
     }
 
-    private fun sendServerOnlineEvent(eventsApi: EventsApi, serverName: String, playerList: List<String>) {
+    private fun sendServerOnlineEvent(eventsApi: EventsApiWithContext, playerList: List<String>) {
         try {
             eventsApi.eventsPost(
-                EventsPostRequest(
+                Event(
                     name = "server-online",
                     player = "server",
-                    server = serverName,
                     x = 0.0,
                     y = 0.0,
                     z = 0.0,
@@ -295,10 +296,10 @@ object AgroNet : ModInitializer {
         }
     }
 
-    private fun sendPlayerSeenEvent(eventsApi: EventsApi, serverName: String, playerName: String) {
+    private fun sendPlayerSeenEvent(eventsApi: EventsApiWithContext, serverName: String, playerName: String) {
         try {
             eventsApi.eventsPost(
-                EventsPostRequest(
+                Event(
                     name = "player-seen",
                     player = playerName,
                     server = serverName,

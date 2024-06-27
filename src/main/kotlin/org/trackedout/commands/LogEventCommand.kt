@@ -5,10 +5,10 @@ import com.mojang.brigadier.arguments.StringArgumentType
 import com.mojang.brigadier.context.CommandContext
 import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.text.Text
-import org.trackedout.client.apis.EventsApi
-import org.trackedout.client.models.EventsPostRequest
+import org.trackedout.EventsApiWithContext
+import org.trackedout.client.models.Event
 
-class LogEventCommand(private val eventsApi: EventsApi, private val serverName: String) : PlayerCommand {
+class LogEventCommand(private val eventsApi: EventsApiWithContext) : PlayerCommand {
     override fun run(context: CommandContext<ServerCommandSource>): Int {
         val event = StringArgumentType.getString(context, "event")
         val count = try {
@@ -40,11 +40,13 @@ class LogEventCommand(private val eventsApi: EventsApi, private val serverName: 
 
         try {
             val result = eventsApi.eventsPost(
-                EventsPostRequest(
+                Event(
                     name = event,
                     player = sourceName,
-                    server = serverName,
-                    x, y, z, count
+                    x = x,
+                    y = y,
+                    z = z,
+                    count = count,
                 )
             )
 
