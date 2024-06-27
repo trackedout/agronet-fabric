@@ -90,7 +90,7 @@ object AgroNet : ModInitializer {
                 .build()
         )
 
-        val addDeckToPlayerInventoryAction = AddDeckToPlayerInventoryAction(inventoryApi)
+        val addDeckToPlayerInventoryAction = AddDeckToPlayerInventoryAction(eventsApi, inventoryApi)
         val removeDeckFromPlayerInventoryAction = RemoveDeckFromPlayerInventoryAction()
 
         CommandRegistrationCallback.EVENT.register { dispatcher, _, _ ->

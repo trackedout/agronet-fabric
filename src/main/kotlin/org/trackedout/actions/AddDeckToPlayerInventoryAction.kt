@@ -10,32 +10,60 @@ import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.util.Formatting
 import org.slf4j.LoggerFactory
+import org.trackedout.EventsApiWithContext
 import org.trackedout.RECEIVED_SHULKER
 import org.trackedout.client.apis.InventoryApi
+import org.trackedout.client.models.Event
 import org.trackedout.data.Cards
 import org.trackedout.data.Cards.Companion.Card
 import org.trackedout.debug
 import org.trackedout.sendMessage
 
 class AddDeckToPlayerInventoryAction(
+    private val eventsApi: EventsApiWithContext,
     private val inventoryApi: InventoryApi,
 ) {
     private val logger = LoggerFactory.getLogger("Agronet")
 
     fun execute(source: ServerCommandSource, player: ServerPlayerEntity) {
+        val playerName = player.name.string
         logger.debug("Fetch player deck command")
 
         player.debug("Player tags: ${player.commandTags}")
         logger.debug("Player tags: {}", player.commandTags)
         if (player.commandTags.contains(RECEIVED_SHULKER)) {
-            source.sendMessage("Player ${player.name.string} already has their shulker box, refusing to give them another one", Formatting.RED)
+            source.sendMessage("Player $playerName already has their shulker box, refusing to give them another one", Formatting.RED)
             player.debug("You already have your shulker box, refusing to give you another one")
-            logger.warn("Player ${player.name.string} already has their shulker box, refusing to give them another one")
+            logger.warn("Player $playerName already has their shulker box, refusing to give them another one")
             return
         }
 
         player.sendMessage("Fetching your Decked Out shulker from Dunga Dunga...", Formatting.GRAY)
-        val cards = inventoryApi.inventoryCardsGet(player = player.name.string, limit = 200, deckId = "active").results!!
+        val cards = inventoryApi.inventoryCardsGet(player = playerName, limit = 200, deckId = "active").results!!
+
+        eventsApi.eventsPost(
+            Event(
+                name = "card-count-on-join",
+                player = playerName,
+                x = 0.0,
+                y = 0.0,
+                z = 0.0,
+                count = cards.size,
+            )
+        )
+
+        cards.map { it.deckId }.distinct().forEach { deckId ->
+            eventsApi.eventsPost(
+                Event(
+                    name = "acquired-deck-${deckId}",
+                    player = playerName,
+                    x = 0.0,
+                    y = 0.0,
+                    z = 0.0,
+                    count = 1,
+                )
+            )
+        }
 
         val canPlaceOn = "CanPlaceOn: [\"redstone_lamp\"]"
         val shulkerNbt =
@@ -47,7 +75,7 @@ class AddDeckToPlayerInventoryAction(
         val display = NbtCompound()
         display.putString("Name", nameJson)
         shulkerNbt.put("display", display)
-        shulkerNbt.putString("owner", player.name.string)
+        shulkerNbt.putString("owner", playerName)
         shulkerNbt.putUuid("owner-id", player.uuid)
 
         val cardCount = cards.groupingBy { it.name!! }.eachCount()
@@ -55,15 +83,26 @@ class AddDeckToPlayerInventoryAction(
         player.debug("Your shulker should contain ${cards.size} cards:")
         cardCount.forEach { (cardName, count) ->
             player.debug("- ${count}x $cardName")
-            logger.info("${player.name.string}'s shulker should contain ${count}x $cardName")
+            logger.info("$playerName's shulker should contain ${count}x $cardName")
 
             val card = Cards.findCard(cardName)
             if (card == null) {
                 player.sendMessage("Unknown card '${cardName}', Agronet will not add it to your deck", Formatting.RED)
-                logger.error("Unknown card '${cardName}', Agronet cannot add it to ${player.name.string}'s deck")
+                logger.error("Unknown card '${cardName}', Agronet cannot add it to $playerName's deck")
             } else {
                 val cardData = createCard(cardIndex++, card, count)
                 shulkerItems.add(cardData)
+
+                eventsApi.eventsPost(
+                    Event(
+                        name = "card-exists-on-join-${cardName.replace("_", "-")}",
+                        player = playerName,
+                        x = 0.0,
+                        y = 0.0,
+                        z = 0.0,
+                        count = count,
+                    )
+                )
             }
         }
         shulkerNbt.put(BlockItem.BLOCK_ENTITY_TAG_KEY, blockCompound)
