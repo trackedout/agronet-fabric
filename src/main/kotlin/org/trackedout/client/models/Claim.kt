@@ -23,46 +23,34 @@ import com.squareup.moshi.JsonClass
  * 
  *
  * @param id 
- * @param name 
  * @param player 
- * @param count 
- * @param x 
- * @param y 
- * @param z 
- * @param server 
- * @param sourceIP 
+ * @param claimant 
+ * @param type 
+ * @param state 
+ * @param stateReason 
  * @param metadata 
  */
 
 
-data class Event (
+data class Claim (
 
     @Json(name = "id")
     val id: kotlin.String? = null,
 
-    @Json(name = "name")
-    val name: kotlin.String? = null,
-
     @Json(name = "player")
     val player: kotlin.String? = null,
 
-    @Json(name = "count")
-    val count: kotlin.Int? = null,
+    @Json(name = "claimant")
+    val claimant: kotlin.String? = null,
 
-    @Json(name = "x")
-    val x: kotlin.Double? = null,
+    @Json(name = "type")
+    val type: kotlin.String? = null,
 
-    @Json(name = "y")
-    val y: kotlin.Double? = null,
+    @Json(name = "state")
+    val state: kotlin.String? = null,
 
-    @Json(name = "z")
-    val z: kotlin.Double? = null,
-
-    @Json(name = "server")
-    val server: kotlin.String? = null,
-
-    @Json(name = "sourceIP")
-    val sourceIP: kotlin.String? = null,
+    @Json(name = "stateReason")
+    val stateReason: kotlin.String? = null,
 
     @Json(name = "metadata")
     val metadata: kotlin.collections.Map<kotlin.String, kotlin.String>? = null

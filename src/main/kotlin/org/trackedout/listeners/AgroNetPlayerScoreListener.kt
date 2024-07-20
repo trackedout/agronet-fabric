@@ -6,12 +6,18 @@ import net.fabricmc.fabric.api.networking.v1.PacketSender
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.network.ServerPlayNetworkHandler
+import net.minecraft.util.Formatting
 import org.slf4j.LoggerFactory
+import org.trackedout.RunContext
+import org.trackedout.client.apis.ClaimApi
 import org.trackedout.client.apis.ScoreApi
 import org.trackedout.client.models.Score
+import org.trackedout.sendMessage
 
 class AgroNetPlayerScoreListener(
     private val scoreApi: ScoreApi,
+    private val claimApi: ClaimApi,
+    private val runContext: RunContext,
 ) :
     ServerPlayConnectionEvents.Join,
     ServerPlayConnectionEvents.Disconnect {
@@ -27,21 +33,48 @@ class AgroNetPlayerScoreListener(
                 .split(",")
 
     override fun onPlayReady(handler: ServerPlayNetworkHandler, sender: PacketSender, server: MinecraftServer) {
-        logger.debug("onPlayReady")
-
         val playerName = handler.player.entityName
+        if (playerName.equals("TangoCam")) {
+            return
+        }
+
         try {
+            claimApi.claimsGet(
+                player = playerName,
+                state = "acquired",
+                type = "dungeon",
+            ).results?.firstOrNull()?.let { claim ->
+                claim.metadata?.get("run-type")?.let { runContext.gameTags[playerName] = it }
+                // TODO: Don't do this if player is spectating
+                claim.metadata?.get("run-id")?.let { runContext.runId = it }
+
+                logger.info("Setting state of Claim ${claim.id} to 'in-use'")
+                claimApi.claimsIdPatch(claim.id!!, claim.copy(id = null, state = "in-use", claimant = runContext.serverName))
+            } ?: run {
+                logger.error("No matching claim found for $playerName")
+                handler.player.sendMessage("No matching claim found for your run, contact a moderator (unless you are spectating)", Formatting.RED)
+            }
+
+            val runType = getRunType(playerName)
+            val filter = "$runType-"
+
+            logger.info("Scoreboard filter: $filter")
             val scores = scoreApi.scoresGet(
-                player = playerName
+                player = playerName,
+                limit = 10000,
             )
 
-            scores.results!!.forEach {
-                val objective = server.scoreboard.getObjective(it.key)
+            scores.results!!
+                .filter { it.key!!.startsWith(filter) }
+                .map { it.copy(key = it.key?.substring(filter.length)) }
+                .filter { it.key!!.isNotBlank() }
+                .forEach {
+                    val objective = server.scoreboard.getObjective(it.key)
 
-                val playerScore = server.scoreboard.getPlayerScore(playerName, objective)
-                playerScore.score = it.value!!.toInt()
-                logger.info("Set ${it.key} to ${it.value} for $playerName")
-            }
+                    val playerScore = server.scoreboard.getPlayerScore(playerName, objective)
+                    playerScore.score = it.value!!.toInt()
+                    logger.info("Set ${it.key} to ${it.value} for $playerName")
+                }
 
         } catch (e: Exception) {
             e.printStackTrace()
@@ -49,31 +82,35 @@ class AgroNetPlayerScoreListener(
     }
 
     override fun onPlayDisconnect(handler: ServerPlayNetworkHandler, server: MinecraftServer) {
-        logger.debug("onPlayDisconnect")
-
-        val playerName = handler.player.entityName
-        val batchMap = server.scoreboard.getPlayerObjectives(playerName)
-            // Filter for objectives in the "totals" category: https://github.com/trackedout/Brilliance/blob/main/JSON/scoreboards.json
-            .filter { objective -> objectivesToStore.contains(objective.key.name) }
-            .map { objective ->
-                objective.key.name to objective.value.score
-            }
-            .toMap()
-
-        if (batchMap.isEmpty()) {
-            logger.info("$playerName does not have any applicable objectives, skipping store call")
-            return
-        }
-
-        logger.info("Storing ${batchMap.size} objectives for player $playerName")
-        logger.info("BatchMap: ${Json.encodeToString(batchMap)}")
+        logger.info("onPlayDisconnect")
 
         try {
+            val playerName = handler.player.entityName
+            if (playerName.equals("TangoCam")) {
+                return
+            }
+
+            val batchMap = server.scoreboard.getPlayerObjectives(playerName)
+                // Filter for objectives in the "totals" category: https://github.com/trackedout/Brilliance/blob/main/JSON/scoreboards.json
+                .filter { objective -> (objective.key?.name)?.let { objectivesToStore.contains(it) } ?: false }
+                .map { objective ->
+                    objective.key.name to objective.value.score
+                }
+                .toMap()
+
+            if (batchMap.isEmpty()) {
+                logger.info("$playerName does not have any applicable objectives, skipping store call")
+                return
+            }
+
+            logger.info("Storing ${batchMap.size} objectives for player $playerName")
+            logger.info("BatchMap: ${Json.encodeToString(batchMap)}")
+
             scoreApi.scoresPost(
                 batchMap.map {
                     Score(
                         player = playerName,
-                        key = it.key,
+                        key = "${getRunType(playerName)}-${it.key}",
                         value = it.value.toBigDecimal(),
                     )
                 }
@@ -84,4 +121,6 @@ class AgroNetPlayerScoreListener(
             e.printStackTrace()
         }
     }
+
+    private fun getRunType(playerName: String?): String? = runContext.gameTags.getOrDefault(playerName, "practice")
 }

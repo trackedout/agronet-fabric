@@ -15,22 +15,29 @@
 
 package org.trackedout.client.apis
 
-import okhttp3.HttpUrl
+import java.io.IOException
 import okhttp3.OkHttpClient
+import okhttp3.HttpUrl
+
+import org.trackedout.client.models.Error
+import org.trackedout.client.models.Event
+import org.trackedout.client.models.EventsGet200Response
+
+import com.squareup.moshi.Json
+
 import org.trackedout.client.infrastructure.ApiClient
 import org.trackedout.client.infrastructure.ApiResponse
-import org.trackedout.client.infrastructure.ClientError
 import org.trackedout.client.infrastructure.ClientException
+import org.trackedout.client.infrastructure.ClientError
+import org.trackedout.client.infrastructure.ServerException
+import org.trackedout.client.infrastructure.ServerError
 import org.trackedout.client.infrastructure.MultiValueMap
+import org.trackedout.client.infrastructure.PartConfig
 import org.trackedout.client.infrastructure.RequestConfig
 import org.trackedout.client.infrastructure.RequestMethod
 import org.trackedout.client.infrastructure.ResponseType
-import org.trackedout.client.infrastructure.ServerError
-import org.trackedout.client.infrastructure.ServerException
 import org.trackedout.client.infrastructure.Success
-import org.trackedout.client.models.Event
-import org.trackedout.client.models.EventsGet200Response
-import java.io.IOException
+import org.trackedout.client.infrastructure.toMultiValue
 
 class EventsApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClient = ApiClient.defaultClient) : ApiClient(basePath, client) {
     companion object {

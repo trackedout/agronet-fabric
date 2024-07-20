@@ -17,8 +17,10 @@ import net.minecraft.server.network.ServerPlayNetworkHandler
 import net.minecraft.util.Formatting
 import okhttp3.OkHttpClient
 import org.slf4j.LoggerFactory
+import org.trackedout.RunContext.serverName
 import org.trackedout.actions.AddDeckToPlayerInventoryAction
 import org.trackedout.actions.RemoveDeckFromPlayerInventoryAction
+import org.trackedout.client.apis.ClaimApi
 import org.trackedout.client.apis.EventsApi
 import org.trackedout.client.apis.InventoryApi
 import org.trackedout.client.apis.ScoreApi
@@ -31,7 +33,6 @@ import org.trackedout.listeners.AgroNetServerPlayConnectionListener
 import redis.clients.jedis.Jedis
 import java.net.InetAddress
 import java.net.Socket
-import java.util.UUID
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration.Companion.seconds
@@ -44,16 +45,18 @@ object AgroNet : ModInitializer {
     private val threadPool = Executors.newScheduledThreadPool(2)
     private var playerList: List<String> = emptyList()
 
+    private val runContext = RunContext
+
+
     override fun onInitialize() {
         // This code runs as soon as Minecraft is in a mod-load-ready state.
         // However, some things (like resources) may still be uninitialized.
         // Proceed with mild caution.
 
-        val serverName = getEnvOrDefault("SERVER_NAME", InetAddress.getLocalHost().hostName)
+        serverName = getEnvOrDefault("SERVER_NAME", InetAddress.getLocalHost().hostName)
         val dungaAPIPath = getEnvOrDefault("DUNGA_API", "http://localhost:3000/v1")
-        val runId = UUID.randomUUID().toString()
 
-        logger.info("Agronet server name: $serverName (run ID: $runId)")
+        logger.info("Agronet server name: $serverName (run ID: ${runContext.runId})")
         logger.info("Dunga-dunga API path: $dungaAPIPath")
 
         val eventsApi = EventsApiWithContext(
@@ -63,7 +66,7 @@ object AgroNet : ModInitializer {
                     .connectTimeout(5.seconds.toJavaDuration())
                     .callTimeout(30.seconds.toJavaDuration())
                     .build()
-            ), serverName, runId
+            ), serverName, runContext
         )
 
         val inventoryApi = InventoryApi(
@@ -83,6 +86,14 @@ object AgroNet : ModInitializer {
         )
 
         val scoreApi = ScoreApi(
+            basePath = dungaAPIPath,
+            client = OkHttpClient.Builder()
+                .connectTimeout(5.seconds.toJavaDuration())
+                .callTimeout(30.seconds.toJavaDuration())
+                .build()
+        )
+
+        val claimApi = ClaimApi(
             basePath = dungaAPIPath,
             client = OkHttpClient.Builder()
                 .connectTimeout(5.seconds.toJavaDuration())
@@ -226,7 +237,7 @@ object AgroNet : ModInitializer {
         }
 
         if (!serverName.equals("builders", ignoreCase = true)) {
-            val scoreListener = AgroNetPlayerScoreListener(scoreApi)
+            val scoreListener = AgroNetPlayerScoreListener(scoreApi, claimApi, runContext)
             ServerPlayConnectionEvents.JOIN.register(scoreListener)
             ServerPlayConnectionEvents.DISCONNECT.register(scoreListener)
         }
