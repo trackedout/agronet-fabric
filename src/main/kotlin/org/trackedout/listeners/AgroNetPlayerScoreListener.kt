@@ -57,6 +57,7 @@ class AgroNetPlayerScoreListener(
 
             val runType = getRunType(playerName)
             val filter = "$runType-"
+            val advancementFilter = "$runType-advancement-"
 
             logger.info("Scoreboard filter: $filter")
             val scores = scoreApi.scoresGet(
@@ -66,6 +67,7 @@ class AgroNetPlayerScoreListener(
 
             scores.results!!
                 .filter { it.key!!.startsWith(filter) }
+                .filter { !it.key!!.startsWith(advancementFilter) }
                 .map { it.copy(key = it.key?.substring(filter.length)) }
                 .filter { it.key!!.isNotBlank() }
                 .forEach {
@@ -74,6 +76,30 @@ class AgroNetPlayerScoreListener(
                     val playerScore = server.scoreboard.getPlayerScore(playerName, objective)
                     playerScore.score = it.value!!.toInt()
                     logger.info("Set ${it.key} to ${it.value} for $playerName")
+                }
+
+            val tracker = handler.player.advancementTracker
+
+            scores.results
+                .filter { it.key!!.startsWith(advancementFilter) }
+                .map { it.copy(key = it.key?.substring(advancementFilter.length)) }
+                .filter { it.key!!.isNotBlank() && it.key.contains("#") }
+                .filter { it.value!!.toInt() > 0 }
+                .forEach { score ->
+                    val split = score.key!!.split("#")
+                    val key = split[0]
+                    val criterion = split[1]
+
+                    server.advancementLoader.advancements.find { it.id.namespace == "do2" && it.id.path == key }?.let { advancement ->
+                        val obtained: Boolean? = tracker.getProgress(advancement).getCriterionProgress(criterion)?.isObtained
+                        if (obtained == null || obtained == false) {
+                            tracker.grantCriterion(advancement, criterion)
+                            logger.info("Granted Advancement progress $key (criterion: $criterion) to $playerName")
+                            logger.info("Advancement: ${tracker.getProgress(advancement)}")
+                        } else {
+                            logger.info("$playerName already has advancement progress $key (criterion: $criterion)")
+                        }
+                    }
                 }
 
         } catch (e: Exception) {
@@ -96,7 +122,23 @@ class AgroNetPlayerScoreListener(
                 .map { objective ->
                     objective.key.name to objective.value.score
                 }
-                .toMap()
+                .toMap().toMutableMap()
+
+            batchMap += server.advancementLoader.advancements.filter { it.id.namespace == "do2" }
+                .filter { !it.id.path.startsWith("visible/credits/") }
+                .filter { handler.player.advancementTracker.getProgress(it).isAnyObtained }
+                .flatMap {
+                    val progress = handler.player.advancementTracker.getProgress(it)
+                    it.criteria.entries.map { entry ->
+                        val obtained: Boolean? = progress.getCriterionProgress(entry.key)?.isObtained
+                        val value = if (obtained != null && obtained == true) 1 else 0
+
+                        "advancement-${it.id.path}#${entry.key}" to value
+                    }
+                }
+                .filter { it.second > 0 }
+
+            handler.player.advancementTracker.save()
 
             if (batchMap.isEmpty()) {
                 logger.info("$playerName does not have any applicable objectives, skipping store call")
