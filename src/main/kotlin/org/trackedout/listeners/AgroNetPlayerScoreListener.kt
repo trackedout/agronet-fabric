@@ -9,6 +9,7 @@ import net.minecraft.server.network.ServerPlayNetworkHandler
 import net.minecraft.util.Formatting
 import org.slf4j.LoggerFactory
 import org.trackedout.RunContext
+import org.trackedout.RunContext.serverName
 import org.trackedout.client.apis.ClaimApi
 import org.trackedout.client.apis.ScoreApi
 import org.trackedout.client.models.Score
@@ -109,13 +110,16 @@ class AgroNetPlayerScoreListener(
 
     override fun onPlayDisconnect(handler: ServerPlayNetworkHandler, server: MinecraftServer) {
         logger.info("onPlayDisconnect")
+        if (serverName.equals("builders", ignoreCase = true)) {
+            return
+        }
+
+        val playerName = handler.player.entityName
+        if (playerName.equals("TangoCam")) {
+            return
+        }
 
         try {
-            val playerName = handler.player.entityName
-            if (playerName.equals("TangoCam")) {
-                return
-            }
-
             val batchMap = server.scoreboard.getPlayerObjectives(playerName)
                 // Filter for objectives in the "totals" category: https://github.com/trackedout/Brilliance/blob/main/JSON/scoreboards.json
                 .filter { objective -> (objective.key?.name)?.let { objectivesToStore.contains(it) } ?: false }
