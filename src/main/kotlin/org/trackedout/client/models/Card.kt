@@ -26,7 +26,8 @@ import com.squareup.moshi.JsonClass
  * @param name 
  * @param player 
  * @param server 
- * @param deckId 
+ * @param deckType 
+ * @param hiddenInDecks 
  */
 
 
@@ -44,8 +45,11 @@ data class Card (
     @Json(name = "server")
     val server: kotlin.String? = null,
 
-    @Json(name = "deckId")
-    val deckId: kotlin.String? = null
+    @Json(name = "deckType")
+    val deckType: kotlin.String? = null,
+
+    @Json(name = "hiddenInDecks")
+    val hiddenInDecks: kotlin.collections.List<kotlin.String>? = null
 
 )
 

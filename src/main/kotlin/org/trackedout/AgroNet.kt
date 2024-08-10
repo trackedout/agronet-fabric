@@ -28,8 +28,7 @@ import org.trackedout.client.apis.TasksApi
 import org.trackedout.client.models.Event
 import org.trackedout.commands.CardInteractionCommand
 import org.trackedout.commands.LogEventCommand
-import org.trackedout.listeners.AgroNetPlayerScoreListener
-import org.trackedout.listeners.AgroNetServerPlayConnectionListener
+import org.trackedout.listeners.AgroNetPlayerConnectionListener
 import redis.clients.jedis.Jedis
 import java.net.InetAddress
 import java.net.Socket
@@ -223,7 +222,6 @@ object AgroNet : ModInitializer {
             }
         }
 
-        ServerPlayConnectionEvents.JOIN.register(AgroNetServerPlayConnectionListener(addDeckToPlayerInventoryAction))
         ServerPlayConnectionEvents.JOIN.register { _: ServerPlayNetworkHandler, _: PacketSender, server: MinecraftServer ->
             val playerListAfterJoin = server.playerManager.playerList
                 .filter { player -> !player.commandTags.contains("do2.spectating") }
@@ -237,7 +235,7 @@ object AgroNet : ModInitializer {
         }
 
         if (!serverName.equals("builders", ignoreCase = true)) {
-            val scoreListener = AgroNetPlayerScoreListener(scoreApi, claimApi, runContext)
+            val scoreListener = AgroNetPlayerConnectionListener(scoreApi, claimApi, runContext, addDeckToPlayerInventoryAction)
             ServerPlayConnectionEvents.JOIN.register(scoreListener)
             ServerPlayConnectionEvents.DISCONNECT.register(scoreListener)
         }

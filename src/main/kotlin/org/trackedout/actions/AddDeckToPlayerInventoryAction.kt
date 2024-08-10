@@ -12,11 +12,15 @@ import net.minecraft.util.Formatting
 import org.slf4j.LoggerFactory
 import org.trackedout.EventsApiWithContext
 import org.trackedout.RECEIVED_SHULKER
+import org.trackedout.RunContext
 import org.trackedout.client.apis.InventoryApi
 import org.trackedout.client.models.Event
 import org.trackedout.data.Cards
 import org.trackedout.data.Cards.Companion.Card
 import org.trackedout.debug
+import org.trackedout.deckId
+import org.trackedout.fullRunType
+import org.trackedout.runType
 import org.trackedout.sendMessage
 
 class AddDeckToPlayerInventoryAction(
@@ -38,8 +42,9 @@ class AddDeckToPlayerInventoryAction(
             return
         }
 
-        player.sendMessage("Fetching your Decked Out shulker from Dunga Dunga...", Formatting.GRAY)
-        val cards = inventoryApi.inventoryCardsGet(player = playerName, limit = 200, deckId = "active").results!!
+        val context = RunContext.playerContext(playerName)
+        player.sendMessage("Fetching ${context.fullRunType()} mode Decked Out shulker #${context.deckId()} from Dunga Dunga...", Formatting.GRAY)
+        val cards = inventoryApi.inventoryCardsGet(player = playerName, limit = 200, deckType = context.runType(), deckId = context.deckId()).results!!
 
         eventsApi.eventsPost(
             Event(
@@ -51,19 +56,6 @@ class AddDeckToPlayerInventoryAction(
                 count = cards.size,
             )
         )
-
-        cards.map { it.deckId }.distinct().forEach { deckId ->
-            eventsApi.eventsPost(
-                Event(
-                    name = "acquired-deck-${deckId}",
-                    player = playerName,
-                    x = 0.0,
-                    y = 0.0,
-                    z = 0.0,
-                    count = 1,
-                )
-            )
-        }
 
         val canPlaceOn = "CanPlaceOn: [\"redstone_lamp\"]"
         val shulkerNbt =

@@ -126,6 +126,7 @@ class InventoryApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClie
      * Only admins can retrieve all cards.
      * @param name Card name (optional)
      * @param player Player (optional)
+     * @param deckType Deck Type (optional)
      * @param deckId Deck ID (optional)
      * @param sortBy sort by query in the form of field:desc/asc (ex. name:asc) (optional)
      * @param projectBy project by query in the form of field:hide/include (ex. name:hide) (optional)
@@ -140,8 +141,8 @@ class InventoryApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClie
      */
     @Suppress("UNCHECKED_CAST")
     @Throws(IllegalStateException::class, IOException::class, UnsupportedOperationException::class, ClientException::class, ServerException::class)
-    fun inventoryCardsGet(name: kotlin.String? = null, player: kotlin.String? = null, deckId: kotlin.String? = null, sortBy: kotlin.String? = null, projectBy: kotlin.String? = null, limit: kotlin.Int? = null, page: kotlin.Int? = 1) : InventoryCardsGet200Response {
-        val localVarResponse = inventoryCardsGetWithHttpInfo(name = name, player = player, deckId = deckId, sortBy = sortBy, projectBy = projectBy, limit = limit, page = page)
+    fun inventoryCardsGet(name: kotlin.String? = null, player: kotlin.String? = null, deckType: kotlin.String? = null, deckId: kotlin.String? = null, sortBy: kotlin.String? = null, projectBy: kotlin.String? = null, limit: kotlin.Int? = null, page: kotlin.Int? = 1) : InventoryCardsGet200Response {
+        val localVarResponse = inventoryCardsGetWithHttpInfo(name = name, player = player, deckType = deckType, deckId = deckId, sortBy = sortBy, projectBy = projectBy, limit = limit, page = page)
 
         return when (localVarResponse.responseType) {
             ResponseType.Success -> (localVarResponse as Success<*>).data as InventoryCardsGet200Response
@@ -163,6 +164,7 @@ class InventoryApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClie
      * Only admins can retrieve all cards.
      * @param name Card name (optional)
      * @param player Player (optional)
+     * @param deckType Deck Type (optional)
      * @param deckId Deck ID (optional)
      * @param sortBy sort by query in the form of field:desc/asc (ex. name:asc) (optional)
      * @param projectBy project by query in the form of field:hide/include (ex. name:hide) (optional)
@@ -174,8 +176,8 @@ class InventoryApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClie
      */
     @Suppress("UNCHECKED_CAST")
     @Throws(IllegalStateException::class, IOException::class)
-    fun inventoryCardsGetWithHttpInfo(name: kotlin.String?, player: kotlin.String?, deckId: kotlin.String?, sortBy: kotlin.String?, projectBy: kotlin.String?, limit: kotlin.Int?, page: kotlin.Int?) : ApiResponse<InventoryCardsGet200Response?> {
-        val localVariableConfig = inventoryCardsGetRequestConfig(name = name, player = player, deckId = deckId, sortBy = sortBy, projectBy = projectBy, limit = limit, page = page)
+    fun inventoryCardsGetWithHttpInfo(name: kotlin.String?, player: kotlin.String?, deckType: kotlin.String?, deckId: kotlin.String?, sortBy: kotlin.String?, projectBy: kotlin.String?, limit: kotlin.Int?, page: kotlin.Int?) : ApiResponse<InventoryCardsGet200Response?> {
+        val localVariableConfig = inventoryCardsGetRequestConfig(name = name, player = player, deckType = deckType, deckId = deckId, sortBy = sortBy, projectBy = projectBy, limit = limit, page = page)
 
         return request<Unit, InventoryCardsGet200Response>(
             localVariableConfig
@@ -187,6 +189,7 @@ class InventoryApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClie
      *
      * @param name Card name (optional)
      * @param player Player (optional)
+     * @param deckType Deck Type (optional)
      * @param deckId Deck ID (optional)
      * @param sortBy sort by query in the form of field:desc/asc (ex. name:asc) (optional)
      * @param projectBy project by query in the form of field:hide/include (ex. name:hide) (optional)
@@ -194,7 +197,7 @@ class InventoryApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClie
      * @param page Page number (optional, default to 1)
      * @return RequestConfig
      */
-    fun inventoryCardsGetRequestConfig(name: kotlin.String?, player: kotlin.String?, deckId: kotlin.String?, sortBy: kotlin.String?, projectBy: kotlin.String?, limit: kotlin.Int?, page: kotlin.Int?) : RequestConfig<Unit> {
+    fun inventoryCardsGetRequestConfig(name: kotlin.String?, player: kotlin.String?, deckType: kotlin.String?, deckId: kotlin.String?, sortBy: kotlin.String?, projectBy: kotlin.String?, limit: kotlin.Int?, page: kotlin.Int?) : RequestConfig<Unit> {
         val localVariableBody = null
         val localVariableQuery: MultiValueMap = mutableMapOf<kotlin.String, kotlin.collections.List<kotlin.String>>()
             .apply {
@@ -203,6 +206,9 @@ class InventoryApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClie
                 }
                 if (player != null) {
                     put("player", listOf(player.toString()))
+                }
+                if (deckType != null) {
+                    put("deckType", listOf(deckType.toString()))
                 }
                 if (deckId != null) {
                     put("deckId", listOf(deckId.toString()))

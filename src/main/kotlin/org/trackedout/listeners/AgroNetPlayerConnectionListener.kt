@@ -10,15 +10,18 @@ import net.minecraft.util.Formatting
 import org.slf4j.LoggerFactory
 import org.trackedout.RunContext
 import org.trackedout.RunContext.serverName
+import org.trackedout.actions.AddDeckToPlayerInventoryAction
 import org.trackedout.client.apis.ClaimApi
 import org.trackedout.client.apis.ScoreApi
 import org.trackedout.client.models.Score
+import org.trackedout.fullRunType
 import org.trackedout.sendMessage
 
-class AgroNetPlayerScoreListener(
+class AgroNetPlayerConnectionListener(
     private val scoreApi: ScoreApi,
     private val claimApi: ClaimApi,
     private val runContext: RunContext,
+    private val addDeckToPlayerInventoryAction: AddDeckToPlayerInventoryAction,
 ) :
     ServerPlayConnectionEvents.Join,
     ServerPlayConnectionEvents.Disconnect {
@@ -35,7 +38,7 @@ class AgroNetPlayerScoreListener(
 
     override fun onPlayReady(handler: ServerPlayNetworkHandler, sender: PacketSender, server: MinecraftServer) {
         val playerName = handler.player.entityName
-        if (playerName.equals("TangoCam")) {
+        if (playerName.equals("TangoCam", ignoreCase = true)) {
             return
         }
 
@@ -45,9 +48,13 @@ class AgroNetPlayerScoreListener(
                 state = "acquired",
                 type = "dungeon",
             ).results?.firstOrNull()?.let { claim ->
-                claim.metadata?.get("run-type")?.let { runContext.gameTags[playerName] = it }
-                // TODO: Don't do this if player is spectating
-                claim.metadata?.get("run-id")?.let { runContext.runId = it }
+                claim.metadata?.let { runContext.addPlayerContext(playerName, it) }
+
+//                claim.metadata?.get("run-type")?.let { runContext.gameTags[playerName] = it }
+//                // TODO: Don't do this if player is spectating
+//                claim.metadata?.get("run-id")?.let { runContext.runId = it }
+
+//                // TODO: Store deck-id - https://github.com/trackedout/agronet-fabric/issues/31
 
                 logger.info("Setting state of Claim ${claim.id} to 'in-use'")
                 claimApi.claimsIdPatch(claim.id!!, claim.copy(id = null, state = "in-use", claimant = runContext.serverName))
@@ -56,7 +63,9 @@ class AgroNetPlayerScoreListener(
                 handler.player.sendMessage("No matching claim found for your run, contact a moderator (unless you are spectating)", Formatting.RED)
             }
 
-            val runType = getRunType(playerName)
+            // TODO: Test that this now resolves to competitive.
+            //  Check that achievements are not stored in local test world and that they sync correctly
+            val runType = getFullRunType(playerName)
             val filter = "$runType-"
             val advancementFilter = "$runType-advancement-"
 
@@ -106,6 +115,16 @@ class AgroNetPlayerScoreListener(
         } catch (e: Exception) {
             e.printStackTrace()
         }
+
+        handler?.player?.let { player ->
+            server?.commandSource?.let { commandSource ->
+                try {
+                    addDeckToPlayerInventoryAction.execute(commandSource, player)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+        }
     }
 
     override fun onPlayDisconnect(handler: ServerPlayNetworkHandler, server: MinecraftServer) {
@@ -115,7 +134,7 @@ class AgroNetPlayerScoreListener(
         }
 
         val playerName = handler.player.entityName
-        if (playerName.equals("TangoCam")) {
+        if (playerName.equals("TangoCam", ignoreCase = true)) {
             return
         }
 
@@ -156,7 +175,7 @@ class AgroNetPlayerScoreListener(
                 batchMap.map {
                     Score(
                         player = playerName,
-                        key = "${getRunType(playerName)}-${it.key}",
+                        key = "${getFullRunType(playerName)}-${it.key}",
                         value = it.value.toBigDecimal(),
                     )
                 }
@@ -168,5 +187,5 @@ class AgroNetPlayerScoreListener(
         }
     }
 
-    private fun getRunType(playerName: String?): String? = runContext.gameTags.getOrDefault(playerName, "practice")
+    private fun getFullRunType(playerName: String): String = runContext.playerContext(playerName).fullRunType().lowercase()
 }

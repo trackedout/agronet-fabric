@@ -32,7 +32,6 @@ src/main/kotlin/org/trackedout/client/models/InventoryCardsGet200Response.kt
 src/main/kotlin/org/trackedout/client/models/Item.kt
 src/main/kotlin/org/trackedout/client/models/Score.kt
 src/main/kotlin/org/trackedout/client/models/ScoresGet200Response.kt
-src/main/kotlin/org/trackedout/client/models/State.kt
 src/main/kotlin/org/trackedout/client/models/StateGet200Response.kt
 src/main/kotlin/org/trackedout/client/models/StatusSection.kt
 src/main/kotlin/org/trackedout/client/models/StatusSectionLinesInner.kt

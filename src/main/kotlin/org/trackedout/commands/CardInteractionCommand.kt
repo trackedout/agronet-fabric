@@ -9,11 +9,13 @@ import net.minecraft.util.Formatting
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.trackedout.EventsApiWithContext
+import org.trackedout.RunContext
 import org.trackedout.client.apis.InventoryApi
 import org.trackedout.client.models.Card
 import org.trackedout.client.models.Event
 import org.trackedout.client.models.Item
 import org.trackedout.data.Cards
+import org.trackedout.runType
 import org.trackedout.sendMessage
 
 class CardInteractionCommand(
@@ -81,7 +83,7 @@ class CardInteractionCommand(
                             name = cardName,
                             player = playerName,
                             server = serverName,
-                            deckId = "1",
+                            deckType = RunContext.playerContext(playerName).runType(),
                         )
                     )
                 }
@@ -97,7 +99,7 @@ class CardInteractionCommand(
                                 name = cardName,
                                 player = playerName,
                                 server = serverName,
-                                deckId = "1",
+                                deckType = RunContext.playerContext(playerName).runType(),
                             )
                         )
                     } else {
