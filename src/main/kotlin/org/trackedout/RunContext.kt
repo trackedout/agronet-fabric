@@ -34,7 +34,12 @@ fun PlayerContext.fullRunType(): String {
     }
 }
 
-fun PlayerContext.deckId(): String {
+fun PlayerContext.fullDeckId(): String {
     // TODO: https://github.com/trackedout/agronet-fabric/issues/31
-    return this.getOrDefault("deck-id", "active").substring(1)
+    return this.getOrDefault("deck-id", "p1")
+}
+
+fun PlayerContext.shortDeckId(): String {
+    // TODO: https://github.com/trackedout/agronet-fabric/issues/31
+    return this.getOrDefault("deck-id", "p1").substring(1)
 }

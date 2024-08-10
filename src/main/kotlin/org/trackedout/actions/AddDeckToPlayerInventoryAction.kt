@@ -18,10 +18,11 @@ import org.trackedout.client.models.Event
 import org.trackedout.data.Cards
 import org.trackedout.data.Cards.Companion.Card
 import org.trackedout.debug
-import org.trackedout.deckId
+import org.trackedout.fullDeckId
 import org.trackedout.fullRunType
 import org.trackedout.runType
 import org.trackedout.sendMessage
+import org.trackedout.shortDeckId
 
 class AddDeckToPlayerInventoryAction(
     private val eventsApi: EventsApiWithContext,
@@ -43,8 +44,8 @@ class AddDeckToPlayerInventoryAction(
         }
 
         val context = RunContext.playerContext(playerName)
-        player.sendMessage("Fetching ${context.fullRunType()} mode Decked Out shulker #${context.deckId()} from Dunga Dunga...", Formatting.GRAY)
-        val cards = inventoryApi.inventoryCardsGet(player = playerName, limit = 200, deckType = context.runType(), deckId = context.deckId()).results!!
+        player.sendMessage("Fetching ${context.fullRunType()} mode Decked Out shulker #${context.shortDeckId()} from Dunga Dunga...", Formatting.GRAY)
+        val cards = inventoryApi.inventoryCardsGet(player = playerName, limit = 200, deckType = context.runType(), deckId = context.fullDeckId()).results!!
 
         eventsApi.eventsPost(
             Event(
