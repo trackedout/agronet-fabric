@@ -7,6 +7,7 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.network.ServerPlayNetworkHandler
 import net.minecraft.util.Formatting
+import net.minecraft.world.GameRules
 import org.slf4j.LoggerFactory
 import org.trackedout.RunContext
 import org.trackedout.RunContext.serverName
@@ -63,8 +64,6 @@ class AgroNetPlayerConnectionListener(
                 handler.player.sendMessage("No matching claim found for your run, contact a moderator (unless you are spectating)", Formatting.RED)
             }
 
-            // TODO: Test that this now resolves to competitive.
-            //  Check that achievements are not stored in local test world and that they sync correctly
             val runType = getFullRunType(playerName)
             val filter = "$runType-"
             val advancementFilter = "$runType-advancement-"
@@ -89,6 +88,7 @@ class AgroNetPlayerConnectionListener(
                 }
 
             val tracker = handler.player.advancementTracker
+            server.gameRules.get(GameRules.ANNOUNCE_ADVANCEMENTS).set(false, server)
 
             scores.results
                 .filter { it.key!!.startsWith(advancementFilter) }
@@ -97,10 +97,17 @@ class AgroNetPlayerConnectionListener(
                 .filter { it.value!!.toInt() > 0 }
                 .forEach { score ->
                     val split = score.key!!.split("#")
-                    val key = split[0]
-                    val criterion = split[1]
+                    var namespace = "do2"
+                    var key = split[0]
+                    var criterion = split[1]
 
-                    server.advancementLoader.advancements.find { it.id.namespace == "do2" && it.id.path == key }?.let { advancement ->
+                    if (split.size == 3) {
+                        namespace = split[0]
+                        key = split[1]
+                        criterion = split[2]
+                    }
+
+                    server.advancementLoader.advancements.find { it.id.namespace == namespace && it.id.path == key }?.let { advancement ->
                         val obtained: Boolean? = tracker.getProgress(advancement).getCriterionProgress(criterion)?.isObtained
                         if (obtained == null || obtained == false) {
                             tracker.grantCriterion(advancement, criterion)
@@ -116,8 +123,8 @@ class AgroNetPlayerConnectionListener(
             e.printStackTrace()
         }
 
-        handler?.player?.let { player ->
-            server?.commandSource?.let { commandSource ->
+        handler.player?.let { player ->
+            server.commandSource?.let { commandSource ->
                 try {
                     addDeckToPlayerInventoryAction.execute(commandSource, player)
                 } catch (e: Exception) {
@@ -125,6 +132,8 @@ class AgroNetPlayerConnectionListener(
                 }
             }
         }
+
+        server.gameRules.get(GameRules.ANNOUNCE_ADVANCEMENTS).set(true, server)
     }
 
     override fun onPlayDisconnect(handler: ServerPlayNetworkHandler, server: MinecraftServer) {
@@ -147,7 +156,7 @@ class AgroNetPlayerConnectionListener(
                 }
                 .toMap().toMutableMap()
 
-            batchMap += server.advancementLoader.advancements.filter { it.id.namespace == "do2" }
+            batchMap += server.advancementLoader.advancements.asSequence()
                 .filter { !it.id.path.startsWith("visible/credits/") }
                 .filter { handler.player.advancementTracker.getProgress(it).isAnyObtained }
                 .flatMap {
@@ -156,10 +165,10 @@ class AgroNetPlayerConnectionListener(
                         val obtained: Boolean? = progress.getCriterionProgress(entry.key)?.isObtained
                         val value = if (obtained != null && obtained == true) 1 else 0
 
-                        "advancement-${it.id.path}#${entry.key}" to value
+                        "advancement-${it.id.namespace}#${it.id.path}#${entry.key}" to value
                     }
                 }
-                .filter { it.second > 0 }
+                .filter { it.second > 0 }.toList()
 
             handler.player.advancementTracker.save()
 
