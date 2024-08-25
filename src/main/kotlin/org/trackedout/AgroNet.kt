@@ -9,6 +9,8 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
 import net.fabricmc.fabric.api.networking.v1.PacketSender
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents
+import net.fabricmc.fabric.api.resource.ResourceManagerHelper
+import net.minecraft.resource.ResourceType
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.command.CommandManager.argument
 import net.minecraft.server.command.CommandManager.literal
@@ -238,6 +240,7 @@ object AgroNet : ModInitializer {
             val scoreListener = AgroNetPlayerConnectionListener(scoreApi, claimApi, runContext, addDeckToPlayerInventoryAction)
             ServerPlayConnectionEvents.JOIN.register(scoreListener)
             ServerPlayConnectionEvents.DISCONNECT.register(scoreListener)
+            ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(scoreListener)
         }
 
         ServerTickEvents.START_SERVER_TICK.register {

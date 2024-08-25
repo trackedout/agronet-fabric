@@ -3,9 +3,9 @@
   "id": "agronet",
   "version": "${version}",
   "name": "AgroNet",
-  "description": "This is an example description! Tell everyone what your mod is about!",
+  "description": "A Fabric mod that serves as proxy for in-game Decked Out events and the Decked Out API server",
   "authors": [
-    "Me!"
+    "4Ply"
   ],
   "contact": {
     "homepage": "https://fabricmc.net/",

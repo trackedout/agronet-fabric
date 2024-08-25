@@ -2,6 +2,7 @@ plugins {
     id 'fabric-loom' version '1.4-SNAPSHOT'
     id 'maven-publish'
     id "org.jetbrains.kotlin.jvm" version "1.9.21"
+    id 'org.jetbrains.kotlin.plugin.serialization' version '2.0.20'
     id "io.swagger.core.v3.swagger-gradle-plugin" version "2.2.19"
 }
 
@@ -45,16 +46,10 @@ dependencies {
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
     modImplementation "net.fabricmc:fabric-language-kotlin:${project.fabric_kotlin_version}"
 
-    // Uncomment the following line to enable the deprecated Fabric API modules.
-    // These are included in the Fabric API production distribution and allow you to update your mod to the latest modules at a later more convenient time.
-
-    // modImplementation "net.fabricmc.fabric-api:fabric-api-deprecated:${project.fabric_version}"
-
-    // `modImplementation` makes it available in the development environment. `include` makes it available everywhere via JAR-in-JAR.
+    implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1'
 
     // https://square.github.io/okhttp/#releases
     include modImplementation(platform("com.squareup.okhttp3:okhttp-bom:4.11.0"))
-    // Define any required OkHttp artifacts without version
     include modImplementation("com.squareup.okhttp3:okhttp:4.11.0")
     include modImplementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
     include modImplementation("com.squareup.moshi:moshi:1.14.0")
