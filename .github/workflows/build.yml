@@ -31,7 +31,7 @@ jobs:
         if: ${{ runner.os != 'Windows' }}
         run: chmod +x ./gradlew
 
-      - name: download scoreboard.json from brilliance
+      - name: download scoreboards.json from brilliance
         uses: robinraju/release-downloader@v1.10
         with:
           repository: 'trackedout/Brilliance'
@@ -40,7 +40,7 @@ jobs:
           out-file-path: 'Brilliance'
 
       - name: copy scoreboards.json
-        run: cp Brilliance/scoreboard.json src/main/resources/assets/agronet/scoreboards.json
+        run: cp Brilliance/scoreboards.json src/main/resources/assets/agronet/scoreboards.json
 
       - name: build
         run: ./gradlew build
