@@ -82,7 +82,7 @@ class AgroNetPlayerConnectionListener(
 
 //                claim.metadata?.get("run-type")?.let { runContext.gameTags[playerName] = it }
 //                // TODO: Don't do this if player is spectating
-//                claim.metadata?.get("run-id")?.let { runContext.runId = it }
+                claim.metadata?.get("run-id")?.let { runContext.runId = it }
 
 //                // TODO: Store deck-id - https://github.com/trackedout/agronet-fabric/issues/31
 
