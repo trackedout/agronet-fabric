@@ -22,7 +22,6 @@ import okhttp3.HttpUrl
 import org.trackedout.client.models.Card
 import org.trackedout.client.models.Error
 import org.trackedout.client.models.InventoryCardsGet200Response
-import org.trackedout.client.models.Item
 import org.trackedout.client.models.StorageItemsGet200Response
 
 import com.squareup.moshi.Json
@@ -402,8 +401,8 @@ class InventoryApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClie
     /**
      * Add an item to a player&#39;s deck
      * Add an item to a player&#39;s deck from one of the Decked Out 2 instances or the lobby server.
-     * @param item 
-     * @return Item
+     * @param body 
+     * @return Card
      * @throws IllegalStateException If the request is not correctly configured
      * @throws IOException Rethrows the OkHttp execute method exception
      * @throws UnsupportedOperationException If the API returns an informational or redirection response
@@ -412,11 +411,11 @@ class InventoryApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClie
      */
     @Suppress("UNCHECKED_CAST")
     @Throws(IllegalStateException::class, IOException::class, UnsupportedOperationException::class, ClientException::class, ServerException::class)
-    fun storageAddItemPost(item: Item) : Item {
-        val localVarResponse = storageAddItemPostWithHttpInfo(item = item)
+    fun storageAddItemPost(body: Card) : Card {
+        val localVarResponse = storageAddItemPostWithHttpInfo(body = body)
 
         return when (localVarResponse.responseType) {
-            ResponseType.Success -> (localVarResponse as Success<*>).data as Item
+            ResponseType.Success -> (localVarResponse as Success<*>).data as Card
             ResponseType.Informational -> throw UnsupportedOperationException("Client does not support Informational responses.")
             ResponseType.Redirection -> throw UnsupportedOperationException("Client does not support Redirection responses.")
             ResponseType.ClientError -> {
@@ -433,17 +432,17 @@ class InventoryApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClie
     /**
      * Add an item to a player&#39;s deck
      * Add an item to a player&#39;s deck from one of the Decked Out 2 instances or the lobby server.
-     * @param item 
-     * @return ApiResponse<Item?>
+     * @param body 
+     * @return ApiResponse<Card?>
      * @throws IllegalStateException If the request is not correctly configured
      * @throws IOException Rethrows the OkHttp execute method exception
      */
     @Suppress("UNCHECKED_CAST")
     @Throws(IllegalStateException::class, IOException::class)
-    fun storageAddItemPostWithHttpInfo(item: Item) : ApiResponse<Item?> {
-        val localVariableConfig = storageAddItemPostRequestConfig(item = item)
+    fun storageAddItemPostWithHttpInfo(body: Card) : ApiResponse<Card?> {
+        val localVariableConfig = storageAddItemPostRequestConfig(body = body)
 
-        return request<Item, Item>(
+        return request<Card, Card>(
             localVariableConfig
         )
     }
@@ -451,11 +450,11 @@ class InventoryApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClie
     /**
      * To obtain the request config of the operation storageAddItemPost
      *
-     * @param item 
+     * @param body 
      * @return RequestConfig
      */
-    fun storageAddItemPostRequestConfig(item: Item) : RequestConfig<Item> {
-        val localVariableBody = item
+    fun storageAddItemPostRequestConfig(body: Card) : RequestConfig<Card> {
+        val localVariableBody = body
         val localVariableQuery: MultiValueMap = mutableMapOf()
         val localVariableHeaders: MutableMap<String, String> = mutableMapOf()
         localVariableHeaders["Content-Type"] = "application/json"
@@ -474,7 +473,7 @@ class InventoryApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClie
     /**
      * Delete an item
      * Remove an item from a player&#39;s deck. If multiple copies of this item exist, only one will be removed.
-     * @param item 
+     * @param body 
      * @return void
      * @throws IllegalStateException If the request is not correctly configured
      * @throws IOException Rethrows the OkHttp execute method exception
@@ -483,8 +482,8 @@ class InventoryApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClie
      * @throws ServerException If the API returns a server error response
      */
     @Throws(IllegalStateException::class, IOException::class, UnsupportedOperationException::class, ClientException::class, ServerException::class)
-    fun storageDeleteItemPost(item: Item) : Unit {
-        val localVarResponse = storageDeleteItemPostWithHttpInfo(item = item)
+    fun storageDeleteItemPost(body: Card) : Unit {
+        val localVarResponse = storageDeleteItemPostWithHttpInfo(body = body)
 
         return when (localVarResponse.responseType) {
             ResponseType.Success -> Unit
@@ -504,16 +503,16 @@ class InventoryApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClie
     /**
      * Delete an item
      * Remove an item from a player&#39;s deck. If multiple copies of this item exist, only one will be removed.
-     * @param item 
+     * @param body 
      * @return ApiResponse<Unit?>
      * @throws IllegalStateException If the request is not correctly configured
      * @throws IOException Rethrows the OkHttp execute method exception
      */
     @Throws(IllegalStateException::class, IOException::class)
-    fun storageDeleteItemPostWithHttpInfo(item: Item) : ApiResponse<Unit?> {
-        val localVariableConfig = storageDeleteItemPostRequestConfig(item = item)
+    fun storageDeleteItemPostWithHttpInfo(body: Card) : ApiResponse<Unit?> {
+        val localVariableConfig = storageDeleteItemPostRequestConfig(body = body)
 
-        return request<Item, Unit>(
+        return request<Card, Unit>(
             localVariableConfig
         )
     }
@@ -521,11 +520,11 @@ class InventoryApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClie
     /**
      * To obtain the request config of the operation storageDeleteItemPost
      *
-     * @param item 
+     * @param body 
      * @return RequestConfig
      */
-    fun storageDeleteItemPostRequestConfig(item: Item) : RequestConfig<Item> {
-        val localVariableBody = item
+    fun storageDeleteItemPostRequestConfig(body: Card) : RequestConfig<Card> {
+        val localVariableBody = body
         val localVariableQuery: MultiValueMap = mutableMapOf()
         val localVariableHeaders: MutableMap<String, String> = mutableMapOf()
         localVariableHeaders["Content-Type"] = "application/json"
@@ -546,6 +545,7 @@ class InventoryApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClie
      * Only admins can retrieve all items.
      * @param name Item name (optional)
      * @param player Player (optional)
+     * @param deckType Deck Type (optional)
      * @param deckId Deck ID (optional)
      * @param sortBy sort by query in the form of field:desc/asc (ex. name:asc) (optional)
      * @param projectBy project by query in the form of field:hide/include (ex. name:hide) (optional)
@@ -560,8 +560,8 @@ class InventoryApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClie
      */
     @Suppress("UNCHECKED_CAST")
     @Throws(IllegalStateException::class, IOException::class, UnsupportedOperationException::class, ClientException::class, ServerException::class)
-    fun storageItemsGet(name: kotlin.String? = null, player: kotlin.String? = null, deckId: kotlin.String? = null, sortBy: kotlin.String? = null, projectBy: kotlin.String? = null, limit: kotlin.Int? = null, page: kotlin.Int? = 1) : StorageItemsGet200Response {
-        val localVarResponse = storageItemsGetWithHttpInfo(name = name, player = player, deckId = deckId, sortBy = sortBy, projectBy = projectBy, limit = limit, page = page)
+    fun storageItemsGet(name: kotlin.String? = null, player: kotlin.String? = null, deckType: kotlin.String? = null, deckId: kotlin.String? = null, sortBy: kotlin.String? = null, projectBy: kotlin.String? = null, limit: kotlin.Int? = null, page: kotlin.Int? = 1) : StorageItemsGet200Response {
+        val localVarResponse = storageItemsGetWithHttpInfo(name = name, player = player, deckType = deckType, deckId = deckId, sortBy = sortBy, projectBy = projectBy, limit = limit, page = page)
 
         return when (localVarResponse.responseType) {
             ResponseType.Success -> (localVarResponse as Success<*>).data as StorageItemsGet200Response
@@ -583,6 +583,7 @@ class InventoryApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClie
      * Only admins can retrieve all items.
      * @param name Item name (optional)
      * @param player Player (optional)
+     * @param deckType Deck Type (optional)
      * @param deckId Deck ID (optional)
      * @param sortBy sort by query in the form of field:desc/asc (ex. name:asc) (optional)
      * @param projectBy project by query in the form of field:hide/include (ex. name:hide) (optional)
@@ -594,8 +595,8 @@ class InventoryApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClie
      */
     @Suppress("UNCHECKED_CAST")
     @Throws(IllegalStateException::class, IOException::class)
-    fun storageItemsGetWithHttpInfo(name: kotlin.String?, player: kotlin.String?, deckId: kotlin.String?, sortBy: kotlin.String?, projectBy: kotlin.String?, limit: kotlin.Int?, page: kotlin.Int?) : ApiResponse<StorageItemsGet200Response?> {
-        val localVariableConfig = storageItemsGetRequestConfig(name = name, player = player, deckId = deckId, sortBy = sortBy, projectBy = projectBy, limit = limit, page = page)
+    fun storageItemsGetWithHttpInfo(name: kotlin.String?, player: kotlin.String?, deckType: kotlin.String?, deckId: kotlin.String?, sortBy: kotlin.String?, projectBy: kotlin.String?, limit: kotlin.Int?, page: kotlin.Int?) : ApiResponse<StorageItemsGet200Response?> {
+        val localVariableConfig = storageItemsGetRequestConfig(name = name, player = player, deckType = deckType, deckId = deckId, sortBy = sortBy, projectBy = projectBy, limit = limit, page = page)
 
         return request<Unit, StorageItemsGet200Response>(
             localVariableConfig
@@ -607,6 +608,7 @@ class InventoryApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClie
      *
      * @param name Item name (optional)
      * @param player Player (optional)
+     * @param deckType Deck Type (optional)
      * @param deckId Deck ID (optional)
      * @param sortBy sort by query in the form of field:desc/asc (ex. name:asc) (optional)
      * @param projectBy project by query in the form of field:hide/include (ex. name:hide) (optional)
@@ -614,7 +616,7 @@ class InventoryApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClie
      * @param page Page number (optional, default to 1)
      * @return RequestConfig
      */
-    fun storageItemsGetRequestConfig(name: kotlin.String?, player: kotlin.String?, deckId: kotlin.String?, sortBy: kotlin.String?, projectBy: kotlin.String?, limit: kotlin.Int?, page: kotlin.Int?) : RequestConfig<Unit> {
+    fun storageItemsGetRequestConfig(name: kotlin.String?, player: kotlin.String?, deckType: kotlin.String?, deckId: kotlin.String?, sortBy: kotlin.String?, projectBy: kotlin.String?, limit: kotlin.Int?, page: kotlin.Int?) : RequestConfig<Unit> {
         val localVariableBody = null
         val localVariableQuery: MultiValueMap = mutableMapOf<kotlin.String, kotlin.collections.List<kotlin.String>>()
             .apply {
@@ -623,6 +625,9 @@ class InventoryApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClie
                 }
                 if (player != null) {
                     put("player", listOf(player.toString()))
+                }
+                if (deckType != null) {
+                    put("deckType", listOf(deckType.toString()))
                 }
                 if (deckId != null) {
                     put("deckId", listOf(deckId.toString()))

@@ -71,33 +71,57 @@ class AddDeckToPlayerInventoryAction(
         shulkerNbt.putString("owner", playerName)
         shulkerNbt.putUuid("owner-id", player.uuid)
 
-        val cardCount = cards.groupingBy { it.name!! }.eachCount()
+        val cardCount = cards
+            .filter { Cards.findCard(it.name!!) != null }
+            .groupingBy { it.name!! }.eachCount()
         var cardIndex = 0
         player.debug("Your shulker should contain ${cards.size} cards:")
         cardCount.forEach { (cardName, count) ->
             player.debug("- ${count}x $cardName")
             logger.info("$playerName's shulker should contain ${count}x $cardName")
 
-            val card = Cards.findCard(cardName)
-            if (card == null) {
-                player.sendMessage("Unknown card '${cardName}', Agronet will not add it to your deck", Formatting.RED)
-                logger.error("Unknown card '${cardName}', Agronet cannot add it to $playerName's deck")
-            } else {
-                val cardData = createCard(cardIndex++, card, count)
-                shulkerItems.add(cardData)
+            val card = Cards.findCard(cardName)!!
+            val cardData = createCard(cardIndex++, card, count)
+            shulkerItems.add(cardData)
 
-                eventsApi.eventsPost(
-                    Event(
-                        name = "card-exists-on-join-${cardName.replace("_", "-")}",
-                        player = playerName,
-                        x = 0.0,
-                        y = 0.0,
-                        z = 0.0,
-                        count = count,
-                    )
+            eventsApi.eventsPost(
+                Event(
+                    name = "card-exists-on-join-${cardName.replace("_", "-")}",
+                    player = playerName,
+                    x = 0.0,
+                    y = 0.0,
+                    z = 0.0,
+                    count = count,
                 )
-            }
+            )
         }
+
+        cards
+            .filter { Cards.findCard(it.name!!) == null }
+            .forEach { item ->
+                val itemName = item.name!!
+                if (dungeonItemsForGiveCommand.containsKey(itemName)) {
+                    logger.info("Giving $playerName 1x$itemName (and deleting it from item storage)")
+                    inventoryApi.inventoryDeleteCardPost(item)
+                    eventsApi.eventsPost(
+                        Event(
+                            name = "item-deleted-$itemName",
+                            player = playerName,
+                            x = 0.0,
+                            y = 0.0,
+                            z = 0.0,
+                            count = 1,
+                        )
+                    )
+
+                    val item = dungeonItemsForGiveCommand[itemName]!!
+                    player.giveItemStack(item.copy())
+                } else {
+                    player.sendMessage("Unknown card '${itemName}', Agronet will not add it to your deck", Formatting.RED)
+                    logger.error("Unknown card '${itemName}', Agronet cannot add it to $playerName's deck")
+                }
+            }
+
         shulkerNbt.put(BlockItem.BLOCK_ENTITY_TAG_KEY, blockCompound)
 
         val shulkerBox = ItemStack(Items.CYAN_SHULKER_BOX)

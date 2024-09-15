@@ -13,7 +13,6 @@ import org.trackedout.RunContext
 import org.trackedout.client.apis.InventoryApi
 import org.trackedout.client.models.Card
 import org.trackedout.client.models.Event
-import org.trackedout.client.models.Item
 import org.trackedout.data.Cards
 import org.trackedout.runType
 import org.trackedout.sendMessage
@@ -117,10 +116,11 @@ class CardInteractionCommand(
                     )
                     for (i in 1 until count + 1) {
                         inventoryApi.storageAddItemPost(
-                            item = Item(
+                            Card(
                                 name = cardName,
                                 player = playerName,
                                 server = serverName,
+                                deckType = RunContext.playerContext(playerName).runType(),
                             )
                         )
                     }
