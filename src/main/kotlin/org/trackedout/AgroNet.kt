@@ -55,6 +55,13 @@ object AgroNet : ModInitializer {
         // Proceed with mild caution.
 
         serverName = getEnvOrDefault("SERVER_NAME", InetAddress.getLocalHost().hostName)
+        if (serverName.contains("dungeon-")) {
+            // dungeon-1  -> d801
+            // dungeon-14 -> d814
+            val dungeonId = serverName.replace("dungeon-", "")
+            serverName = "d8${dungeonId.padStart(2, '0')}"
+        }
+
         val dungaAPIPath = getEnvOrDefault("DUNGA_API", "http://localhost:3000/v1")
 
         logger.info("Agronet server name: $serverName (run ID: ${runContext.runId})")
@@ -106,52 +113,55 @@ object AgroNet : ModInitializer {
         val removeDeckFromPlayerInventoryAction = RemoveDeckFromPlayerInventoryAction()
 
         CommandRegistrationCallback.EVENT.register { dispatcher, _, _ ->
-            dispatcher.register(literal("take-shulker")
-                .requires { it.hasPermissionLevel(2) } // Command Blocks have permission level of 2
-                .executes { context ->
-                    val player = context.source.player
-                    if (player != null) {
-                        removeDeckFromPlayerInventoryAction.execute(player)
-                    } else {
-                        logger.warn("Attempting to take shulker but command is not run as a player, ignoring...")
-                    }
+            dispatcher.register(
+                literal("take-shulker")
+                    .requires { it.hasPermissionLevel(2) } // Command Blocks have permission level of 2
+                    .executes { context ->
+                        val player = context.source.player
+                        if (player != null) {
+                            removeDeckFromPlayerInventoryAction.execute(player)
+                        } else {
+                            logger.warn("Attempting to take shulker but command is not run as a player, ignoring...")
+                        }
 
-                    1
-                }
+                        1
+                    }
             )
         }
 
         CommandRegistrationCallback.EVENT.register { dispatcher, _, _ ->
-            dispatcher.register(literal("gief-shulker")
-                .requires { it.hasPermissionLevel(2) } // Command Blocks have permission level of 2
-                .executes { context ->
-                    val player = context.source.player
-                    if (player != null) {
-                        addDeckToPlayerInventoryAction.execute(context.source, player)
-                    } else {
-                        logger.warn("Attempting to give shulker but command is not run as a player, ignoring...")
-                    }
+            dispatcher.register(
+                literal("gief-shulker")
+                    .requires { it.hasPermissionLevel(2) } // Command Blocks have permission level of 2
+                    .executes { context ->
+                        val player = context.source.player
+                        if (player != null) {
+                            addDeckToPlayerInventoryAction.execute(context.source, player)
+                        } else {
+                            logger.warn("Attempting to give shulker but command is not run as a player, ignoring...")
+                        }
 
-                    1
-                })
+                        1
+                    })
         }
 
         val logEventCommand = LogEventCommand(eventsApi)
 
         CommandRegistrationCallback.EVENT.register { dispatcher, _, _ ->
-            dispatcher.register(literal("log-event")
-                .requires { it.hasPermissionLevel(2) } // Command Blocks have permission level of 2
-                .then(
-                    argument("event", StringArgumentType.word()) // words_with_underscores
-                        .executes(logEventCommand::run)
-                        .then(
-                            argument(
-                                "count", // Number of units for this event
-                                IntegerArgumentType.integer(1)
+            dispatcher.register(
+                literal("log-event")
+                    .requires { it.hasPermissionLevel(2) } // Command Blocks have permission level of 2
+                    .then(
+                        argument("event", StringArgumentType.word()) // words_with_underscores
+                            .executes(logEventCommand::run)
+                            .then(
+                                argument(
+                                    "count", // Number of units for this event
+                                    IntegerArgumentType.integer(1)
+                                )
+                                    .executes(logEventCommand::run)
                             )
-                                .executes(logEventCommand::run)
-                        )
-                )
+                    )
             )
         }
 
@@ -159,14 +169,15 @@ object AgroNet : ModInitializer {
 
         listOf("card-bought", "card-played", "card-available").forEach { action ->
             CommandRegistrationCallback.EVENT.register { dispatcher, _, _ ->
-                dispatcher.register(literal(action)
-                    .requires { it.hasPermissionLevel(2) } // Command Blocks have permission level of 2
-                    .then(
-                        argument("card", StringArgumentType.word()) // words_with_underscores
-                            .executes { context ->
-                                cardInteractionCommand.run(context, action)
-                            }
-                    )
+                dispatcher.register(
+                    literal(action)
+                        .requires { it.hasPermissionLevel(2) } // Command Blocks have permission level of 2
+                        .then(
+                            argument("card", StringArgumentType.word()) // words_with_underscores
+                                .executes { context ->
+                                    cardInteractionCommand.run(context, action)
+                                }
+                        )
                 )
             }
         }
@@ -174,16 +185,18 @@ object AgroNet : ModInitializer {
         val itemInteractionCommand = CardInteractionCommand(inventoryApi, eventsApi, serverName)
         listOf("add-item").forEach { action ->
             CommandRegistrationCallback.EVENT.register { dispatcher, _, _ ->
-                dispatcher.register(literal(action)
-                    .requires { it.hasPermissionLevel(2) } // Command Blocks have permission level of 2
-                    .then(
-                        argument("card", StringArgumentType.word())
-                            .then(argument("count", IntegerArgumentType.integer(1))
-                                .executes { context ->
-                                    itemInteractionCommand.run(context, action)
-                                }
-                            )
-                    )
+                dispatcher.register(
+                    literal(action)
+                        .requires { it.hasPermissionLevel(2) } // Command Blocks have permission level of 2
+                        .then(
+                            argument("card", StringArgumentType.word())
+                                .then(
+                                    argument("count", IntegerArgumentType.integer(1))
+                                        .executes { context ->
+                                            itemInteractionCommand.run(context, action)
+                                        }
+                                )
+                        )
                 )
             }
         }
@@ -199,28 +212,31 @@ object AgroNet : ModInitializer {
 //        }
 
         CommandRegistrationCallback.EVENT.register { dispatcher, _, _ ->
-            dispatcher.register(literal("update-workers")
-                .requires(Permissions.require("trackedout.serveradmin.update-workers", 4))
-                .executes { context ->
-                    sendRedisMessage(context.source, "server-hosts", "update-workers")
-                    1
-                })
+            dispatcher.register(
+                literal("update-workers")
+                    .requires(Permissions.require("trackedout.serveradmin.update-workers", 4))
+                    .executes { context ->
+                        sendRedisMessage(context.source, "server-hosts", "update-workers")
+                        1
+                    })
         }
 
         CommandRegistrationCallback.EVENT.register { dispatcher, _, _ ->
-            dispatcher.register(literal("update-datapack")
-                .requires(Permissions.require("trackedout.update-datapack", 2))
-                .executes { context ->
-                    sendRedisMessage(context.source, "datapack-updates", "request-update")
-                    1
-                })
+            dispatcher.register(
+                literal("update-datapack")
+                    .requires(Permissions.require("trackedout.update-datapack", 2))
+                    .executes { context ->
+                        sendRedisMessage(context.source, "datapack-updates", "request-update")
+                        1
+                    })
         }
 
         if (!serverName.equals("builders", ignoreCase = true)) {
             CommandRegistrationCallback.EVENT.register { dispatcher, _, _ ->
-                dispatcher.register(literal("is-dungeon-instance")
-                    .requires { it.hasPermissionLevel(2) } // Command Blocks have permission level of 2
-                    .executes { _ -> 1 })
+                dispatcher.register(
+                    literal("is-dungeon-instance")
+                        .requires { it.hasPermissionLevel(2) } // Command Blocks have permission level of 2
+                        .executes { _ -> 1 })
             }
         }
 
@@ -237,7 +253,7 @@ object AgroNet : ModInitializer {
         }
 
         if (!serverName.equals("builders", ignoreCase = true)) {
-            val scoreListener = AgroNetPlayerConnectionListener(scoreApi, claimApi, runContext, addDeckToPlayerInventoryAction)
+            val scoreListener = AgroNetPlayerConnectionListener(scoreApi, claimApi, addDeckToPlayerInventoryAction)
             ServerPlayConnectionEvents.JOIN.register(scoreListener)
             ServerPlayConnectionEvents.DISCONNECT.register(scoreListener)
             ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(scoreListener)

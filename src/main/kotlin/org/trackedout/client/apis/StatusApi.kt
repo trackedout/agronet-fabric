@@ -19,7 +19,6 @@ import java.io.IOException
 import okhttp3.OkHttpClient
 import okhttp3.HttpUrl
 
-import org.trackedout.client.models.Error
 import org.trackedout.client.models.StatusSection
 
 import com.squareup.moshi.Json

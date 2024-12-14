@@ -23,29 +23,33 @@ import com.squareup.moshi.JsonClass
  * 
  *
  * @param id 
+ * @param name 
  * @param player 
- * @param key 
- * @param `value` 
- * @param metadata 
+ * @param server 
+ * @param deckType 
+ * @param hiddenInDecks 
  */
 
 
-data class Score (
+data class Item (
 
     @Json(name = "id")
     val id: kotlin.String? = null,
 
+    @Json(name = "name")
+    val name: kotlin.String? = null,
+
     @Json(name = "player")
     val player: kotlin.String? = null,
 
-    @Json(name = "key")
-    val key: kotlin.String? = null,
+    @Json(name = "server")
+    val server: kotlin.String? = null,
 
-    @Json(name = "value")
-    val `value`: java.math.BigDecimal? = null,
+    @Json(name = "deckType")
+    val deckType: kotlin.String? = null,
 
-    @Json(name = "metadata")
-    val metadata: kotlin.collections.Map<kotlin.String, kotlin.String>? = null
+    @Json(name = "hiddenInDecks")
+    val hiddenInDecks: kotlin.collections.List<kotlin.String>? = null
 
 )
 

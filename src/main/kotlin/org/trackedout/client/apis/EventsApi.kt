@@ -19,7 +19,6 @@ import java.io.IOException
 import okhttp3.OkHttpClient
 import okhttp3.HttpUrl
 
-import org.trackedout.client.models.Error
 import org.trackedout.client.models.Event
 import org.trackedout.client.models.EventsGet200Response
 

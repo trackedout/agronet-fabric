@@ -20,13 +20,13 @@ import org.trackedout.client.apis.ScoreApi
 import org.trackedout.client.models.Score
 import org.trackedout.data.BrillianceScoreboardDescription
 import org.trackedout.fullRunType
+import org.trackedout.runType
 import org.trackedout.sendMessage
 import java.nio.charset.StandardCharsets
 
 class AgroNetPlayerConnectionListener(
     private val scoreApi: ScoreApi,
     private val claimApi: ClaimApi,
-    private val runContext: RunContext,
     private val addDeckToPlayerInventoryAction: AddDeckToPlayerInventoryAction,
 ) :
     ServerPlayConnectionEvents.Join,
@@ -78,16 +78,16 @@ class AgroNetPlayerConnectionListener(
                 state = "acquired",
                 type = "dungeon",
             ).results?.firstOrNull()?.let { claim ->
-                claim.metadata?.let { runContext.addPlayerContext(playerName, it) }
+                claim.metadata?.let { RunContext.addPlayerContext(playerName, it) }
 
 //                claim.metadata?.get("run-type")?.let { runContext.gameTags[playerName] = it }
 //                // TODO: Don't do this if player is spectating
-                claim.metadata?.get("run-id")?.let { runContext.runId = it }
+                claim.metadata?.get("run-id")?.let { RunContext.runId = it }
 
 //                // TODO: Store deck-id - https://github.com/trackedout/agronet-fabric/issues/31
 
                 logger.info("Setting state of Claim ${claim.id} to 'in-use'")
-                claimApi.claimsIdPatch(claim.id!!, claim.copy(id = null, state = "in-use", claimant = runContext.serverName))
+                claimApi.claimsIdPatch(claim.id!!, claim.copy(id = null, state = "in-use", claimant = serverName))
             } ?: run {
                 logger.error("No matching claim found for $playerName")
                 handler.player.sendMessage("No matching claim found for your run, contact a moderator (unless you are spectating)", Formatting.RED)
@@ -209,12 +209,17 @@ class AgroNetPlayerConnectionListener(
             logger.info("Storing ${batchMap.size} objectives for player $playerName")
             logger.info("BatchMap: ${Json.encodeToString(batchMap)}")
 
+            val metadata = mapOf(
+                "run-id" to RunContext.runId,
+                "run-type" to RunContext.playerContext(playerName).runType(),
+            )
             scoreApi.scoresPost(
                 batchMap.map {
                     Score(
                         player = playerName,
                         key = "${getFullRunType(playerName)}-${it.key}",
                         value = it.value.toBigDecimal(),
+                        metadata = metadata,
                     )
                 }
             )
@@ -225,5 +230,5 @@ class AgroNetPlayerConnectionListener(
         }
     }
 
-    private fun getFullRunType(playerName: String): String = runContext.playerContext(playerName).fullRunType().lowercase()
+    private fun getFullRunType(playerName: String): String = RunContext.playerContext(playerName).fullRunType().lowercase()
 }

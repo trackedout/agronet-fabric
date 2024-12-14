@@ -15,7 +15,7 @@
 
 package org.trackedout.client.models
 
-import org.trackedout.client.models.Card
+import org.trackedout.client.models.Item
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
@@ -34,7 +34,7 @@ import com.squareup.moshi.JsonClass
 data class StorageItemsGet200Response (
 
     @Json(name = "results")
-    val results: kotlin.collections.List<Card>? = null,
+    val results: kotlin.collections.List<Item>? = null,
 
     @Json(name = "page")
     val page: kotlin.Int? = null,
