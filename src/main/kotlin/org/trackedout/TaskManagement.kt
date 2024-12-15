@@ -31,7 +31,9 @@ class TaskManagement(
             "shutdown-server-if-empty" -> {
                 if (server.playerManager.playerList.isEmpty()) {
                     logger.warn("Shutting down empty server as per dunga-dunga request")
-                    server.shutdown()
+                    if (!server.isStopping) {
+                        server.shutdown()
+                    }
                 } else {
                     logger.warn("Server shutdown request ignored as ${server.playerManager.playerList.size} are online")
                 }
