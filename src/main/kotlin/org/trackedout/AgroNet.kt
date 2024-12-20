@@ -44,7 +44,8 @@ const val RECEIVED_SHULKER = "do2.received_shulker"
 object AgroNet : ModInitializer {
     private val logger = LoggerFactory.getLogger("Agronet")
     private val threadPool = Executors.newScheduledThreadPool(2)
-    private var playerList: List<String> = emptyList()
+    private var activePlayers: List<String> = emptyList()
+    private var allPlayers: List<String> = emptyList()
 
     private val runContext = RunContext
 
@@ -247,7 +248,7 @@ object AgroNet : ModInitializer {
                 .toList()
 
             sendServerOnlineEvent(eventsApi, playerListAfterJoin)
-            playerList.forEach {
+            allPlayers.forEach {
                 sendPlayerSeenEvent(eventsApi, serverName, it)
             }
         }
@@ -260,18 +261,22 @@ object AgroNet : ModInitializer {
         }
 
         ServerTickEvents.START_SERVER_TICK.register {
-            playerList = it.playerManager.playerList
+            allPlayers = it.playerManager.playerList
+                .map { player -> player.gameProfile.name }
+                .toList()
+
+            activePlayers = it.playerManager.playerList
                 .filter { player -> !player.commandTags.contains("do2.spectating") }
                 .map { player -> player.gameProfile.name }
                 .toList()
         }
 
-        sendServerOnlineEvent(eventsApi, playerList)
+        sendServerOnlineEvent(eventsApi, activePlayers)
         threadPool.scheduleAtFixedRate({
             logger.info("Sending server-online event (with player count)")
-            sendServerOnlineEvent(eventsApi, playerList)
+            sendServerOnlineEvent(eventsApi, activePlayers)
 
-            playerList.forEach {
+            activePlayers.forEach {
                 sendPlayerSeenEvent(eventsApi, serverName, it)
             }
         }, 0, 15, TimeUnit.SECONDS)
