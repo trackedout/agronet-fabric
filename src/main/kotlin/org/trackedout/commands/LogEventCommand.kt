@@ -6,9 +6,14 @@ import com.mojang.brigadier.context.CommandContext
 import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.text.Text
 import org.trackedout.EventsApiWithContext
+import org.trackedout.client.apis.TasksApi
 import org.trackedout.client.models.Event
+import org.trackedout.sendPlayerToLobby
 
-class LogEventCommand(private val eventsApi: EventsApiWithContext) : PlayerCommand {
+class LogEventCommand(
+    private val eventsApi: EventsApiWithContext,
+    private val tasksApi: TasksApi,
+) : PlayerCommand {
     override fun run(context: CommandContext<ServerCommandSource>): Int {
         val event = StringArgumentType.getString(context, "event")
         val count = try {
@@ -32,7 +37,7 @@ class LogEventCommand(private val eventsApi: EventsApiWithContext) : PlayerComma
             {
                 Text.literal(
                     "Processing /log-event { event=${event}, count=${count} } for $sourceName " +
-                            "at location [$x, $y, $z]"
+                        "at location [$x, $y, $z]"
                 )
             },
             true
@@ -50,11 +55,24 @@ class LogEventCommand(private val eventsApi: EventsApiWithContext) : PlayerComma
                 )
             )
 
+            if (event == "game-ended") {
+                val spectators = context.source.server.playerManager.playerList
+                    .filter { player -> player.commandTags.contains("do2.spectating") }
+                    .filter { player -> !player.commandTags.contains("do2.staff") }
+                    .map { player -> player.gameProfile.name }
+
+                logger.info("game-ended event detected, sending ${spectators.size} spectators back to the lobby")
+                spectators.forEach { spectatorName ->
+                    logger.info("Creating task to send $spectatorName back to the lobby")
+                    tasksApi.sendPlayerToLobby(spectatorName)
+                }
+            }
+
             context.source.sendFeedback(
                 {
                     Text.literal(
                         "Successfully sent event { event=${event}, count=${count} } for $sourceName " +
-                                "for location [$x, $y, $z] to Dunga Dunga"
+                            "for location [$x, $y, $z] to Dunga Dunga"
                     )
                 },
                 true

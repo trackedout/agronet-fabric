@@ -146,7 +146,7 @@ object AgroNet : ModInitializer {
                     })
         }
 
-        val logEventCommand = LogEventCommand(eventsApi)
+        val logEventCommand = LogEventCommand(eventsApi, tasksApi)
 
         CommandRegistrationCallback.EVENT.register { dispatcher, _, _ ->
             dispatcher.register(
