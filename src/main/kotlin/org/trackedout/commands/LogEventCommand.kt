@@ -5,10 +5,10 @@ import com.mojang.brigadier.arguments.StringArgumentType
 import com.mojang.brigadier.context.CommandContext
 import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.text.Text
+import org.trackedout.AgroNet.sendPlayerToLobby
 import org.trackedout.EventsApiWithContext
 import org.trackedout.client.apis.TasksApi
 import org.trackedout.client.models.Event
-import org.trackedout.sendPlayerToLobby
 
 class LogEventCommand(
     private val eventsApi: EventsApiWithContext,
@@ -59,12 +59,10 @@ class LogEventCommand(
                 val spectators = context.source.server.playerManager.playerList
                     .filter { player -> player.commandTags.contains("do2.spectating") }
                     .filter { player -> !player.commandTags.contains("do2.staff") }
-                    .map { player -> player.gameProfile.name }
 
                 logger.info("game-ended event detected, sending ${spectators.size} spectators back to the lobby")
-                spectators.forEach { spectatorName ->
-                    logger.info("Creating task to send $spectatorName back to the lobby")
-                    tasksApi.sendPlayerToLobby(spectatorName)
+                spectators.forEach { spectator ->
+                    sendPlayerToLobby(spectator)
                 }
             }
 

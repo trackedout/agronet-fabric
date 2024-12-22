@@ -1,7 +1,5 @@
 package org.trackedout
 
-import net.minecraft.block.Block
-import net.minecraft.block.BlockState
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.ItemStack
 import net.minecraft.item.Items
@@ -22,18 +20,6 @@ fun PlayerEntity.debug(message: String) {
     }
 }
 
-fun PlayerEntity.hasShulkerInInventory(): Boolean {
-    return this.inventory.containsAny { item -> item.isDeckedOutShulker() }
-}
-
-fun PlayerEntity.hasKeyInHand(): Boolean {
-    return this.handItems.any { item -> item.isDeckedOutKey() }
-}
-
-fun PlayerEntity.isReadyToStartDungeonRun(): Boolean {
-    return this.hasShulkerInInventory() && this.hasKeyInHand()
-}
-
 fun ServerCommandSource.sendMessage(message: String, format: Formatting) {
     this.sendMessage(Text.literal(message).formatted(format))
 }
@@ -42,14 +28,16 @@ fun ItemStack.isDeckedOutShulker(): Boolean {
     return this.item.name == Items.CYAN_SHULKER_BOX.name
 }
 
-fun ItemStack.isDeckedOutKey(): Boolean {
-    return this.item.name == Items.ECHO_SHARD.name
-}
-
-fun BlockState.isDeckedOutDoor(): Boolean {
-    return this.isOf(Block.getBlockFromItem(Items.BLACKSTONE))
-}
-
 fun Task.updateState(api: TasksApi, state: String) {
     api.tasksIdPatch(this.id!!, TasksIdPatchRequest(state))
+}
+
+fun TasksApi.sendPlayerToLobby(playerName: String) {
+    this.tasksPost(
+        Task(
+            server = "lobby",
+            type = "bungee-message",
+            arguments = listOf("ConnectOther", playerName, "lobby"),
+        )
+    )
 }

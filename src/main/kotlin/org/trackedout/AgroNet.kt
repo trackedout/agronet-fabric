@@ -2,6 +2,8 @@ package org.trackedout
 
 import com.mojang.brigadier.arguments.IntegerArgumentType
 import com.mojang.brigadier.arguments.StringArgumentType
+import com.mojang.brigadier.context.CommandContext
+import io.netty.buffer.Unpooled
 import me.lucko.fabric.api.permissions.v0.Permissions
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback
@@ -10,13 +12,17 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
 import net.fabricmc.fabric.api.networking.v1.PacketSender
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper
+import net.minecraft.network.PacketByteBuf
+import net.minecraft.network.packet.s2c.play.CustomPayloadS2CPacket
 import net.minecraft.resource.ResourceType
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.command.CommandManager.argument
 import net.minecraft.server.command.CommandManager.literal
 import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.server.network.ServerPlayNetworkHandler
+import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.util.Formatting
+import net.minecraft.util.Identifier
 import okhttp3.OkHttpClient
 import org.slf4j.LoggerFactory
 import org.trackedout.RunContext.serverName
@@ -232,6 +238,18 @@ object AgroNet : ModInitializer {
                     })
         }
 
+        CommandRegistrationCallback.EVENT.register { dispatcher, _, _ ->
+            val sendPlayerToLobby: (context: CommandContext<ServerCommandSource>) -> Int = { context ->
+                tasksApi.sendPlayerToLobby(context.source.name)
+
+                context.source.player?.let { sendPlayerToLobby(it) }
+                1
+            }
+
+            dispatcher.register(literal("leave").executes(sendPlayerToLobby))
+            dispatcher.register(literal("lobby").executes(sendPlayerToLobby))
+        }
+
         if (!serverName.equals("builders", ignoreCase = true)) {
             CommandRegistrationCallback.EVENT.register { dispatcher, _, _ ->
                 dispatcher.register(
@@ -310,6 +328,22 @@ object AgroNet : ModInitializer {
         }
 
         logger.info("Agronet online. Flee with extra flee!")
+    }
+
+    fun sendPlayerToLobby(player: ServerPlayerEntity) {
+        val buf = PacketByteBuf(Unpooled.buffer())
+        buf.writeString("ConnectOther")
+        buf.writeString(player.gameProfile.name)
+        buf.writeString("lobby")
+
+        player.networkHandler.sendPacket(
+            CustomPayloadS2CPacket(
+                Identifier(
+                    "bungeecord", "main"
+                ),
+                buf
+            )
+        )
     }
 
     private fun sendServerOnlineEvent(eventsApi: EventsApiWithContext, playerList: List<String>) {
