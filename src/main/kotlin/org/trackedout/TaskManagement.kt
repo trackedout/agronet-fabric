@@ -1,6 +1,8 @@
 package org.trackedout
 
 import net.minecraft.server.MinecraftServer
+import net.minecraft.text.Text
+import net.minecraft.util.Formatting
 import org.slf4j.LoggerFactory
 import org.trackedout.client.apis.TasksApi
 import org.trackedout.client.models.Task
@@ -22,7 +24,12 @@ class TaskManagement(
         tasks.forEach {
             logger.info("Handling task: $it")
             it.updateState(tasksApi, "IN_PROGRESS")
-            handleTask(it, server)
+            try {
+                handleTask(it, server)
+            } catch (e: Exception) {
+                logger.error("Failed to execute task $it")
+                e.printStackTrace()
+            }
         }
     }
 
@@ -36,6 +43,14 @@ class TaskManagement(
                     }
                 } else {
                     logger.warn("Server shutdown request ignored as ${server.playerManager.playerList.size} are online")
+                }
+            }
+
+            "broadcast-message" -> {
+                task.arguments?.forEach { message ->
+                    server.overworld.players.forEach { player ->
+                        player.sendMessage(Text.literal(message).formatted(Formatting.DARK_AQUA))
+                    }
                 }
             }
 
