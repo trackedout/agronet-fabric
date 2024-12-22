@@ -293,7 +293,7 @@ class ScoreApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClient =
      * Batch update or insert scores
      * Batch update or insert scores
      * @param score 
-     * @return ScoresGet200Response
+     * @return kotlin.collections.List<Score>
      * @throws IllegalStateException If the request is not correctly configured
      * @throws IOException Rethrows the OkHttp execute method exception
      * @throws UnsupportedOperationException If the API returns an informational or redirection response
@@ -302,11 +302,11 @@ class ScoreApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClient =
      */
     @Suppress("UNCHECKED_CAST")
     @Throws(IllegalStateException::class, IOException::class, UnsupportedOperationException::class, ClientException::class, ServerException::class)
-    fun scoresPost(score: kotlin.collections.List<Score>) : ScoresGet200Response {
+    fun scoresPost(score: kotlin.collections.List<Score>) : kotlin.collections.List<Score> {
         val localVarResponse = scoresPostWithHttpInfo(score = score)
 
         return when (localVarResponse.responseType) {
-            ResponseType.Success -> (localVarResponse as Success<*>).data as ScoresGet200Response
+            ResponseType.Success -> (localVarResponse as Success<*>).data as kotlin.collections.List<Score>
             ResponseType.Informational -> throw UnsupportedOperationException("Client does not support Informational responses.")
             ResponseType.Redirection -> throw UnsupportedOperationException("Client does not support Redirection responses.")
             ResponseType.ClientError -> {
@@ -324,16 +324,16 @@ class ScoreApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClient =
      * Batch update or insert scores
      * Batch update or insert scores
      * @param score 
-     * @return ApiResponse<ScoresGet200Response?>
+     * @return ApiResponse<kotlin.collections.List<Score>?>
      * @throws IllegalStateException If the request is not correctly configured
      * @throws IOException Rethrows the OkHttp execute method exception
      */
     @Suppress("UNCHECKED_CAST")
     @Throws(IllegalStateException::class, IOException::class)
-    fun scoresPostWithHttpInfo(score: kotlin.collections.List<Score>) : ApiResponse<ScoresGet200Response?> {
+    fun scoresPostWithHttpInfo(score: kotlin.collections.List<Score>) : ApiResponse<kotlin.collections.List<Score>?> {
         val localVariableConfig = scoresPostRequestConfig(score = score)
 
-        return request<kotlin.collections.List<Score>, ScoresGet200Response>(
+        return request<kotlin.collections.List<Score>, kotlin.collections.List<Score>>(
             localVariableConfig
         )
     }
