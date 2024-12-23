@@ -67,6 +67,7 @@ class AgroNetPlayerConnectionListener(
             return
         }
 
+        var givePlayerTheirShulker = false
         try {
             if (!RunContext.initialized) {
                 claimApi.claimsGet(
@@ -80,6 +81,8 @@ class AgroNetPlayerConnectionListener(
                     // TODO: Store deck-id - https://github.com/trackedout/agronet-fabric/issues/31
                     logger.info("Setting state of Claim ${claim.id} to 'in-use'")
                     claimApi.claimsIdPatch(claim.id!!, claim.copy(id = null, state = "in-use", claimant = serverName))
+                    givePlayerTheirShulker = true
+                    RunContext.initialized = true
                 } ?: run {
                     logger.error("No matching claim found for $playerName")
                     handler.player.sendMessage("No matching claim found for your run, contact a moderator (unless you are spectating)", Formatting.RED)
@@ -137,16 +140,20 @@ class AgroNetPlayerConnectionListener(
 
         } catch (e: Exception) {
             e.printStackTrace()
-            handler.player.sendMessage("A critical error occurred when attempting to fetch your data from dunga-dunga, " +
-                "and your data could not be imported. Contact a moderator.", Formatting.RED)
+            handler.player.sendMessage(
+                "A critical error occurred when attempting to fetch your data from dunga-dunga, " +
+                    "and your data could not be imported. Contact a moderator.", Formatting.RED
+            )
         }
 
-        handler.player?.let { player ->
-            server.commandSource?.let { commandSource ->
-                try {
-                    addDeckToPlayerInventoryAction.execute(commandSource, player)
-                } catch (e: Exception) {
-                    e.printStackTrace()
+        if (givePlayerTheirShulker) {
+            handler.player?.let { player ->
+                server.commandSource?.let { commandSource ->
+                    try {
+                        addDeckToPlayerInventoryAction.execute(commandSource, player)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
                 }
             }
         }

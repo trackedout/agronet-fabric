@@ -43,6 +43,11 @@ class AddDeckToPlayerInventoryAction(
             return
         }
 
+        if (!RunContext.initialized) {
+            player.sendMessage("Run data is not initialized, unable to determine which deck to give to $playerName", Formatting.RED)
+            return
+        }
+
         val context = RunContext.playerContext(playerName)
         player.sendMessage("Fetching ${context.fullRunType()} mode Decked Out shulker #${context.shortDeckId()} from Dunga Dunga...", Formatting.GRAY)
         val cards = inventoryApi.inventoryCardsGet(player = playerName, limit = 200, deckType = context.runType(), deckId = context.fullDeckId()).results!!
