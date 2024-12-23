@@ -28,10 +28,7 @@ class AgroNetPlayerConnectionListener(
     private val scoreApi: ScoreApi,
     private val claimApi: ClaimApi,
     private val addDeckToPlayerInventoryAction: AddDeckToPlayerInventoryAction,
-) :
-    ServerPlayConnectionEvents.Join,
-    ServerPlayConnectionEvents.Disconnect,
-    SimpleSynchronousResourceReloadListener {
+) : ServerPlayConnectionEvents.Join, ServerPlayConnectionEvents.Disconnect, SimpleSynchronousResourceReloadListener {
     private val logger = LoggerFactory.getLogger("ServerPlayConnectionJoin")
 
     private var objectivesToStore = listOf<String>()
@@ -55,9 +52,7 @@ class AgroNetPlayerConnectionListener(
                 val jsonData = inputStream.bufferedReader(StandardCharsets.UTF_8).use { it.readText() }
                 val scoreboardDescriptionMap: Map<String, BrillianceScoreboardDescription> = Json.decodeFromString(jsonData)
 
-                objectivesToStore = scoreboardDescriptionMap
-                    .filter { it.value.category == "totals" }
-                    .keys.toList()
+                objectivesToStore = scoreboardDescriptionMap.filter { it.value.category == "totals" }.keys.toList()
 
                 println("Updated objectives to store to: $objectivesToStore")
             }
@@ -73,24 +68,24 @@ class AgroNetPlayerConnectionListener(
         }
 
         try {
-            claimApi.claimsGet(
-                player = playerName,
-                state = "acquired",
-                type = "dungeon",
-            ).results?.firstOrNull()?.let { claim ->
-                claim.metadata?.let { RunContext.addPlayerContext(playerName, it) }
-
-//                claim.metadata?.get("run-type")?.let { runContext.gameTags[playerName] = it }
-//                // TODO: Don't do this if player is spectating
-                claim.metadata?.get("run-id")?.let { RunContext.runId = it }
-
-//                // TODO: Store deck-id - https://github.com/trackedout/agronet-fabric/issues/31
-
-                logger.info("Setting state of Claim ${claim.id} to 'in-use'")
-                claimApi.claimsIdPatch(claim.id!!, claim.copy(id = null, state = "in-use", claimant = serverName))
-            } ?: run {
-                logger.error("No matching claim found for $playerName")
-                handler.player.sendMessage("No matching claim found for your run, contact a moderator (unless you are spectating)", Formatting.RED)
+            if (!RunContext.initialized) {
+                claimApi.claimsGet(
+                    player = playerName,
+                    state = "acquired",
+                    type = "dungeon",
+                    claimant = serverName,
+                ).results?.firstOrNull()?.let { claim ->
+                    claim.metadata?.let { RunContext.addPlayerContext(playerName, it) }
+                    claim.metadata?.get("run-id")?.let { RunContext.runId = it }
+                    // TODO: Store deck-id - https://github.com/trackedout/agronet-fabric/issues/31
+                    logger.info("Setting state of Claim ${claim.id} to 'in-use'")
+                    claimApi.claimsIdPatch(claim.id!!, claim.copy(id = null, state = "in-use", claimant = serverName))
+                } ?: run {
+                    logger.error("No matching claim found for $playerName")
+                    handler.player.sendMessage("No matching claim found for your run, contact a moderator (unless you are spectating)", Formatting.RED)
+                }
+            } else {
+                logger.info("Run context is already initialized, skipping processing from ${playerName}'s join event")
             }
 
             val runType = getFullRunType(playerName)
@@ -103,12 +98,8 @@ class AgroNetPlayerConnectionListener(
                 limit = 10000,
             )
 
-            scores.results!!
-                .filter { it.key!!.startsWith(filter) }
-                .filter { !it.key!!.startsWith(advancementFilter) }
-                .map { it.copy(key = it.key?.substring(filter.length)) }
-                .filter { it.key!!.isNotBlank() }
-                .forEach {
+            scores.results!!.filter { it.key!!.startsWith(filter) }.filter { !it.key!!.startsWith(advancementFilter) }.map { it.copy(key = it.key?.substring(filter.length)) }
+                .filter { it.key!!.isNotBlank() }.forEach {
                     val objective = server.scoreboard.getObjective(it.key)
 
                     val playerScore = server.scoreboard.getPlayerScore(playerName, objective)
@@ -119,12 +110,8 @@ class AgroNetPlayerConnectionListener(
             val tracker = handler.player.advancementTracker
             server.gameRules.get(GameRules.ANNOUNCE_ADVANCEMENTS).set(false, server)
 
-            scores.results
-                .filter { it.key!!.startsWith(advancementFilter) }
-                .map { it.copy(key = it.key?.substring(advancementFilter.length)) }
-                .filter { it.key!!.isNotBlank() && it.key.contains("#") }
-                .filter { it.value!!.toInt() > 0 }
-                .forEach { score ->
+            scores.results.filter { it.key!!.startsWith(advancementFilter) }.map { it.copy(key = it.key?.substring(advancementFilter.length)) }
+                .filter { it.key!!.isNotBlank() && it.key.contains("#") }.filter { it.value!!.toInt() > 0 }.forEach { score ->
                     val split = score.key!!.split("#")
                     var namespace = "do2"
                     var key = split[0]
@@ -150,6 +137,8 @@ class AgroNetPlayerConnectionListener(
 
         } catch (e: Exception) {
             e.printStackTrace()
+            handler.player.sendMessage("A critical error occurred when attempting to fetch your data from dunga-dunga, " +
+                "and your data could not be imported. Contact a moderator.", Formatting.RED)
         }
 
         handler.player?.let { player ->
@@ -179,16 +168,12 @@ class AgroNetPlayerConnectionListener(
         try {
             val batchMap = server.scoreboard.getPlayerObjectives(playerName)
                 // Filter for objectives in the "totals" category: https://github.com/trackedout/Brilliance/blob/main/JSON/scoreboards.json
-                .filter { objective -> (objective.key?.name)?.let { objectivesToStore.contains(it) } ?: false }
-                .map { objective ->
+                .filter { objective -> (objective.key?.name)?.let { objectivesToStore.contains(it) } ?: false }.map { objective ->
                     objective.key.name to objective.value.score
-                }
-                .toMap().toMutableMap()
+                }.toMap().toMutableMap()
 
-            batchMap += server.advancementLoader.advancements.asSequence()
-                .filter { !it.id.path.startsWith("visible/credits/") }
-                .filter { handler.player.advancementTracker.getProgress(it).isAnyObtained }
-                .flatMap {
+            batchMap += server.advancementLoader.advancements.asSequence().filter { !it.id.path.startsWith("visible/credits/") }
+                .filter { handler.player.advancementTracker.getProgress(it).isAnyObtained }.flatMap {
                     val progress = handler.player.advancementTracker.getProgress(it)
                     it.criteria.entries.map { entry ->
                         val obtained: Boolean? = progress.getCriterionProgress(entry.key)?.isObtained
@@ -196,8 +181,7 @@ class AgroNetPlayerConnectionListener(
 
                         "advancement-${it.id.namespace}#${it.id.path}#${entry.key}" to value
                     }
-                }
-                .filter { it.second > 0 }.toList()
+                }.filter { it.second > 0 }.toList()
 
             handler.player.advancementTracker.save()
 
@@ -221,8 +205,7 @@ class AgroNetPlayerConnectionListener(
                         value = it.value.toBigDecimal(),
                         metadata = metadata,
                     )
-                }
-            )
+                })
 
             logger.info("Successfully stored ${batchMap.size} objectives for player $playerName")
         } catch (e: Exception) {

@@ -7,6 +7,7 @@ import java.util.concurrent.ConcurrentMap
 data object RunContext {
     var serverName = "unknown"
     var runId = UUID.randomUUID().toString()
+    var initialized = false
 
     private val playerContextMap: ConcurrentMap<String, PlayerContext> = Maps.newConcurrentMap()
 
