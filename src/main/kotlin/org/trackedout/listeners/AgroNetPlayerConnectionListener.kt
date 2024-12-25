@@ -17,7 +17,9 @@ import org.trackedout.RunContext.serverName
 import org.trackedout.actions.AddDeckToPlayerInventoryAction
 import org.trackedout.client.apis.ClaimApi
 import org.trackedout.client.apis.ScoreApi
+import org.trackedout.client.apis.TasksApi
 import org.trackedout.client.models.Score
+import org.trackedout.client.models.Task
 import org.trackedout.data.BrillianceScoreboardDescription
 import org.trackedout.fullRunType
 import org.trackedout.runType
@@ -27,6 +29,7 @@ import java.nio.charset.StandardCharsets
 class AgroNetPlayerConnectionListener(
     private val scoreApi: ScoreApi,
     private val claimApi: ClaimApi,
+    private val tasksApi: TasksApi,
     private val addDeckToPlayerInventoryAction: AddDeckToPlayerInventoryAction,
 ) : ServerPlayConnectionEvents.Join, ServerPlayConnectionEvents.Disconnect, SimpleSynchronousResourceReloadListener {
     private val logger = LoggerFactory.getLogger("ServerPlayConnectionJoin")
@@ -215,6 +218,17 @@ class AgroNetPlayerConnectionListener(
                 })
 
             logger.info("Successfully stored ${batchMap.size} objectives for player $playerName")
+
+            tasksApi.tasksPost(
+                Task(
+                    server = "lobby",
+                    type = "update-inventory",
+                    targetPlayer = playerName,
+                    arguments = listOf(),
+                )
+            )
+
+            logger.info("Created update-inventory task for player $playerName")
         } catch (e: Exception) {
             e.printStackTrace()
         }
