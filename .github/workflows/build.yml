@@ -37,10 +37,7 @@ jobs:
           repository: 'trackedout/Brilliance'
           latest: true
           fileName: '*.json'
-          out-file-path: 'Brilliance'
-
-      - name: copy scoreboards.json
-        run: cp Brilliance/scoreboards.json src/main/resources/assets/agronet/scoreboards.json
+          out-file-path: 'brilliance-configs'
 
       - name: build
         env:
