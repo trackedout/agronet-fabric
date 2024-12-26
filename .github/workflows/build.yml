@@ -31,12 +31,12 @@ jobs:
         if: ${{ runner.os != 'Windows' }}
         run: chmod +x ./gradlew
 
-      - name: download scoreboards.json from brilliance
+      - name: download config files from brilliance
         uses: robinraju/release-downloader@v1.10
         with:
           repository: 'trackedout/Brilliance'
           latest: true
-          fileName: 'scoreboards.json'
+          fileName: '*.json'
           out-file-path: 'Brilliance'
 
       - name: copy scoreboards.json
