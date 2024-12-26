@@ -1,6 +1,7 @@
 package org.trackedout
 
 import com.google.common.collect.Maps
+import org.trackedout.data.BrillianceCard
 import java.util.UUID
 import java.util.concurrent.ConcurrentMap
 
@@ -8,6 +9,8 @@ data object RunContext {
     var serverName = "unknown"
     var runId = UUID.randomUUID().toString()
     var initialized = false
+
+    var brillianceCards = mapOf<String, BrillianceCard>()
 
     private val playerContextMap: ConcurrentMap<String, PlayerContext> = Maps.newConcurrentMap()
 

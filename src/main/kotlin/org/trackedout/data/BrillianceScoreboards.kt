@@ -8,4 +8,5 @@ data class BrillianceScoreboardDescription(
     val target: String,
     val category: String,
     val description: String,
+    val values: Map<String, String>? = mapOf(),
 )

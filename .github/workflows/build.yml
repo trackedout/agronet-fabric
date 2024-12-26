@@ -43,6 +43,10 @@ jobs:
         run: cp Brilliance/scoreboards.json src/main/resources/assets/agronet/scoreboards.json
 
       - name: build
+        env:
+          ORG_GRADLE_PROJECT_scoreboards_json: brilliance-configs/scoreboards.json
+          ORG_GRADLE_PROJECT_cards_json: brilliance-configs/Cards.json
+          ORG_GRADLE_PROJECT_artifacts_json: brilliance-configs/Artifacts.json
         run: ./gradlew build
 
       - name: capture build artifacts

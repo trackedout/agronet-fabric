@@ -23,6 +23,8 @@ import org.trackedout.fullRunType
 import org.trackedout.runType
 import org.trackedout.sendMessage
 import org.trackedout.shortDeckId
+import kotlin.math.max
+import kotlin.math.min
 
 class AddDeckToPlayerInventoryAction(
     private val eventsApi: EventsApiWithContext,
@@ -79,14 +81,54 @@ class AddDeckToPlayerInventoryAction(
         val cardCount = cards
             .filter { Cards.findCard(it.name!!) != null }
             .groupingBy { it.name!! }.eachCount()
-        var cardIndex = 0
         player.debug("Your shulker should contain ${cards.size} cards:")
-        cardCount.forEach { (cardName, count) ->
-            player.debug("- ${count}x $cardName")
-            logger.info("$playerName's shulker should contain ${count}x $cardName")
+        var cardIndex = 0
+        var totalCards = 0
+        var sentTruncationWarning = false
+        val modificationLog = mutableMapOf<String, String>()
 
+        cardCount.forEach { (cardName, countInDeck) ->
+            player.debug("- ${countInDeck}x $cardName")
             val card = Cards.findCard(cardName)!!
+            val maxCopies = RunContext.brillianceCards[card.key]?.maxCopies
+            var count = min(countInDeck, maxCopies ?: countInDeck)
+            logger.info("$playerName's shulker should contain ${count}x $cardName (deck has $countInDeck, max copies is $maxCopies, deck contains $totalCards cards)")
+
+            if (countInDeck > (maxCopies ?: 0)) {
+                // If the player has more copies of a card than they should, log the new count that we're giving them
+                modificationLog["new-card-count-${cardName.replace("_", "-")}"] = "$count"
+                logger.warn("$playerName has too many copies of $cardName in their deck, truncating to $count")
+                player.sendMessage("You have too many copies of $cardName in your deck, truncating to $count", Formatting.RED)
+            }
+
+            // If the new cards would take the total over 40, truncate the count to only fill up to 40
+            if (totalCards + count > 40) {
+                count = max(0, 40 - totalCards)
+                modificationLog["new-card-count-${cardName.replace("_", "-")}"] = "$count"
+                if (!sentTruncationWarning) {
+                    logger.warn("$playerName has too many cards in their deck, truncating to 40")
+                    player.sendMessage("You have too many cards in your deck, truncating to 40", Formatting.RED)
+                    sentTruncationWarning = true
+                }
+                logger.info("Deck limit exceeded. New count for $cardName is $count")
+            }
+
+            if (count <= 0) {
+                eventsApi.eventsPost(
+                    Event(
+                        name = "card-skipped-on-join-${cardName.replace("_", "-")}",
+                        player = playerName,
+                        x = 0.0,
+                        y = 0.0,
+                        z = 0.0,
+                        count = count,
+                    )
+                )
+                return@forEach
+            }
+
             val cardData = createCard(cardIndex++, card, count)
+            totalCards += count
             shulkerItems.add(cardData)
 
             eventsApi.eventsPost(
@@ -97,6 +139,20 @@ class AddDeckToPlayerInventoryAction(
                     y = 0.0,
                     z = 0.0,
                     count = count,
+                )
+            )
+        }
+
+        if (modificationLog.isNotEmpty()) {
+            eventsApi.eventsPost(
+                Event(
+                    name = "deck-modified-on-join",
+                    player = playerName,
+                    x = 0.0,
+                    y = 0.0,
+                    z = 0.0,
+                    count = 1,
+                    metadata = modificationLog
                 )
             )
         }

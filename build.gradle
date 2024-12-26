@@ -65,11 +65,29 @@ dependencies {
     include(modImplementation('me.lucko:fabric-permissions-api:0.2-SNAPSHOT'))
 }
 
+def brillianceDataDir = "data/brilliance-data"
+def scoreboardsJsonPath = property('scoreboards_json')
+def cardsJsonPath = property('cards_json')
+def artifactsJsonPath = property('artifacts_json')
+
 processResources {
     inputs.property "version", project.version
 
     filesMatching("fabric.mod.json") {
         expand "version": project.version
+    }
+
+    // Place json files in resources/brilliance-data/
+    from(scoreboardsJsonPath) {
+        into(brillianceDataDir)
+    }
+    from(cardsJsonPath) {
+        rename { "cards.json" }
+        into(brillianceDataDir)
+    }
+    from(artifactsJsonPath) {
+        rename { "artifacts.json" }
+        into(brillianceDataDir)
     }
 }
 

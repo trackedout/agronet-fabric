@@ -20,11 +20,14 @@ import org.trackedout.client.apis.ScoreApi
 import org.trackedout.client.apis.TasksApi
 import org.trackedout.client.models.Score
 import org.trackedout.client.models.Task
+import org.trackedout.data.BrillianceCard
 import org.trackedout.data.BrillianceScoreboardDescription
 import org.trackedout.fullRunType
 import org.trackedout.runType
 import org.trackedout.sendMessage
 import java.nio.charset.StandardCharsets
+
+val json = Json { ignoreUnknownKeys = true }
 
 class AgroNetPlayerConnectionListener(
     private val scoreApi: ScoreApi,
@@ -40,27 +43,35 @@ class AgroNetPlayerConnectionListener(
         return Identifier("agronet", "scoreboard")
     }
 
-    // Use scoreboards.json (authored in Brilliance) to determine which objectives to store
+    // Use data from Brilliance to determine which objectives to store, and Card limits
     override fun reload(resourceManager: ResourceManager) {
-        val resourceId = Identifier("agronet", "scoreboards.json")
+        parseBrillianceData<Map<String, BrillianceScoreboardDescription>>(resourceManager, "scoreboards.json") { map ->
+            objectivesToStore = map.filter { it.value.category == "totals" }.keys.toList()
+            println("Updated objectives to store to: $objectivesToStore")
+        }
+
+        parseBrillianceData<Map<String, BrillianceCard>>(resourceManager, "cards.json") { map ->
+            RunContext.brillianceCards = map
+            println("Card data from Brilliance: ${RunContext.brillianceCards}")
+        }
+    }
+
+    private inline fun <reified T> parseBrillianceData(resourceManager: ResourceManager, fileName: String, unit: (T) -> Unit) {
+        val resourceId = Identifier("brilliance-data", fileName)
 
         try {
             // Obtain the resource as an InputStream
             val resource = resourceManager.getResource(resourceId).orElseThrow {
-                throw IllegalStateException("Resource not found: $resourceId")
+                throw IllegalStateException("Resource $fileName not found: $resourceId")
             }
 
             // Read and parse the JSON file using Gson
             resource.inputStream.use { inputStream ->
                 val jsonData = inputStream.bufferedReader(StandardCharsets.UTF_8).use { it.readText() }
-                val scoreboardDescriptionMap: Map<String, BrillianceScoreboardDescription> = Json.decodeFromString(jsonData)
-
-                objectivesToStore = scoreboardDescriptionMap.filter { it.value.category == "totals" }.keys.toList()
-
-                println("Updated objectives to store to: $objectivesToStore")
+                unit(json.decodeFromString<T>(jsonData))
             }
         } catch (e: Exception) {
-            println("Failed to load JSON: ${e.message}")
+            println("Failed to load $fileName: ${e.message}")
         }
     }
 
