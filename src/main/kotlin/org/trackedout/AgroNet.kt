@@ -7,6 +7,7 @@ import io.netty.buffer.Unpooled
 import me.lucko.fabric.api.permissions.v0.Permissions
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback
+import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
 import net.fabricmc.fabric.api.networking.v1.PacketSender
@@ -298,6 +299,29 @@ object AgroNet : ModInitializer {
                 sendPlayerSeenEvent(eventsApi, serverName, it)
             }
         }, 0, 15, TimeUnit.SECONDS)
+
+        ServerLivingEntityEvents.AFTER_DEATH.register { entity, source ->
+            if (entity is ServerPlayerEntity) {
+                val killerName = source.attacker?.displayName?.string ?: "unknown"
+                val killerType = source.attacker?.type?.name?.string ?: "unknown"
+                logger.info("Player ${entity.gameProfile.name} died at ${entity.pos}, killer: $killerName (${killerType})")
+
+                eventsApi.eventsPost(
+                    Event(
+                        name = "player-died",
+                        player = entity.gameProfile.name,
+                        x = entity.pos.x,
+                        y = entity.pos.y,
+                        z = entity.pos.z,
+                        count = 1,
+                        metadata = mapOf(
+                            "killer" to killerName,
+                            "killer-type" to killerType,
+                        )
+                    )
+                )
+            }
+        }
 
         ServerLifecycleEvents.SERVER_STARTED.register { server: MinecraftServer ->
             val taskManager = TaskManagement(tasksApi, serverName)
