@@ -302,9 +302,18 @@ object AgroNet : ModInitializer {
 
         ServerLivingEntityEvents.AFTER_DEATH.register { entity, source ->
             if (entity is ServerPlayerEntity) {
+                val deathMessage = source.getDeathMessage(entity)?.string
                 val killerName = source.attacker?.displayName?.string ?: "unknown"
                 val killerType = source.attacker?.type?.name?.string ?: "unknown"
-                logger.info("Player ${entity.gameProfile.name} died at ${entity.pos}, killer: $killerName (${killerType})")
+                logger.info("Player ${entity.gameProfile.name} died at ${entity.pos}, killer: $killerName (${killerType}), message: $deathMessage")
+
+                val metadata = mutableMapOf(
+                    "killer" to killerName,
+                    "killer-type" to killerType,
+                )
+                if (deathMessage != null) {
+                    metadata["death-message"] = deathMessage
+                }
 
                 eventsApi.eventsPost(
                     Event(
@@ -314,10 +323,7 @@ object AgroNet : ModInitializer {
                         y = entity.pos.y,
                         z = entity.pos.z,
                         count = 1,
-                        metadata = mapOf(
-                            "killer" to killerName,
-                            "killer-type" to killerType,
-                        )
+                        metadata = metadata,
                     )
                 )
             }
