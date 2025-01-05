@@ -90,7 +90,7 @@ class AddDeckToPlayerInventoryAction(
         cardCount.forEach { (cardName, countInDeck) ->
             player.debug("- ${countInDeck}x $cardName")
             val card = Cards.findCard(cardName)!!
-            val maxCopies = RunContext.brillianceCards[card.key]?.maxCopies
+            val maxCopies = RunContext.brillianceCards[card.key.replace("_", "").replace("-", "")]?.maxCopies
             var count = min(countInDeck, maxCopies ?: countInDeck)
             logger.info("$playerName's shulker should contain ${count}x $cardName (deck has $countInDeck, max copies is $maxCopies, deck contains $totalCards cards)")
 
@@ -98,7 +98,7 @@ class AddDeckToPlayerInventoryAction(
                 // If the player has more copies of a card than they should, log the new count that we're giving them
                 modificationLog["new-card-count-${cardName.replace("_", "-")}"] = "$count"
                 logger.warn("$playerName has too many copies of $cardName in their deck, truncating to $count")
-                player.sendMessage("You have too many copies of $cardName in your deck, truncating to $count", Formatting.RED)
+                player.sendMessage("You have too many copies of $cardName in your deck (max is $maxCopies and you have ${countInDeck}), truncating to $count", Formatting.RED)
             }
 
             // If the new cards would take the total over 40, truncate the count to only fill up to 40

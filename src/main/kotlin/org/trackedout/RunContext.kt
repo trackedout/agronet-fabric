@@ -10,6 +10,8 @@ data object RunContext {
     var runId = UUID.randomUUID().toString()
     var initialized = false
 
+    // Note that all keys are stored without underscores or dashes, e.g. "quickstep" and "suitup"
+    // This is due to a disparity between what Agronet vs Brilliance calls the card
     var brillianceCards = mapOf<String, BrillianceCard>()
 
     private val playerContextMap: ConcurrentMap<String, PlayerContext> = Maps.newConcurrentMap()

@@ -51,7 +51,7 @@ class AgroNetPlayerConnectionListener(
         }
 
         parseBrillianceData<Map<String, BrillianceCard>>(resourceManager, "cards.json") { map ->
-            RunContext.brillianceCards = map
+            RunContext.brillianceCards = map.mapKeys { it.key.replace("-", "").replace("_", "") }
             println("Card data from Brilliance: ${RunContext.brillianceCards}")
         }
     }
