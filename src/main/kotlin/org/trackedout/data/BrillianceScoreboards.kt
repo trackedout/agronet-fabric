@@ -10,5 +10,11 @@ data class BrillianceScoreboardDescription(
     val displayText: String? = null,
     val description: String,
     val canEditForRunTypes: List<String>? = null,
-    val values: Map<String, String>? = mapOf(),
+    val values: Map<String, ScoreboardValue>? = mapOf(),
+)
+
+@Serializable
+data class ScoreboardValue(
+    val title: String? = null,
+    val description: String? = null,
 )
