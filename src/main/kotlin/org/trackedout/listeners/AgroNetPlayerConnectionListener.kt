@@ -218,15 +218,22 @@ class AgroNetPlayerConnectionListener(
                 "run-id" to RunContext.runId,
                 "run-type" to RunContext.playerContext(playerName).runType(),
             )
-            scoreApi.scoresPost(
-                batchMap.map {
-                    Score(
-                        player = playerName,
-                        key = "${getFullRunType(playerName)}-${it.key}",
-                        value = it.value.toBigDecimal(),
-                        metadata = metadata,
-                    )
-                })
+
+            // Chunk batchMap into batches of 100 entries
+            batchMap.entries.chunked(100).forEach { chunk ->
+                logger.info("Storing chunk of ${chunk.size} objectives for player $playerName")
+                logger.info("Chunk: ${Json.encodeToString(chunk.associate { it.key to it.value })}")
+
+                scoreApi.scoresPost(
+                    chunk.map {
+                        Score(
+                            player = playerName,
+                            key = "${getFullRunType(playerName)}-${it.key}",
+                            value = it.value.toBigDecimal(),
+                            metadata = metadata,
+                        )
+                    })
+            }
 
             logger.info("Successfully stored ${batchMap.size} objectives for player $playerName")
 
