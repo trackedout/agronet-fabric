@@ -235,7 +235,7 @@ class AgroNetPlayerConnectionListener(
                     })
             }
 
-            logger.info("Successfully stored ${batchMap.size} objectives for player $playerName")
+            logger.info("Successfully stored ${batchMap.size} objectives for player $playerName with metadata: ${Json.encodeToString(metadata)}")
 
             tasksApi.tasksPost(
                 Task(
