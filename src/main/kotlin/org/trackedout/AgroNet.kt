@@ -330,7 +330,7 @@ object AgroNet : ModInitializer {
         }
 
         ServerLifecycleEvents.SERVER_STARTED.register { server: MinecraftServer ->
-            val taskManager = TaskManagement(tasksApi, serverName)
+            val taskManager = TaskManagement(serverName, tasksApi, claimApi)
             threadPool.scheduleAtFixedRate({
                 try {
                     taskManager.fetchAndExecuteTasks(server)

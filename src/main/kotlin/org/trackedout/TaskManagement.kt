@@ -8,13 +8,17 @@ import net.minecraft.text.Text
 import net.minecraft.util.Formatting
 import net.minecraft.util.Identifier
 import org.slf4j.LoggerFactory
+import org.trackedout.client.apis.ClaimApi
 import org.trackedout.client.apis.TasksApi
 import org.trackedout.client.models.Task
+import org.trackedout.fs.applyDatapackReplacements
+import org.trackedout.fs.reloadServer
 
 
 class TaskManagement(
-    private val tasksApi: TasksApi,
     private val serverName: String,
+    private val tasksApi: TasksApi,
+    private val claimApi: ClaimApi,
 ) {
     private val logger = LoggerFactory.getLogger("Agronet")
 
@@ -56,6 +60,36 @@ class TaskManagement(
                     server.overworld.players.forEach { player ->
                         player.sendMessage(Text.literal(message).formatted(Formatting.DARK_AQUA))
                     }
+                }
+            }
+
+            "prepare-for-player" -> {
+                if (!task.targetPlayer.isNullOrBlank()) {
+
+                    claimApi.claimsGet(
+                        player = task.targetPlayer,
+                        state = "acquired",
+                        type = "dungeon",
+                        claimant = RunContext.serverName,
+                    ).results?.firstOrNull()?.let { claim ->
+                        logger.info("Preparing for ${task.targetPlayer} to join the server (claim: ${claim.id})")
+                        logger.info("Claim: $claim")
+
+                        claim.metadata?.shortRunType()?.let { runType ->
+                            applyDatapackReplacements(runType)
+                            server.dataPackManager.names.forEach {
+                                logger.info("Noting presence of datapack: $it (enabled: ${server.dataPackManager.enabledNames.contains(it)})")
+                            }
+                            server.reloadServer()
+
+                        } ?: run { logger.error("No run type found for ${task.targetPlayer}! Unable to prepare for them") }
+
+                    } ?: "No claim found for ${task.targetPlayer}! Unable to prepare for them".let { logger.error(it) }
+
+                } else {
+                    val message = "Task type is '${task.type}' but does not target a player"
+                    logger.warn(message)
+                    throw Exception(message)
                 }
             }
 

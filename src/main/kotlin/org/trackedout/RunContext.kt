@@ -33,11 +33,19 @@ fun PlayerContext.runType(): String {
 }
 
 fun PlayerContext.fullRunType(): String {
-    return when (this.runType()) {
+    return this.runType().fullRunType()
+}
+
+fun String.fullRunType(): String {
+    return when (this) {
         "p" -> "Practice"
         "c" -> "Competitive"
         else -> "unknown"
     }
+}
+
+fun PlayerContext.shortRunType(): String {
+    return this.runType()[0].lowercase()
 }
 
 fun PlayerContext.fullDeckId(): String {
