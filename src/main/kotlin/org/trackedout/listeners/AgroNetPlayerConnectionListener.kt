@@ -25,6 +25,7 @@ import org.trackedout.data.BrillianceScoreboardDescription
 import org.trackedout.fullRunType
 import org.trackedout.runType
 import org.trackedout.sendMessage
+import org.trackedout.shortRunType
 import java.nio.charset.StandardCharsets
 
 val json = Json { ignoreUnknownKeys = true }
@@ -95,6 +96,18 @@ class AgroNetPlayerConnectionListener(
                     // TODO: Store deck-id - https://github.com/trackedout/agronet-fabric/issues/31
                     logger.info("Setting state of Claim ${claim.id} to 'in-use'")
                     claimApi.claimsIdPatch(claim.id!!, claim.copy(id = null, state = "in-use", claimant = serverName))
+
+                    claim.metadata?.shortRunType()?.let { runType ->
+                        val objective = server.scoreboard.getObjective("do2.utility.runType")
+                        val playerScore = server.scoreboard.getPlayerScore(playerName, objective)
+                        playerScore.score = when (runType) {
+                            "p" -> 1
+                            "c" -> 2
+                            else -> 0
+                        }
+                        logger.info("Set do2.utility.runType to ${playerScore.score} (${runType}) for $playerName")
+                    } ?: run { logger.error("No run-type found for ${playerName}! Unable to set do2.utility.runType") }
+
                     givePlayerTheirShulker = true
                     RunContext.initialized = true
                 } ?: run {
