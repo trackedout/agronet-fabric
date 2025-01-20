@@ -125,6 +125,7 @@ class AgroNetPlayerConnectionListener(
             logger.info("Scoreboard filter: $filter")
             val scores = scoreApi.scoresGet(
                 player = playerName,
+                prefixFilter = filter,
                 limit = 10000,
             )
 
