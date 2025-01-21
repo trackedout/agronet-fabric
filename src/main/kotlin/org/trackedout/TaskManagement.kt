@@ -45,13 +45,17 @@ class TaskManagement(
     private fun handleTask(task: Task, server: MinecraftServer) {
         when (task.type) {
             "shutdown-server-if-empty" -> {
-                if (server.playerManager.playerList.isEmpty()) {
+                val onlinePlayers = server.playerManager.playerList
+                    .filter { player -> !player.gameProfile.name.equals("TangoCam", ignoreCase = true) }
+                    .toList()
+
+                if (onlinePlayers.isEmpty()) {
                     logger.warn("Shutting down empty server as per dunga-dunga request")
                     if (server.isRunning) {
                         server.stop(false)
                     }
                 } else {
-                    logger.warn("Server shutdown request ignored as ${server.playerManager.playerList.size} are online")
+                    logger.warn("Server shutdown request ignored as ${onlinePlayers.size} players are online")
                 }
             }
 
