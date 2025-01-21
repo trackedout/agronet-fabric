@@ -129,20 +129,29 @@ class AgroNetPlayerConnectionListener(
                 limit = 10000,
             )
 
-            scores.results!!.filter { it.key!!.startsWith(filter) }.filter { !it.key!!.startsWith(advancementFilter) }.map { it.copy(key = it.key?.substring(filter.length)) }
-                .filter { it.key!!.isNotBlank() }.forEach {
-                    val objective = server.scoreboard.getObjective(it.key)
+            val scoreboards = scores.results!!
+                .filter { it.key!!.startsWith(filter) }
+                .filter { !it.key!!.startsWith(advancementFilter) }
+                .map { it.copy(key = it.key?.substring(filter.length)) }
+                .filter { it.key!!.isNotBlank() }
 
-                    val playerScore = server.scoreboard.getPlayerScore(playerName, objective)
-                    playerScore.score = it.value!!.toInt()
-                    logger.info("Set ${it.key} to ${it.value} for $playerName")
-                }
+            logger.info("Applying scoreboards: ${Json.encodeToString(scoreboards)}")
+            scoreboards.forEach {
+                val objective = server.scoreboard.getObjective(it.key)
+
+                val playerScore = server.scoreboard.getPlayerScore(playerName, objective)
+                playerScore.score = it.value!!.toInt()
+            }
 
             val tracker = handler.player.advancementTracker
             server.gameRules.get(GameRules.ANNOUNCE_ADVANCEMENTS).set(false, server)
 
-            scores.results.filter { it.key!!.startsWith(advancementFilter) }.map { it.copy(key = it.key?.substring(advancementFilter.length)) }
-                .filter { it.key!!.isNotBlank() && it.key.contains("#") }.filter { it.value!!.toInt() > 0 }.forEach { score ->
+            scores.results
+                .filter { it.key!!.startsWith(advancementFilter) }
+                .map { it.copy(key = it.key?.substring(advancementFilter.length)) }
+                .filter { it.key!!.isNotBlank() && it.key.contains("#") }
+                .filter { it.value!!.toInt() > 0 }
+                .forEach { score ->
                     val split = score.key!!.split("#")
                     var namespace = "do2"
                     var key = split[0]
@@ -158,10 +167,10 @@ class AgroNetPlayerConnectionListener(
                         val obtained: Boolean? = tracker.getProgress(advancement).getCriterionProgress(criterion)?.isObtained
                         if (obtained == null || obtained == false) {
                             tracker.grantCriterion(advancement, criterion)
-                            logger.info("Granted Advancement progress $key (criterion: $criterion) to $playerName")
-                            logger.info("Advancement: ${tracker.getProgress(advancement)}")
+//                            logger.info("Granted Advancement progress $key (criterion: $criterion) to $playerName")
+//                            logger.info("Advancement: ${tracker.getProgress(advancement)}")
                         } else {
-                            logger.info("$playerName already has advancement progress $key (criterion: $criterion)")
+//                            logger.info("$playerName already has advancement progress $key (criterion: $criterion)")
                         }
                     }
                 }
