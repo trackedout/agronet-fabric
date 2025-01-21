@@ -135,7 +135,7 @@ class AgroNetPlayerConnectionListener(
                 .map { it.copy(key = it.key?.substring(filter.length)) }
                 .filter { it.key!!.isNotBlank() }
 
-            logger.info("Applying scoreboards: ${Json.encodeToString(scoreboards)}")
+            logger.info("Applying scoreboards: ${scoreboards.map { it.key to it.value }}")
             scoreboards.forEach {
                 val objective = server.scoreboard.getObjective(it.key)
 
