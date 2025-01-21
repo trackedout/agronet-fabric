@@ -10,6 +10,7 @@ import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.util.Formatting
 import org.slf4j.LoggerFactory
+import org.trackedout.AgroNet.runAsyncTask
 import org.trackedout.EventsApiWithContext
 import org.trackedout.RECEIVED_SHULKER
 import org.trackedout.RunContext
@@ -54,16 +55,18 @@ class AddDeckToPlayerInventoryAction(
         player.sendMessage("Fetching ${context.fullRunType()} mode Decked Out shulker #${context.shortDeckId()} from Dunga Dunga...", Formatting.GRAY)
         val cards = inventoryApi.inventoryCardsGet(player = playerName, limit = 200, deckType = context.runType(), deckId = context.fullDeckId()).results!!
 
-        eventsApi.eventsPost(
-            Event(
-                name = "card-count-on-join",
-                player = playerName,
-                x = 0.0,
-                y = 0.0,
-                z = 0.0,
-                count = cards.size,
+        runAsyncTask {
+            eventsApi.eventsPost(
+                Event(
+                    name = "card-count-on-join",
+                    player = playerName,
+                    x = 0.0,
+                    y = 0.0,
+                    z = 0.0,
+                    count = cards.size,
+                )
             )
-        )
+        }
 
         val canPlaceOn = "CanPlaceOn: [\"redstone_lamp\"]"
         val shulkerNbt =
@@ -114,16 +117,18 @@ class AddDeckToPlayerInventoryAction(
             }
 
             if (count <= 0) {
-                eventsApi.eventsPost(
-                    Event(
-                        name = "card-skipped-on-join-${cardName.replace("_", "-")}",
-                        player = playerName,
-                        x = 0.0,
-                        y = 0.0,
-                        z = 0.0,
-                        count = count,
+                runAsyncTask {
+                    eventsApi.eventsPost(
+                        Event(
+                            name = "card-skipped-on-join-${cardName.replace("_", "-")}",
+                            player = playerName,
+                            x = 0.0,
+                            y = 0.0,
+                            z = 0.0,
+                            count = count,
+                        )
                     )
-                )
+                }
                 return@forEach
             }
 
@@ -131,30 +136,34 @@ class AddDeckToPlayerInventoryAction(
             totalCards += count
             shulkerItems.add(cardData)
 
-            eventsApi.eventsPost(
-                Event(
-                    name = "card-exists-on-join-${cardName.replace("_", "-")}",
-                    player = playerName,
-                    x = 0.0,
-                    y = 0.0,
-                    z = 0.0,
-                    count = count,
+            runAsyncTask {
+                eventsApi.eventsPost(
+                    Event(
+                        name = "card-exists-on-join-${cardName.replace("_", "-")}",
+                        player = playerName,
+                        x = 0.0,
+                        y = 0.0,
+                        z = 0.0,
+                        count = count,
+                    )
                 )
-            )
+            }
         }
 
         if (modificationLog.isNotEmpty()) {
-            eventsApi.eventsPost(
-                Event(
-                    name = "deck-modified-on-join",
-                    player = playerName,
-                    x = 0.0,
-                    y = 0.0,
-                    z = 0.0,
-                    count = 1,
-                    metadata = modificationLog
+            runAsyncTask {
+                eventsApi.eventsPost(
+                    Event(
+                        name = "deck-modified-on-join",
+                        player = playerName,
+                        x = 0.0,
+                        y = 0.0,
+                        z = 0.0,
+                        count = 1,
+                        metadata = modificationLog
+                    )
                 )
-            )
+            }
         }
 
         cards

@@ -5,6 +5,7 @@ import com.mojang.brigadier.arguments.StringArgumentType
 import com.mojang.brigadier.context.CommandContext
 import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.text.Text
+import org.trackedout.AgroNet.runAsyncTask
 import org.trackedout.AgroNet.sendPlayerToLobby
 import org.trackedout.EventsApiWithContext
 import org.trackedout.client.apis.TasksApi
@@ -43,47 +44,49 @@ class LogEventCommand(
             true
         )
 
-        try {
-            val result = eventsApi.eventsPost(
-                Event(
-                    name = event,
-                    player = sourceName,
-                    x = x,
-                    y = y,
-                    z = z,
-                    count = count,
-                )
-            )
-
-            if (event == "game-ended") {
-                val spectators = context.source.server.playerManager.playerList
-                    .filter { player -> player.commandTags.contains("do2.spectating") }
-                    .filter { player -> !player.commandTags.contains("do2.staff") }
-
-                logger.info("game-ended event detected, sending ${spectators.size} spectators back to the lobby")
-                spectators.forEach { spectator ->
-                    sendPlayerToLobby(spectator)
-                }
-            }
-
-            context.source.sendFeedback(
-                {
-                    Text.literal(
-                        "Successfully sent event { event=${event}, count=${count} } for $sourceName " +
-                            "for location [$x, $y, $z] to Dunga Dunga"
+        runAsyncTask {
+            try {
+                val result = eventsApi.eventsPost(
+                    Event(
+                        name = event,
+                        player = sourceName,
+                        x = x,
+                        y = y,
+                        z = z,
+                        count = count,
                     )
-                },
-                true
-            )
-            context.source.sendFeedback({ Text.literal("Result: $result") }, true)
+                )
 
-        } catch (e: Exception) {
-            logger.error("Failed to call Events API: ${e.message}")
-            e.printStackTrace()
-            context.source.sendFeedback(
-                { Text.literal("Failed to call Events API: ${e.message}") },
-                true
-            )
+                if (event == "game-ended") {
+                    val spectators = context.source.server.playerManager.playerList
+                        .filter { player -> player.commandTags.contains("do2.spectating") }
+                        .filter { player -> !player.commandTags.contains("do2.staff") }
+
+                    logger.info("game-ended event detected, sending ${spectators.size} spectators back to the lobby")
+                    spectators.forEach { spectator ->
+                        sendPlayerToLobby(spectator)
+                    }
+                }
+
+                context.source.sendFeedback(
+                    {
+                        Text.literal(
+                            "Successfully sent event { event=${event}, count=${count} } for $sourceName " +
+                                "for location [$x, $y, $z] to Dunga Dunga"
+                        )
+                    },
+                    true
+                )
+                context.source.sendFeedback({ Text.literal("Result: $result") }, true)
+
+            } catch (e: Exception) {
+                logger.error("Failed to call Events API: ${e.message}")
+                e.printStackTrace()
+                context.source.sendFeedback(
+                    { Text.literal("Failed to call Events API: ${e.message}") },
+                    true
+                )
+            }
         }
 
         return 1

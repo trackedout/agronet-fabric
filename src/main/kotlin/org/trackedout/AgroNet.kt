@@ -4,6 +4,9 @@ import com.mojang.brigadier.arguments.IntegerArgumentType
 import com.mojang.brigadier.arguments.StringArgumentType
 import com.mojang.brigadier.context.CommandContext
 import io.netty.buffer.Unpooled
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import me.lucko.fabric.api.permissions.v0.Permissions
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback
@@ -360,6 +363,23 @@ object AgroNet : ModInitializer {
         logger.info("Agronet online. Flee with extra flee!")
     }
 
+    /*
+    Use the following to run a task in the background without blocking the main thread.
+    To call back to the server, use:
+    server.execute {
+        // Code to run on the main server thread
+    }
+     */
+    fun runAsyncTask(task: suspend () -> Unit) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                task()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
     fun sendPlayerToLobby(player: ServerPlayerEntity) {
         val buf = PacketByteBuf(Unpooled.buffer())
         buf.writeString("ConnectOther")
@@ -377,37 +397,41 @@ object AgroNet : ModInitializer {
     }
 
     private fun sendServerOnlineEvent(eventsApi: EventsApiWithContext, playerList: List<String>) {
-        try {
-            eventsApi.eventsPost(
-                Event(
-                    name = "server-online",
-                    player = "server",
-                    x = 0.0,
-                    y = 0.0,
-                    z = 0.0,
-                    count = playerList.size,
+        runAsyncTask {
+            try {
+                eventsApi.eventsPost(
+                    Event(
+                        name = "server-online",
+                        player = "server",
+                        x = 0.0,
+                        y = 0.0,
+                        z = 0.0,
+                        count = playerList.size,
+                    )
                 )
-            )
-        } catch (e: Exception) {
-            logger.error("Failed to send 'server-online' event: ${e.message}")
+            } catch (e: Exception) {
+                logger.error("Failed to send 'server-online' event: ${e.message}")
+            }
         }
     }
 
     private fun sendPlayerSeenEvent(eventsApi: EventsApiWithContext, serverName: String, playerName: String) {
-        try {
-            eventsApi.eventsPost(
-                Event(
-                    name = "player-seen",
-                    player = playerName,
-                    server = serverName,
-                    x = 0.0,
-                    y = 0.0,
-                    z = 0.0,
-                    count = 1,
+        runAsyncTask {
+            try {
+                eventsApi.eventsPost(
+                    Event(
+                        name = "player-seen",
+                        player = playerName,
+                        server = serverName,
+                        x = 0.0,
+                        y = 0.0,
+                        z = 0.0,
+                        count = 1,
+                    )
                 )
-            )
-        } catch (e: Exception) {
-            logger.error("Failed to send 'player-seen' event: ${e.message}")
+            } catch (e: Exception) {
+                logger.error("Failed to send 'player-seen' event: ${e.message}")
+            }
         }
     }
 
