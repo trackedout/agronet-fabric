@@ -295,13 +295,13 @@ object AgroNet : ModInitializer {
 
         sendServerOnlineEvent(eventsApi, activePlayers)
         threadPool.scheduleAtFixedRate({
-            logger.info("Sending server-online event (with player count)")
+            logger.info("Sending server-online event (with player count: ${activePlayers.size})")
             sendServerOnlineEvent(eventsApi, activePlayers)
 
             activePlayers.forEach {
                 sendPlayerSeenEvent(eventsApi, serverName, it)
             }
-        }, 0, 15, TimeUnit.SECONDS)
+        }, 5, 15, TimeUnit.SECONDS)
 
         ServerLivingEntityEvents.AFTER_DEATH.register { entity, source ->
             if (entity is ServerPlayerEntity) {
