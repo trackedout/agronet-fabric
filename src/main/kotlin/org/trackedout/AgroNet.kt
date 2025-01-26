@@ -348,16 +348,20 @@ object AgroNet : ModInitializer {
 
             threadPool.shutdown()
 
-            eventsApi.eventsPost(
-                Event(
-                    name = "server-closing",
-                    player = "server",
-                    x = 0.0,
-                    y = 0.0,
-                    z = 0.0,
-                    count = 1,
+            try {
+                eventsApi.eventsPost(
+                    Event(
+                        name = "server-closing",
+                        player = "server",
+                        x = 0.0,
+                        y = 0.0,
+                        z = 0.0,
+                        count = 1,
+                    )
                 )
-            )
+            } catch (e: Exception) {
+                logger.error("Failed to send 'server-closing' event: ${e.message}")
+            }
         }
 
         logger.info("Agronet online. Flee with extra flee!")
