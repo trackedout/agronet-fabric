@@ -377,7 +377,11 @@ object AgroNet : ModInitializer {
     fun runAsyncTask(task: suspend () -> Unit) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
+                // log the time it takes to run this task
+                val startTime = System.currentTimeMillis()
                 task()
+                val endTime = System.currentTimeMillis()
+                logger.info("Async IO task completed in ${endTime - startTime}ms")
             } catch (e: Exception) {
                 e.printStackTrace()
             }

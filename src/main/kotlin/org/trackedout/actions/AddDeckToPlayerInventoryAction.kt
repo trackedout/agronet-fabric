@@ -33,7 +33,7 @@ class AddDeckToPlayerInventoryAction(
 ) {
     private val logger = LoggerFactory.getLogger("Agronet")
 
-    fun execute(source: ServerCommandSource, player: ServerPlayerEntity) {
+    fun execute(source: ServerCommandSource, player: ServerPlayerEntity) = runAsyncTask {
         val playerName = player.name.string
         logger.debug("Fetch player deck command")
 
@@ -43,12 +43,12 @@ class AddDeckToPlayerInventoryAction(
             source.sendMessage("Player $playerName already has their shulker box, refusing to give them another one", Formatting.RED)
             player.debug("You already have your shulker box, refusing to give you another one")
             logger.warn("Player $playerName already has their shulker box, refusing to give them another one")
-            return
+            return@runAsyncTask
         }
 
         if (!RunContext.initialized) {
             player.sendMessage("Run data is not initialized, unable to determine which deck to give to $playerName", Formatting.RED)
-            return
+            return@runAsyncTask
         }
 
         val context = RunContext.playerContext(playerName)
@@ -201,7 +201,7 @@ class AddDeckToPlayerInventoryAction(
         if (!inventory.insertStack(shulkerBox)) {
             logger.warn("Failed to give ${player.name} a Decked Out Shulker as their inventory is full")
             player.sendMessage("Failed to give you your Decked Out Shulker as your inventory is full", Formatting.RED)
-            return
+            return@runAsyncTask
         }
         inventory.updateItems()
 
