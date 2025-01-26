@@ -13,7 +13,6 @@ import net.minecraft.util.Formatting
 import net.minecraft.util.Identifier
 import net.minecraft.world.GameRules
 import org.slf4j.LoggerFactory
-import org.trackedout.AgroNet.runAsyncTask
 import org.trackedout.RunContext
 import org.trackedout.RunContext.serverName
 import org.trackedout.actions.AddDeckToPlayerInventoryAction
@@ -151,9 +150,7 @@ class AgroNetPlayerConnectionListener(
             }
             logger.info("Finished processing ${scoreboards.size} scoreboards for $playerName in ${System.currentTimeMillis() - startTime}ms")
 
-            runAsyncTask {
-                applyAdvancements(handler.player, scores.results, advancementFilter)
-            }
+            applyAdvancements(handler.player, scores.results, advancementFilter)
 
         } catch (e: Exception) {
             e.printStackTrace()
@@ -186,13 +183,13 @@ class AgroNetPlayerConnectionListener(
         val startTime = System.currentTimeMillis()
         val tracker = player.advancementTracker
 
-        val playerName = player.name
+        val playerName = player.entityName
         val server = player.server
 
         val advancements = results
             .filter { it.key!!.startsWith(advancementFilter) }
             .map { it.copy(key = it.key?.substring(advancementFilter.length)) }
-            .filter { it.key!!.isNotBlank() && it.key.contains("#") }
+            .filter { it.key!!.isNotBlank() && it.key.contains("#") && it.key.contains("hidden") }
             .filter { it.value!!.toInt() > 0 }
 
         logger.info("Applying ${advancements.size} advancements for $playerName")
@@ -261,7 +258,8 @@ class AgroNetPlayerConnectionListener(
                     objective.key.name to objective.value.score
                 }.toMap().toMutableMap()
 
-            batchMap += server.advancementLoader.advancements.asSequence().filter { !it.id.path.startsWith("visible/credits/") }
+            batchMap += server.advancementLoader.advancements.asSequence()
+                .filter { !it.id.path.startsWith("visible/") }
                 .filter { handler.player.advancementTracker.getProgress(it).isAnyObtained }.flatMap {
                     val progress = handler.player.advancementTracker.getProgress(it)
                     it.criteria.entries.map { entry ->
