@@ -242,7 +242,7 @@ class AgroNetPlayerConnectionListener(
 
     override fun onPlayDisconnect(handler: ServerPlayNetworkHandler, server: MinecraftServer) {
         logger.info("onPlayDisconnect")
-        if (serverName.equals("builders", ignoreCase = true)) {
+        if (serverName.startsWith("builders", ignoreCase = true)) {
             return
         }
 

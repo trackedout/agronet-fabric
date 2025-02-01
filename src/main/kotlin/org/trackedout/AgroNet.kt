@@ -254,7 +254,7 @@ object AgroNet : ModInitializer {
             dispatcher.register(literal("lobby").executes(sendPlayerToLobby))
         }
 
-        if (!serverName.equals("builders", ignoreCase = true)) {
+        if (!serverName.startsWith("builders", ignoreCase = true)) {
             CommandRegistrationCallback.EVENT.register { dispatcher, _, _ ->
                 dispatcher.register(
                     literal("is-dungeon-instance")
@@ -275,7 +275,7 @@ object AgroNet : ModInitializer {
             }
         }
 
-        if (!serverName.equals("builders", ignoreCase = true)) {
+        if (!serverName.startsWith("builders", ignoreCase = true)) {
             val scoreListener = AgroNetPlayerConnectionListener(scoreApi, claimApi, tasksApi, addDeckToPlayerInventoryAction)
             ServerPlayConnectionEvents.JOIN.register(scoreListener)
             ServerPlayConnectionEvents.DISCONNECT.register(scoreListener)
