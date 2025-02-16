@@ -2,6 +2,7 @@ package org.trackedout
 
 import com.google.common.collect.Maps
 import org.trackedout.data.BrillianceCard
+import org.trackedout.data.find
 import java.util.UUID
 import java.util.concurrent.ConcurrentMap
 
@@ -23,6 +24,10 @@ data object RunContext {
 
     fun playerContext(playerName: String): PlayerContext {
         return playerContextMap.getOrDefault(playerName, mapOf())
+    }
+
+    fun findCard(cardKey: String): BrillianceCard? {
+        return brillianceCards.find(cardKey)
     }
 }
 

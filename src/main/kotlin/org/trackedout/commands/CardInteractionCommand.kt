@@ -14,7 +14,6 @@ import org.trackedout.client.apis.InventoryApi
 import org.trackedout.client.models.Card
 import org.trackedout.client.models.Event
 import org.trackedout.client.models.Item
-import org.trackedout.data.Cards
 import org.trackedout.runType
 import org.trackedout.sendMessage
 
@@ -27,7 +26,14 @@ class CardInteractionCommand(
         get() = LoggerFactory.getLogger("Agronet")
 
     fun run(context: CommandContext<ServerCommandSource>, operation: String): Int {
-        val cardName = StringArgumentType.getString(context, "card").replace("-", "_")
+        var cardName = StringArgumentType.getString(context, "card").replace("-", "_")
+        RunContext.findCard(cardName)?.let { card ->
+            cardName = card.shorthand
+        } ?: run {
+            context.source.sendMessage("Card $cardName not found in Brilliance data", Formatting.RED)
+            logger.warn("Card $cardName not found in Brilliance data")
+        }
+
         val count = try {
             IntegerArgumentType.getInteger(context, "count")
         } catch (e: Exception) {
@@ -63,7 +69,7 @@ class CardInteractionCommand(
         try {
             eventsApi.eventsPost(
                 Event(
-                    name = "$operation-${cardName.replace("_", "-")}",
+                    name = "$operation-${cardName}",
                     player = playerName,
                     x = x,
                     y = y,
@@ -89,7 +95,7 @@ class CardInteractionCommand(
                 }
 
                 "card-played" -> {
-                    if (Cards.etherealCards().find { it.key == cardName } != null) {
+                    if (RunContext.findCard(cardName)?.isEthereal == true) {
                         context.source.sendMessage(
                             "Deleting $cardName from $playerName's deck as it is an ethereal card",
                             Formatting.GRAY

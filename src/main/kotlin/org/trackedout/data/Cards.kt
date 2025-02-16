@@ -50,24 +50,27 @@ class Cards {
         fun findCard(cardName: String): Card? {
             return Card.entries.find { it.key == cardName || it.displayName == cardName }
         }
-
-        fun cardModelData(cardName: String): Int {
-            val data = findCard(cardName)
-            if (data != null) {
-                return data.modelData
-            } else {
-                throw Exception("Card model data for $cardName not known")
-            }
-        }
-
-        fun etherealCards(): List<Card> {
-            return listOf(
-                Card.MOMENT_OF_CLARITY,
-                Card.PAY_TO_WIN,
-                Card.PORK_CHOP_POWER,
-                Card.TACTICAL_APPROACH,
-                Card.DUNGEON_LACKEY,
-            )
-        }
     }
+}
+
+// Supports "moment_of_clarity", "✲ Moment of Clarity ✲", or "MOC"
+fun findBrillianceCard(brillianceCards: Map<String, BrillianceCard>, cardKey: String): BrillianceCard? {
+    // TODO: Remove log lines
+//    logger.info("Finding card with key: $cardKey. Existing card keys are: ${brillianceCards.entries.map { "${it.key}:${it.value.shorthand}" }}")
+    return brillianceCards.entries.find { (key, value) ->
+        key == cardKey || value.shorthand == cardKey || value.tag.display.name == cardKey
+    }?.value//?.apply { print("Found card for $cardKey: $this") }
+}
+
+// Supports "moment_of_clarity", "✲ Moment of Clarity ✲", or "MOC"
+fun Map<String, BrillianceCard>.find(cardKey: String): BrillianceCard? {
+    return findBrillianceCard(this, cardKey)
+}
+
+fun Map<String, BrillianceCard>.sortedList(): Collection<BrillianceCard> {
+    return this.values.sortedWith(
+        compareByDescending<BrillianceCard> { it.emberValue ?: 999 }
+            .thenBy { it.tag.nameFormat?.color }
+            .thenBy { it.name },
+    )
 }

@@ -2,6 +2,7 @@ package org.trackedout.listeners
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
 import net.fabricmc.fabric.api.networking.v1.PacketSender
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener
@@ -47,18 +48,25 @@ class AgroNetPlayerConnectionListener(
 
     // Use data from Brilliance to determine which objectives to store, and Card limits
     override fun reload(resourceManager: ResourceManager) {
-        parseBrillianceData<Map<String, BrillianceScoreboardDescription>>(resourceManager, "scoreboards.json") { map ->
+        parseBrillianceData(resourceManager, "scoreboards.json") { jsonString ->
+            val map = json.decodeFromString<Map<String, BrillianceScoreboardDescription>>(jsonString)
             objectivesToStore = map.filter { it.value.category == "totals" }.keys.toList()
             println("Updated objectives to store to: $objectivesToStore")
         }
 
-        parseBrillianceData<Map<String, BrillianceCard>>(resourceManager, "cards.json") { map ->
-            RunContext.brillianceCards = map.mapKeys { it.key.replace("-", "").replace("_", "") }
+        parseBrillianceData(resourceManager, "cards.json") { jsonString ->
+            val jsonElement = json.parseToJsonElement(jsonString).jsonObject
+            RunContext.brillianceCards = jsonElement.mapValues { (_, value) ->
+                val rawTag = value.jsonObject["tag"]?.toString() ?: error("Missing tag field")
+                val brillianceCard = json.decodeFromJsonElement(BrillianceCard.serializer(), value)
+                brillianceCard.copy(tagRaw = rawTag)
+            }
+
             println("Card data from Brilliance: ${RunContext.brillianceCards}")
         }
     }
 
-    private inline fun <reified T> parseBrillianceData(resourceManager: ResourceManager, fileName: String, unit: (T) -> Unit) {
+    private inline fun parseBrillianceData(resourceManager: ResourceManager, fileName: String, unit: (String) -> Unit) {
         val resourceId = Identifier("brilliance-data", fileName)
 
         try {
@@ -70,7 +78,7 @@ class AgroNetPlayerConnectionListener(
             // Read and parse the JSON file using Gson
             resource.inputStream.use { inputStream ->
                 val jsonData = inputStream.bufferedReader(StandardCharsets.UTF_8).use { it.readText() }
-                unit(json.decodeFromString<T>(jsonData))
+                unit(jsonData)
             }
         } catch (e: Exception) {
             println("Failed to load $fileName: ${e.message}")

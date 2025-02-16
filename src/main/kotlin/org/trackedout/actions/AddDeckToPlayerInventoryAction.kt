@@ -16,8 +16,8 @@ import org.trackedout.RECEIVED_SHULKER
 import org.trackedout.RunContext
 import org.trackedout.client.apis.InventoryApi
 import org.trackedout.client.models.Event
-import org.trackedout.data.Cards
-import org.trackedout.data.Cards.Companion.Card
+import org.trackedout.data.BrillianceCard
+import org.trackedout.data.JsonToNbtConverter
 import org.trackedout.debug
 import org.trackedout.fullDeckId
 import org.trackedout.fullRunType
@@ -82,7 +82,7 @@ class AddDeckToPlayerInventoryAction(
         shulkerNbt.putUuid("owner-id", player.uuid)
 
         val cardCount = cards
-            .filter { Cards.findCard(it.name!!) != null }
+            .filter { RunContext.findCard(it.name!!) != null }
             .groupingBy { it.name!! }.eachCount()
         player.debug("Your shulker should contain ${cards.size} cards:")
         var cardIndex = 0
@@ -92,8 +92,8 @@ class AddDeckToPlayerInventoryAction(
 
         cardCount.forEach { (cardName, countInDeck) ->
             player.debug("- ${countInDeck}x $cardName")
-            val card = Cards.findCard(cardName)!!
-            val maxCopies = RunContext.brillianceCards[card.key.replace("_", "").replace("-", "")]?.maxCopies
+            val card = RunContext.findCard(cardName)!!
+            val maxCopies = card.maxCopies
             var count = min(countInDeck, maxCopies ?: countInDeck)
             logger.info("$playerName's shulker should contain ${count}x $cardName (deck has $countInDeck, max copies is $maxCopies, deck contains $totalCards cards)")
 
@@ -167,7 +167,7 @@ class AddDeckToPlayerInventoryAction(
         }
 
         cards
-            .filter { Cards.findCard(it.name!!) == null }
+            .filter { RunContext.findCard(it.name!!) == null }
             .forEach { item ->
                 val itemName = item.name!!
                 if (dungeonItemsForGiveCommand.containsKey(itemName)) {
@@ -187,8 +187,8 @@ class AddDeckToPlayerInventoryAction(
                     val item = dungeonItemsForGiveCommand[itemName]!!
                     player.giveItemStack(item.copy())
                 } else {
-                    player.sendMessage("Unknown card '${itemName}', Agronet will not add it to your deck", Formatting.RED)
-                    logger.error("Unknown card '${itemName}', Agronet cannot add it to $playerName's deck")
+                    player.sendMessage("Unknown item '${itemName}', Agronet will not add it to your deck", Formatting.RED)
+                    logger.error("Unknown item '${itemName}', Agronet cannot add it to $playerName's deck")
                 }
             }
 
@@ -209,9 +209,43 @@ class AddDeckToPlayerInventoryAction(
         player.sendMessage("Your Decked Out shulker has been placed in your inventory", Formatting.GREEN)
     }
 
-    private fun createCard(index: Int, card: Card, count: Int): NbtCompound {
+    private fun createCard(index: Int, card: BrillianceCard, count: Int): NbtCompound {
         val nbt = NbtCompound()
         ItemStack(Items.IRON_NUGGET, count).writeNbt(nbt)
+
+        /*
+        Card data:
+          "moment_of_clarity": {
+            "shorthand": "MOC",
+            "id": "minecraft:iron_nugget",
+            "maxCopies": 5,
+            "tag": {
+              "NameFormat": {
+                "color": "gray",
+                "OriginalName": "'{\"color\":\"gray\",\"text\":\"✲ Moment of Clarity ✲\"}'",
+                "ModifiedName": "'{\"color\":\"gray\",\"text\":\"✲ Moment of Clarity ✲\"}'"
+              },
+              "CustomRoleplayData": "1b",
+              "CustomModelData": 106,
+              "display": {
+                "Name": "'{\"color\":\"gray\",\"text\":\"✲ Moment of Clarity ✲\"}'"
+              },
+              "tracked": "0b"
+            },
+            "name": "✲ Moment of Clarity ✲",
+            "lore": [
+              "{\"bold\":true,\"italic\":false,\"color\":\"#F9FFFE\",\"text\":\"-----\"}",
+              "{\"italic\":true,\"color\":\"gray\",\"text\":\"Common\"}",
+              "{\"color\":\"light_purple\",\"text\":\"Ethereal\"}",
+              "{\"extra\":[{\"color\":\"#9D9D97\",\"text\":\"Limit: \"},{\"bold\":false,\"italic\":false,\"color\":\"#F9FFFE\",\"text\":\"4\"}],\"text\":\"\"}",
+              "{\"bold\":true,\"italic\":false,\"color\":\"#F9FFFE\",\"text\":\"-----\"}",
+              "{\"extra\":[{\"italic\":false,\"color\":\"gray\",\"text\":\"Block 2 \"},{\"bold\":true,\"italic\":false,\"color\":\"#169C9C\",\"text\":\"💥\"}],\"text\":\"\"}",
+              "{\"extra\":[{\"italic\":false,\"color\":\"gray\",\"text\":\"Block 2 \"},{\"bold\":false,\"italic\":false,\"color\":\"dark_red\",\"text\":\"⚠\"}],\"text\":\"\"}",
+              "{\"extra\":[{\"italic\":false,\"color\":\"#9D9D97\",\"text\":\"+ 4 \"},{\"bold\":true,\"italic\":false,\"color\":\"#FED83D\",\"text\":\"🪙\"}],\"text\":\"\"}",
+              "{\"extra\":[{\"italic\":false,\"color\":\"#9D9D97\",\"text\":\"+ 2 \"},{\"bold\":false,\"italic\":false,\"color\":\"aqua\",\"text\":\"🔥\"}],\"text\":\"\"}"
+            ]
+          },
+         */
 
         /*
         Expected result:
@@ -230,33 +264,11 @@ class AddDeckToPlayerInventoryAction(
         }
          */
 
-        val tag = NbtCompound()
-
-        tag.putByte("CustomRoleplayData", 1)
-        tag.putByte("tracked", 0)
-
-        val nameJson = "{\"color\":\"${card.colour}\",\"text\":\"${card.displayName}\"}"
-        var originalName = nameJson
-        if (Card.PORK_CHOP_POWER.key == card.key) {
-            originalName = "{\"color\":\"gray\",\"text\":\"${card.displayName}\"}"
-        } else if (listOf(Card.PAY_TO_WIN, Card.PIRATES_BOOTY, Card.DUNGEON_LACKEY).map(Card::key).contains(card.key)) {
-            originalName = "{\"text\":\"${card.displayName}\"}"
-        }
-
-        val nameFormat = NbtCompound()
-        nameFormat.putString("OriginalName", originalName)
-        nameFormat.putString("color", card.colour.lowercase())
-        nameFormat.putString("ModifiedName", nameJson)
-        tag.put("NameFormat", nameFormat)
-
-        tag.putInt("CustomModelData", card.modelData)
-
-        val display = NbtCompound()
-        display.putString("Name", nameJson)
-        tag.put("display", display)
-
+        val tag = JsonToNbtConverter.fromJson(card.tagRaw!!)
         nbt.put("tag", tag)
         nbt.putByte("Slot", index.toByte())
+
+        logger.info("NBT for ${card.shorthand}: $nbt")
 
         return nbt
     }
