@@ -3,6 +3,7 @@ package org.trackedout
 import com.google.common.collect.Maps
 import org.trackedout.data.BrillianceCard
 import org.trackedout.data.find
+import org.trackedout.data.getRunTypeById
 import java.util.UUID
 import java.util.concurrent.ConcurrentMap
 
@@ -42,11 +43,7 @@ fun PlayerContext.fullRunType(): String {
 }
 
 fun String.fullRunType(): String {
-    return when (this) {
-        "p" -> "Practice"
-        "c" -> "Competitive"
-        else -> "unknown"
-    }
+    return getRunTypeById(this).displayName
 }
 
 fun PlayerContext.shortRunType(): String {

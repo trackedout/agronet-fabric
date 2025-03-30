@@ -24,6 +24,7 @@ import org.trackedout.client.models.Score
 import org.trackedout.client.models.Task
 import org.trackedout.data.BrillianceCard
 import org.trackedout.data.BrillianceScoreboardDescription
+import org.trackedout.data.getRunTypeById
 import org.trackedout.fullRunType
 import org.trackedout.runType
 import org.trackedout.sendMessage
@@ -111,11 +112,7 @@ class AgroNetPlayerConnectionListener(
                     claim.metadata?.shortRunType()?.let { runType ->
                         val objective = server.scoreboard.getObjective("do2.utility.runType")
                         val playerScore = server.scoreboard.getPlayerScore(playerName, objective)
-                        playerScore.score = when (runType) {
-                            "p" -> 1
-                            "c" -> 2
-                            else -> 0
-                        }
+                        playerScore.score = getRunTypeById(runType).runTypeId
                         logger.info("Set do2.utility.runType to ${playerScore.score} (${runType}) for $playerName")
                     } ?: run { logger.error("No run-type found for ${playerName}! Unable to set do2.utility.runType") }
 

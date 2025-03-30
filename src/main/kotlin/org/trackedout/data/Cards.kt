@@ -9,6 +9,7 @@ class Cards {
             ✲ - Ethereal
             ≡ - Permanent
         */
+        @Deprecated("Use Brilliance data instead")
         enum class Card(val key: String, val displayName: String, val modelData: Int, val colour: String) {
             ADRENALINE_RUSH("adrenaline_rush", "✧ Adrenaline Rush ✧", 123, "#80C71F"),
             BEAST_SENSE("beast_sense", "✧ Beast Sense ✧", 115, "#80C71F"),
@@ -55,7 +56,6 @@ class Cards {
 
 // Supports "moment_of_clarity", "✲ Moment of Clarity ✲", or "MOC"
 fun findBrillianceCard(brillianceCards: Map<String, BrillianceCard>, cardKey: String): BrillianceCard? {
-    // TODO: Remove log lines
 //    logger.info("Finding card with key: $cardKey. Existing card keys are: ${brillianceCards.entries.map { "${it.key}:${it.value.shorthand}" }}")
     return brillianceCards.entries.find { (key, value) ->
         key == cardKey || value.shorthand == cardKey || value.tag.display.name == cardKey
