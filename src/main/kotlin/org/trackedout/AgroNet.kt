@@ -30,6 +30,7 @@ import net.minecraft.util.Identifier
 import okhttp3.OkHttpClient
 import org.slf4j.LoggerFactory
 import org.trackedout.RunContext.serverName
+import org.trackedout.RunContext.dungeonType
 import org.trackedout.actions.AddDeckToPlayerInventoryAction
 import org.trackedout.actions.RemoveDeckFromPlayerInventoryAction
 import org.trackedout.client.apis.ClaimApi
@@ -74,6 +75,7 @@ object AgroNet : ModInitializer {
         }
 
         val dungaAPIPath = getEnvOrDefault("DUNGA_API", "http://localhost:3000/v1")
+        dungeonType = getEnvOrDefault("DUNGEON_TYPE", "default")
 
         logger.info("Agronet server name: $serverName (run ID: ${runContext.runId})")
         logger.info("Dunga-dunga API path: $dungaAPIPath")
@@ -415,6 +417,9 @@ object AgroNet : ModInitializer {
                         y = 0.0,
                         z = 0.0,
                         count = playerList.size,
+                        metadata = mapOf(
+                            "dungeon-type" to dungeonType,
+                        ),
                     )
                 )
             } catch (e: Exception) {
