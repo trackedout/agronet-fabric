@@ -42,6 +42,7 @@ import org.trackedout.client.models.Event
 import org.trackedout.commands.CardInteractionCommand
 import org.trackedout.commands.LogEventCommand
 import org.trackedout.listeners.AgroNetPlayerConnectionListener
+import org.trackedout.scoreboard.ScoreSyncer
 import redis.clients.jedis.Jedis
 import java.net.InetAddress
 import java.net.Socket
@@ -159,7 +160,8 @@ object AgroNet : ModInitializer {
                     })
         }
 
-        val logEventCommand = LogEventCommand(eventsApi, tasksApi)
+        val scoreSyncer = ScoreSyncer(scoreApi, tasksApi)
+        val logEventCommand = LogEventCommand(eventsApi, tasksApi, scoreSyncer)
 
         CommandRegistrationCallback.EVENT.register { dispatcher, _, _ ->
             dispatcher.register(
@@ -269,7 +271,7 @@ object AgroNet : ModInitializer {
         }
 
         if (!serverName.startsWith("builders", ignoreCase = true)) {
-            val scoreListener = AgroNetPlayerConnectionListener(scoreApi, claimApi, tasksApi, addDeckToPlayerInventoryAction)
+            val scoreListener = AgroNetPlayerConnectionListener(scoreApi, claimApi, addDeckToPlayerInventoryAction, scoreSyncer)
             ServerPlayConnectionEvents.JOIN.register(scoreListener)
             ServerPlayConnectionEvents.DISCONNECT.register(scoreListener)
             ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(scoreListener)

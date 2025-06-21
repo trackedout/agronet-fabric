@@ -1,8 +1,6 @@
 package org.trackedout.listeners
 
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.jsonObject
 import net.fabricmc.fabric.api.networking.v1.PacketSender
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener
@@ -19,29 +17,22 @@ import org.trackedout.RunContext.serverName
 import org.trackedout.actions.AddDeckToPlayerInventoryAction
 import org.trackedout.client.apis.ClaimApi
 import org.trackedout.client.apis.ScoreApi
-import org.trackedout.client.apis.TasksApi
 import org.trackedout.client.models.Score
-import org.trackedout.client.models.Task
-import org.trackedout.data.BrillianceCard
-import org.trackedout.data.BrillianceScoreboardDescription
 import org.trackedout.data.getRunTypeById
 import org.trackedout.fullRunType
-import org.trackedout.runType
+import org.trackedout.scoreboard.ScoreSyncer
 import org.trackedout.sendMessage
 import org.trackedout.shortRunType
-import java.nio.charset.StandardCharsets
 
 val json = Json { ignoreUnknownKeys = true }
 
 class AgroNetPlayerConnectionListener(
     private val scoreApi: ScoreApi,
     private val claimApi: ClaimApi,
-    private val tasksApi: TasksApi,
     private val addDeckToPlayerInventoryAction: AddDeckToPlayerInventoryAction,
+    private val scoreSyncer: ScoreSyncer,
 ) : ServerPlayConnectionEvents.Join, ServerPlayConnectionEvents.Disconnect, SimpleSynchronousResourceReloadListener {
     private val logger = LoggerFactory.getLogger("ServerPlayConnectionJoin")
-
-    private var objectivesToStore = listOf<String>()
 
     override fun getFabricId(): Identifier {
         return Identifier("agronet", "scoreboard")
@@ -49,41 +40,7 @@ class AgroNetPlayerConnectionListener(
 
     // Use data from Brilliance to determine which objectives to store, and Card limits
     override fun reload(resourceManager: ResourceManager) {
-        parseBrillianceData(resourceManager, "scoreboards.json") { jsonString ->
-            val map = json.decodeFromString<Map<String, BrillianceScoreboardDescription>>(jsonString)
-            objectivesToStore = map.filter { it.value.category == "totals" }.keys.toList()
-            println("Updated objectives to store to: $objectivesToStore")
-        }
-
-        parseBrillianceData(resourceManager, "cards.json") { jsonString ->
-            val jsonElement = json.parseToJsonElement(jsonString).jsonObject
-            RunContext.brillianceCards = jsonElement.mapValues { (_, value) ->
-                val rawTag = value.jsonObject["tag"]?.toString() ?: error("Missing tag field")
-                val brillianceCard = json.decodeFromJsonElement(BrillianceCard.serializer(), value)
-                brillianceCard.copy(tagRaw = rawTag)
-            }
-
-            println("Card data from Brilliance: ${RunContext.brillianceCards}")
-        }
-    }
-
-    private inline fun parseBrillianceData(resourceManager: ResourceManager, fileName: String, unit: (String) -> Unit) {
-        val resourceId = Identifier("brilliance-data", fileName)
-
-        try {
-            // Obtain the resource as an InputStream
-            val resource = resourceManager.getResource(resourceId).orElseThrow {
-                throw IllegalStateException("Resource $fileName not found: $resourceId")
-            }
-
-            // Read and parse the JSON file using Gson
-            resource.inputStream.use { inputStream ->
-                val jsonData = inputStream.bufferedReader(StandardCharsets.UTF_8).use { it.readText() }
-                unit(jsonData)
-            }
-        } catch (e: Exception) {
-            println("Failed to load $fileName: ${e.message}")
-        }
+        scoreSyncer.reload(resourceManager)
     }
 
     override fun onPlayReady(handler: ServerPlayNetworkHandler, sender: PacketSender, server: MinecraftServer) {
@@ -245,8 +202,9 @@ class AgroNetPlayerConnectionListener(
         logger.info("Finished processing ${advancements.size} advancements for $playerName in ${System.currentTimeMillis() - startTime}ms")
     }
 
+    private fun getFullRunType(playerName: String): String = RunContext.playerContext(playerName).fullRunType().lowercase()
+
     override fun onPlayDisconnect(handler: ServerPlayNetworkHandler, server: MinecraftServer) {
-        logger.info("onPlayDisconnect")
         if (serverName.startsWith("builders", ignoreCase = true)) {
             return
         }
@@ -256,72 +214,6 @@ class AgroNetPlayerConnectionListener(
             return
         }
 
-        try {
-            val batchMap = server.scoreboard.getPlayerObjectives(playerName)
-                // Filter for objectives in the "totals" category: https://github.com/trackedout/Brilliance/blob/main/JSON/scoreboards.json
-                .filter { objective -> (objective.key?.name)?.let { objectivesToStore.contains(it) } ?: false }.map { objective ->
-                    objective.key.name to objective.value.score
-                }.toMap().toMutableMap()
-
-            batchMap += server.advancementLoader.advancements.asSequence()
-                .filter { !it.id.path.startsWith("visible/") }
-                .filter { handler.player.advancementTracker.getProgress(it).isAnyObtained }.flatMap {
-                    val progress = handler.player.advancementTracker.getProgress(it)
-                    it.criteria.entries.map { entry ->
-                        val obtained: Boolean? = progress.getCriterionProgress(entry.key)?.isObtained
-                        val value = if (obtained != null && obtained == true) 1 else 0
-
-                        "advancement-${it.id.namespace}#${it.id.path}#${entry.key}" to value
-                    }
-                }.filter { it.second > 0 }.toList()
-
-            handler.player.advancementTracker.save()
-
-            if (batchMap.isEmpty()) {
-                logger.info("$playerName does not have any applicable objectives, skipping store call")
-                return
-            }
-
-            logger.info("Storing ${batchMap.size} objectives for player $playerName")
-            logger.info("BatchMap: ${Json.encodeToString(batchMap)}")
-
-            val metadata = mapOf(
-                "run-id" to RunContext.runId,
-                "run-type" to RunContext.playerContext(playerName).runType(),
-            )
-
-            // Chunk batchMap into batches of 100 entries
-            batchMap.entries.chunked(100).forEach { chunk ->
-                logger.info("Storing chunk of ${chunk.size} objectives for player $playerName")
-                logger.info("Chunk: ${Json.encodeToString(chunk.associate { it.key to it.value })}")
-
-                scoreApi.scoresPost(
-                    chunk.map {
-                        Score(
-                            player = playerName,
-                            key = "${getFullRunType(playerName)}-${it.key}",
-                            value = it.value.toBigDecimal(),
-                            metadata = metadata,
-                        )
-                    })
-            }
-
-            logger.info("Successfully stored ${batchMap.size} objectives for player $playerName with metadata: ${Json.encodeToString(metadata)}")
-
-            tasksApi.tasksPost(
-                Task(
-                    server = "lobby",
-                    type = "update-inventory",
-                    targetPlayer = playerName,
-                    arguments = listOf(),
-                )
-            )
-
-            logger.info("Created update-inventory task for player $playerName")
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
+        scoreSyncer.syncPlayerScoreboard(server, handler.player)
     }
-
-    private fun getFullRunType(playerName: String): String = RunContext.playerContext(playerName).fullRunType().lowercase()
 }

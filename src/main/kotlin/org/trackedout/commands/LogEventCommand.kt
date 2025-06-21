@@ -10,10 +10,12 @@ import org.trackedout.AgroNet.sendPlayerToLobby
 import org.trackedout.EventsApiWithContext
 import org.trackedout.client.apis.TasksApi
 import org.trackedout.client.models.Event
+import org.trackedout.scoreboard.ScoreSyncer
 
 class LogEventCommand(
     private val eventsApi: EventsApiWithContext,
     private val tasksApi: TasksApi,
+    private val scoreSyncer: ScoreSyncer,
 ) : PlayerCommand {
     override fun run(context: CommandContext<ServerCommandSource>): Int {
         val event = StringArgumentType.getString(context, "event")
@@ -58,7 +60,8 @@ class LogEventCommand(
                 )
 
                 if (event == "game-ended") {
-                    val spectators = context.source.server.playerManager.playerList
+                    val server = context.source.server
+                    val spectators = server.playerManager.playerList
                         .filter { player -> player.commandTags.contains("do2.spectating") }
                         .filter { player -> !player.commandTags.contains("do2.staff") }
 
@@ -66,6 +69,13 @@ class LogEventCommand(
                     spectators.forEach { spectator ->
                         sendPlayerToLobby(spectator)
                     }
+
+                    // Sync scores for all players except spectators
+                    server.playerManager.playerList
+                        .filter { player -> !player.commandTags.contains("do2.spectating") }
+                        .forEach { player ->
+                            scoreSyncer.syncPlayerScoreboard(server, player)
+                        }
                 }
 
                 context.source.sendFeedback(
