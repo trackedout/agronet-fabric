@@ -29,8 +29,8 @@ import net.minecraft.util.Formatting
 import net.minecraft.util.Identifier
 import okhttp3.OkHttpClient
 import org.slf4j.LoggerFactory
-import org.trackedout.RunContext.serverName
 import org.trackedout.RunContext.dungeonType
+import org.trackedout.RunContext.serverName
 import org.trackedout.actions.AddDeckToPlayerInventoryAction
 import org.trackedout.actions.RemoveDeckFromPlayerInventoryAction
 import org.trackedout.client.apis.ClaimApi
@@ -45,6 +45,7 @@ import org.trackedout.listeners.AgroNetPlayerConnectionListener
 import redis.clients.jedis.Jedis
 import java.net.InetAddress
 import java.net.Socket
+import java.util.UUID
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration.Companion.seconds
@@ -214,16 +215,6 @@ object AgroNet : ModInitializer {
             }
         }
 
-        // todo: could add syntax like `/scale-worker <machine> <num_instances>
-//        CommandRegistrationCallback.EVENT.register { dispatcher, _, _ ->
-//            dispatcher.register(literal("scale-worker")
-//                .requires(Permissions.require("trackedout.serveradmin.scale-worker", 4))
-//                .executes { context ->
-//                    sendRedisMessage(context.source,"server-hosts", "scale-worker")
-//                    1
-//                })
-//        }
-
         CommandRegistrationCallback.EVENT.register { dispatcher, _, _ ->
             dispatcher.register(
                 literal("update-workers")
@@ -282,6 +273,66 @@ object AgroNet : ModInitializer {
             ServerPlayConnectionEvents.JOIN.register(scoreListener)
             ServerPlayConnectionEvents.DISCONNECT.register(scoreListener)
             ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(scoreListener)
+        }
+
+        val pendingResourcePack = mutableSetOf<UUID>()
+
+        ServerPlayConnectionEvents.JOIN.register { handler, _, _ ->
+            val profile = handler.player.gameProfile
+            val clientProtocol = profile.properties["clientProtocol"].firstOrNull()?.value
+
+            if (clientProtocol != null) {
+                val protocolInt = clientProtocol.toIntOrNull()
+                logger.info("${profile.name} joined with protocol version: $protocolInt")
+
+                // https://minecraft.wiki/w/Minecraft_Wiki:Projects/wiki.vg_merge/Protocol_version_numbers
+                // 769 = 1.21.4
+                if (protocolInt != null && protocolInt > 769) {
+                    // Send the resource pack to the player once they are fully connected
+                    logger.info("Player client version is using 1.21.4 or higher, will send newer resource pack")
+                    pendingResourcePack.add(handler.player.uuid)
+                }
+            } else {
+                logger.warn("Player ${profile.name} joined without 'clientProtocol' property, cannot determine client version")
+            }
+        }
+
+        CommandRegistrationCallback.EVENT.register { dispatcher, _, _ ->
+            dispatcher.register(
+                literal("send-resource-pack")
+                    .executes { context ->
+                        logger.info("Sending newer resource pack to player ${context.source.player?.gameProfile?.name ?: "unknown"}")
+                        context.source.player?.sendResourcePackUrl(
+                            "https://mc.trackedout.org/brilliance-pack-1.21.4.zip",
+                            "b9b4b625e2f3c3c3162842ee528e6b38500a8161",
+                            true,
+                            null
+                        )
+                        1
+                    })
+        }
+
+        ServerTickEvents.END_WORLD_TICK.register { world ->
+            // Avoid double-sending if multiple worlds loaded
+            if (!world.isClient) {
+                val iterator = pendingResourcePack.iterator()
+                while (iterator.hasNext()) {
+                    val uuid = iterator.next()
+                    val player = world.server.playerManager.getPlayer(uuid) ?: continue
+
+                    // Check if player is alive and fully spawned
+                    if (!player.isRemoved && player.isAlive) {
+                        logger.info("Sending 1.21.4 resource pack to player ${player.gameProfile.name} (UUID: $uuid)")
+                        player.sendResourcePackUrl(
+                            "https://mc.trackedout.org/brilliance-pack-1.21.4.zip",
+                            "b9b4b625e2f3c3c3162842ee528e6b38500a8161",
+                            true,
+                            null
+                        )
+                        iterator.remove()
+                    }
+                }
+            }
         }
 
         ServerTickEvents.START_SERVER_TICK.register {
