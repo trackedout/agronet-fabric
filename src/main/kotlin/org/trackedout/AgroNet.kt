@@ -79,6 +79,19 @@ object AgroNet : ModInitializer {
         val dungaAPIPath = getEnvOrDefault("DUNGA_API", "http://localhost:3000/v1")
         dungeonType = getEnvOrDefault("DUNGEON_TYPE", "default")
 
+        val modernResourcePackUrl by lazy {
+            getEnvOrDefault(
+                "RESOURCE_PACK_MODERN",
+                "https://mc.trackedout.org/brilliance-pack-1.21.4.zip"
+            )
+        }
+        val modernResourcePackChecksum by lazy {
+            getEnvOrDefault(
+                "RESOURCE_PACK_MODERN_SHA1",
+                "ba2cb5b5646e9e7f3954173576cbacf4ce54ddae"
+            )
+        }
+
         logger.info("Agronet server name: $serverName (run ID: ${runContext.runId})")
         logger.info("Dunga-dunga API path: $dungaAPIPath")
 
@@ -305,8 +318,8 @@ object AgroNet : ModInitializer {
                     .executes { context ->
                         logger.info("Sending newer resource pack to player ${context.source.player?.gameProfile?.name ?: "unknown"}")
                         context.source.player?.sendResourcePackUrl(
-                            "https://mc.trackedout.org/brilliance-pack-1.21.4.zip",
-                            "b9b4b625e2f3c3c3162842ee528e6b38500a8161",
+                            modernResourcePackUrl,
+                            modernResourcePackChecksum,
                             true,
                             null
                         )
