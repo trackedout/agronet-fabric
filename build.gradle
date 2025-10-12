@@ -1,5 +1,5 @@
 plugins {
-    id 'fabric-loom' version '1.4-SNAPSHOT'
+    id 'fabric-loom' version '1.7.4'
     id 'maven-publish'
     id "org.jetbrains.kotlin.jvm" version "1.9.21"
     id 'org.jetbrains.kotlin.plugin.serialization' version '2.0.20'
@@ -62,7 +62,7 @@ dependencies {
     include modImplementation("redis.clients:jedis:5.1.0")
 
     // Fabric permissions
-    include(modImplementation('me.lucko:fabric-permissions-api:0.2-SNAPSHOT'))
+    include(modImplementation('me.lucko:fabric-permissions-api:0.3.3'))
 
     // Add JUnit dependencies for testing
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.0")

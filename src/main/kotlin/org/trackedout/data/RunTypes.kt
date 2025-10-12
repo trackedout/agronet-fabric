@@ -29,5 +29,5 @@ fun findRunTypeById(id: String): RunType? {
     if (id.isEmpty()) {
         return null
     }
-    return runTypes.find { it.shortId == id[0] || it.longId == id }
+    return runTypes.find { it.shortId == id[0] || it.longId == id || it.runTypeId == id.toIntOrNull() }
 }
