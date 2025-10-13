@@ -1,8 +1,8 @@
 plugins {
-    id 'fabric-loom' version '1.7.4'
+    id 'fabric-loom' version "${loom_version}"
     id 'maven-publish'
     id "org.jetbrains.kotlin.jvm" version "1.9.21"
-    id 'org.jetbrains.kotlin.plugin.serialization' version '2.0.20'
+    id 'org.jetbrains.kotlin.plugin.serialization' version "2.0.20"
     id "io.swagger.core.v3.swagger-gradle-plugin" version "2.2.19"
 }
 
@@ -22,7 +22,7 @@ repositories {
 
     mavenCentral()
     maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
-
+    maven { url 'https://maven.nucleoid.xyz/' }
 }
 
 loom {
@@ -40,35 +40,37 @@ dependencies {
     // To change the versions see the gradle.properties file
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
     mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
-    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
-    // Fabric API. This is technically optional, but you probably want it anyway.
+    // Fabric Loader & API
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
     modImplementation "net.fabricmc:fabric-language-kotlin:${project.fabric_kotlin_version}"
 
-    implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1'
+    // Other mod dependencies
 
-    // https://square.github.io/okhttp/#releases
-    include modImplementation(platform("com.squareup.okhttp3:okhttp-bom:4.11.0"))
-    include modImplementation("com.squareup.okhttp3:okhttp:4.11.0")
-    include modImplementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
-    include modImplementation("com.squareup.moshi:moshi:1.14.0")
-    include modImplementation("com.squareup.moshi:moshi-kotlin:1.14.0")
+    // This is not in maven central, and cannot resolve from the older snapshot repo (oss.sonatype.org)
+    // because of a weird timestamp lookup issue?
+    // So instead we're pulling this from maven.nucleoid.xyz, which could be removed at any time
+    // Newer versions (0.3+) have a dependency on MC 1.20.4+, which breaks our use-case
+    // Open issue: https://github.com/lucko/fabric-permissions-api/issues/42
+    include modImplementation("me.lucko:fabric-permissions-api:0.2-SNAPSHOT")
 
-    include modImplementation("com.squareup.okio:okio-jvm:3.0.0")
+    // Libraries (non-Fabric / non-Minecraft)
+    implementation "redis.clients:jedis:5.1.0"
+    implementation "com.squareup.okhttp3:okhttp:4.11.0"
+    implementation "com.squareup.okhttp3:logging-interceptor:4.11.0"
+    implementation "com.squareup.moshi:moshi:1.14.0"
+    implementation "com.squareup.moshi:moshi-kotlin:1.14.0"
+    implementation "com.squareup.okio:okio-jvm:3.0.0"
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib"
 
-    // Redis database connection
-    implementation("org.jetbrains.kotlin:kotlin-stdlib")
-    include modImplementation("redis.clients:jedis:5.1.0")
+    // Test dependencies
+    testImplementation "org.junit.jupiter:junit-jupiter-api:5.10.0"
+    testImplementation "com.google.guava:guava:32.1.2-jre"
 
-    // Fabric permissions
-    include(modImplementation('me.lucko:fabric-permissions-api:0.3.3'))
-
-    // Add JUnit dependencies for testing
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.0")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.10.0")
-
-    testImplementation 'com.google.guava:guava:32.1.2-jre'
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.10.0"
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher:1.10.0"
 }
 
 def brillianceDataDir = "data/brilliance-data"
