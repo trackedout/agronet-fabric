@@ -55,15 +55,14 @@ dependencies {
     // Open issue: https://github.com/lucko/fabric-permissions-api/issues/42
     include modImplementation("me.lucko:fabric-permissions-api:0.2-SNAPSHOT")
 
-    // Libraries (non-Fabric / non-Minecraft)
-    implementation "redis.clients:jedis:5.1.0"
-    implementation "com.squareup.okhttp3:okhttp:4.11.0"
-    implementation "com.squareup.okhttp3:logging-interceptor:4.11.0"
-    implementation "com.squareup.moshi:moshi:1.14.0"
-    implementation "com.squareup.moshi:moshi-kotlin:1.14.0"
-    implementation "com.squareup.okio:okio-jvm:3.0.0"
-    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1"
-    implementation "org.jetbrains.kotlin:kotlin-stdlib"
+    include modImplementation("redis.clients:jedis:5.1.0")
+    include modImplementation("com.squareup.okhttp3:okhttp:4.11.0")
+    include modImplementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
+    include modImplementation("com.squareup.moshi:moshi:1.14.0")
+    include modImplementation("com.squareup.moshi:moshi-kotlin:1.14.0")
+    include modImplementation("com.squareup.okio:okio-jvm:3.0.0")
+    include modImplementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1")
+    include modImplementation("org.jetbrains.kotlin:kotlin-stdlib")
 
     // Test dependencies
     testImplementation "org.junit.jupiter:junit-jupiter-api:5.10.0"
