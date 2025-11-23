@@ -13,7 +13,6 @@ import org.trackedout.RunContext
 import org.trackedout.client.apis.InventoryApi
 import org.trackedout.client.models.Card
 import org.trackedout.client.models.Event
-import org.trackedout.client.models.Item
 import org.trackedout.runType
 import org.trackedout.sendMessage
 
@@ -117,13 +116,14 @@ class CardInteractionCommand(
                 }
 
                 "add-item" -> {
+                    cardName = cardName.uppercase() // Brilliance sends 'shard-fragment' but we want 'SHARD_FRAGMENT'
                     context.source.sendMessage(
                         "Adding $count copies of $cardName to $playerName's deck",
                         Formatting.GRAY
                     )
                     for (i in 1 until count + 1) {
-                        inventoryApi.storageAddItemPost(
-                            Item(
+                        inventoryApi.inventoryAddCardPost(
+                            Card(
                                 name = cardName,
                                 player = playerName,
                                 server = serverName,
