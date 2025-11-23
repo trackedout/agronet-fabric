@@ -95,7 +95,16 @@ val dungeonItemsForGiveCommand = mapOf(
                 }
             """.trimIndent()
         )
-    }
+    },
+
+    "COPPER_BLOCK" to ItemStack(Items.COPPER_BLOCK),
+    "EXPOSED_COPPER" to ItemStack(Items.EXPOSED_COPPER),
+    "WEATHERED_COPPER" to ItemStack(Items.WEATHERED_COPPER),
+    "OXIDIZED_COPPER" to ItemStack(Items.OXIDIZED_COPPER),
+
+    "ICE" to ItemStack(Items.ICE),
+    "PACKED_ICE" to ItemStack(Items.PACKED_ICE),
+    "BLUE_ICE" to ItemStack(Items.BLUE_ICE),
 
 )
 
