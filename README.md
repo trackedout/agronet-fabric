@@ -1,4 +1,4 @@
-# AgroNet Fabric
+# Agronet Fabric
 
 A Fabric mod that serves as proxy between in-game Decked Out events and [dunga-dunga](https://github.com/trackedout/dunga-dunga-backend), the backend API.
 

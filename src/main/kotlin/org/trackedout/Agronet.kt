@@ -41,7 +41,7 @@ import org.trackedout.client.apis.TasksApi
 import org.trackedout.client.models.Event
 import org.trackedout.commands.CardInteractionCommand
 import org.trackedout.commands.LogEventCommand
-import org.trackedout.listeners.AgroNetPlayerConnectionListener
+import org.trackedout.listeners.AgronetPlayerConnectionListener
 import org.trackedout.scoreboard.ScoreSyncer
 import redis.clients.jedis.Jedis
 import java.net.InetAddress
@@ -54,7 +54,7 @@ import kotlin.time.toJavaDuration
 
 const val RECEIVED_SHULKER = "do2.received_shulker"
 
-object AgroNet : ModInitializer {
+object Agronet : ModInitializer {
     private val logger = LoggerFactory.getLogger("Agronet")
     private val threadPool = Executors.newScheduledThreadPool(2)
     private var activePlayers: List<String> = emptyList()
@@ -284,7 +284,7 @@ object AgroNet : ModInitializer {
         }
 
         if (!serverName.startsWith("builders", ignoreCase = true)) {
-            val scoreListener = AgroNetPlayerConnectionListener(scoreApi, claimApi, addDeckToPlayerInventoryAction, scoreSyncer)
+            val scoreListener = AgronetPlayerConnectionListener(scoreApi, claimApi, addDeckToPlayerInventoryAction, scoreSyncer)
             ServerPlayConnectionEvents.JOIN.register(scoreListener)
             ServerPlayConnectionEvents.DISCONNECT.register(scoreListener)
             ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(scoreListener)

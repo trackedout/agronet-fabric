@@ -10,7 +10,7 @@ import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.util.Formatting
 import org.slf4j.LoggerFactory
-import org.trackedout.AgroNet.runAsyncTask
+import org.trackedout.Agronet.runAsyncTask
 import org.trackedout.EventsApiWithContext
 import org.trackedout.RECEIVED_SHULKER
 import org.trackedout.RunContext

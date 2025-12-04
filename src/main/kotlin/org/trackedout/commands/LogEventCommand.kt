@@ -5,8 +5,8 @@ import com.mojang.brigadier.arguments.StringArgumentType
 import com.mojang.brigadier.context.CommandContext
 import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.text.Text
-import org.trackedout.AgroNet.runAsyncTask
-import org.trackedout.AgroNet.sendPlayerToLobby
+import org.trackedout.Agronet.runAsyncTask
+import org.trackedout.Agronet.sendPlayerToLobby
 import org.trackedout.EventsApiWithContext
 import org.trackedout.client.apis.TasksApi
 import org.trackedout.client.models.Event

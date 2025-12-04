@@ -26,7 +26,7 @@ import org.trackedout.shortRunType
 
 val json = Json { ignoreUnknownKeys = true }
 
-class AgroNetPlayerConnectionListener(
+class AgronetPlayerConnectionListener(
     private val scoreApi: ScoreApi,
     private val claimApi: ClaimApi,
     private val addDeckToPlayerInventoryAction: AddDeckToPlayerInventoryAction,

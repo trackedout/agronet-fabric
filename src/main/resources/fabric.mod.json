@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "agronet",
   "version": "${version}",
-  "name": "AgroNet",
+  "name": "Agronet",
   "description": "A Fabric mod that serves as proxy for in-game Decked Out events and the Decked Out API server",
   "authors": [
     "4Ply"
@@ -17,13 +17,13 @@
   "entrypoints": {
     "main": [
       {
-        "value": "org.trackedout.AgroNet",
+        "value": "org.trackedout.Agronet",
         "adapter": "kotlin"
       }
     ],
     "client": [
       {
-        "value": "org.trackedout.AgroNetClient",
+        "value": "org.trackedout.AgronetClient",
         "adapter": "kotlin"
       }
     ]
