@@ -22,9 +22,11 @@ import net.minecraft.resource.ResourceType
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.command.CommandManager.argument
 import net.minecraft.server.command.CommandManager.literal
+import net.minecraft.server.command.CommandOutput
 import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.server.network.ServerPlayNetworkHandler
 import net.minecraft.server.network.ServerPlayerEntity
+import net.minecraft.text.Text
 import net.minecraft.util.Formatting
 import net.minecraft.util.Identifier
 import okhttp3.OkHttpClient
@@ -102,7 +104,7 @@ object Agronet : ModInitializer {
                     .connectTimeout(5.seconds.toJavaDuration())
                     .callTimeout(30.seconds.toJavaDuration())
                     .build()
-            ), serverName, runContext
+            ), serverName,
         )
 
         val inventoryApi = InventoryApi(
@@ -401,7 +403,7 @@ object Agronet : ModInitializer {
         }
 
         ServerLifecycleEvents.SERVER_STARTED.register { server: MinecraftServer ->
-            val taskManager = TaskManagement(serverName, tasksApi, claimApi)
+            val taskManager = TaskManagement(serverName, tasksApi, eventsApi, claimApi)
             threadPool.scheduleAtFixedRate({
                 try {
                     taskManager.fetchAndExecuteTasks(server)
@@ -565,4 +567,24 @@ object Agronet : ModInitializer {
         }
         return value
     }
+}
+
+fun executeConsoleCommand(server: MinecraftServer, cmd: String): List<String> {
+    val lines = mutableListOf<String>()
+
+    val out = object : CommandOutput {
+        override fun sendMessage(message: Text) {
+            lines.add(message.string)
+        }
+
+        override fun shouldReceiveFeedback() = true
+        override fun shouldTrackOutput() = true
+        override fun shouldBroadcastConsoleToOps() = false
+    }
+
+    val source = server.commandSource.withOutput(out)
+
+    server.commandManager.dispatcher.execute(cmd, source)
+
+    return lines
 }

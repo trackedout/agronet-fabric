@@ -10,6 +10,7 @@ import net.minecraft.util.Identifier
 import org.slf4j.LoggerFactory
 import org.trackedout.client.apis.ClaimApi
 import org.trackedout.client.apis.TasksApi
+import org.trackedout.client.models.Event
 import org.trackedout.client.models.Task
 import org.trackedout.fs.applyDatapackReplacements
 import org.trackedout.fs.reloadServer
@@ -18,6 +19,7 @@ import org.trackedout.fs.reloadServer
 class TaskManagement(
     private val serverName: String,
     private val tasksApi: TasksApi,
+    private val eventsApi: EventsApiWithContext,
     private val claimApi: ClaimApi,
 ) {
     private val logger = LoggerFactory.getLogger("Agronet")
@@ -85,6 +87,22 @@ class TaskManagement(
                                 logger.info("Noting presence of datapack: $it (enabled: ${server.dataPackManager.enabledNames.contains(it)})")
                             }
                             server.reloadServer()
+
+                            executeConsoleCommand(server, "function do2:version").forEach {
+                                logger.info("[output from 'function do2:version'] $it")
+                            }
+                            val datapackVersionScoreboard = server.scoreboard.getObjective("do2.version")
+                            val datapackVersion = server.scoreboard.getPlayerScore("\$dungeon", datapackVersionScoreboard)?.score?.toString() ?: "unknown"
+                            logger.info("Datapack version: $datapackVersion")
+
+                            eventsApi.eventsPost(
+                                Event(
+                                    server = RunContext.serverName,
+                                    name = "preparation-complete",
+                                    player = task.targetPlayer,
+                                    metadata = claim.metadata.plus("datapack-version" to datapackVersion),
+                                )
+                            )
 
                         } ?: run { logger.error("No run type found for ${task.targetPlayer}! Unable to prepare for them") }
 
