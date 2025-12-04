@@ -104,7 +104,8 @@ object Agronet : ModInitializer {
                     .connectTimeout(5.seconds.toJavaDuration())
                     .callTimeout(30.seconds.toJavaDuration())
                     .build()
-            ), serverName,
+            ),
+            serverName,
         )
 
         val inventoryApi = InventoryApi(
@@ -327,6 +328,43 @@ object Agronet : ModInitializer {
                         )
                         1
                     })
+        }
+
+        CommandRegistrationCallback.EVENT.register { dispatcher, _, _ ->
+            dispatcher.register(
+                literal("bug-report")
+                    .then(
+                        argument("message", StringArgumentType.greedyString())
+                            .executes { context ->
+                                val player = context.source.player
+                                if (player != null) {
+                                    logger.info("Player ${player.gameProfile.name} is reporting a bug: ${StringArgumentType.getString(context, "message")}")
+
+                                    runAsyncTask {
+                                        eventsApi.eventsPost(
+                                            Event(
+                                                name = "bug-report",
+                                                player = player.gameProfile.name,
+                                                x = player.pos.x,
+                                                y = player.pos.y,
+                                                z = player.pos.z,
+                                                count = 1,
+                                                metadata = mapOf(
+                                                    "message" to StringArgumentType.getString(context, "message"),
+                                                ),
+                                            )
+                                        )
+
+                                        player.sendMessage(
+                                            "Your bug report has been submitted! Feel free to run this command again to add more information or report another issue",
+                                            Formatting.GREEN
+                                        )
+                                    }
+                                }
+
+                                1
+                            })
+            )
         }
 
         ServerTickEvents.END_WORLD_TICK.register { world ->
