@@ -9,7 +9,7 @@ import java.util.concurrent.ConcurrentMap
 
 data object RunContext {
     var serverName = "unknown"
-    var dungeonType = "default"
+    var dungeonType = "default" // e.g. "default" or "season-2"
     var runId = UUID.randomUUID().toString()
     var initialized = false
 

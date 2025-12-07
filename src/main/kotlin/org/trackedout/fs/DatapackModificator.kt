@@ -11,10 +11,10 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
 
-val json = Json { allowStructuredMapKeys = true }
-val logger = LoggerFactory.getLogger("Agronet")!!
+internal val json = Json { allowStructuredMapKeys = true }
+internal val logger = LoggerFactory.getLogger("Agronet")!!
 
-inline fun <reified T> modifyJsonInZip(zipPath: String, jsonFileName: String, modify: (T) -> Unit) {
+internal inline fun <reified T> modifyJsonInZip(zipPath: String, jsonFileName: String, modify: (T) -> Unit) {
     val tempDir = Files.createTempDirectory("zip_temp").toFile()
 
     // Extract all files from the zip
@@ -124,7 +124,7 @@ fun replaceFilesInZip(zipPath: String, runType: String) {
     logger.info("Modified zip file created at: $zipPath")
 }
 
-fun applyDatapackReplacements(runTypeShort: String) {
+internal fun applyDatapackReplacements(runTypeShort: String) {
     val runType = runTypeShort.fullRunType().lowercase()
     logger.info("Preparing datapack for run type: $runType")
 

@@ -90,7 +90,7 @@ object Agronet : ModInitializer {
         val modernResourcePackChecksum by lazy {
             getEnvOrDefault(
                 "RESOURCE_PACK_MODERN_SHA1",
-                "ba2cb5b5646e9e7f3954173576cbacf4ce54ddae"
+                ""
             )
         }
 
@@ -294,6 +294,7 @@ object Agronet : ModInitializer {
         }
 
         val pendingResourcePack = mutableSetOf<UUID>()
+        val protocolMap = mutableMapOf<UUID, Int>()
 
         ServerPlayConnectionEvents.JOIN.register { handler, _, _ ->
             val profile = handler.player.gameProfile
@@ -302,14 +303,18 @@ object Agronet : ModInitializer {
             if (clientProtocol != null) {
                 val protocolInt = clientProtocol.toIntOrNull()
                 logger.info("${profile.name} joined with protocol version: $protocolInt")
+                protocolMap[handler.player.uuid] = protocolInt ?: 0
 
                 // https://minecraft.wiki/w/Minecraft_Wiki:Projects/wiki.vg_merge/Protocol_version_numbers
                 // 769 = 1.21.4
                 if (protocolInt != null && protocolInt > 769) {
                     // Send the resource pack to the player once they are fully connected
                     logger.info("Player client version is using 1.21.4 or higher, will send newer resource pack")
-                    pendingResourcePack.add(handler.player.uuid)
+                } else {
+                    logger.info("Player client version is using 1.21.3 or lower, will send default resource pack")
                 }
+                // Add them to the list anyway, as we want to send the resource pack based on the dungeon version
+                pendingResourcePack.add(handler.player.uuid)
             } else {
                 logger.warn("Player ${profile.name} joined without 'clientProtocol' property, cannot determine client version")
             }
@@ -370,20 +375,28 @@ object Agronet : ModInitializer {
         ServerTickEvents.END_WORLD_TICK.register { world ->
             // Avoid double-sending if multiple worlds loaded
             if (!world.isClient) {
-                val iterator = pendingResourcePack.iterator()
+                val iterator = pendingResourcePack.iterator() // Players connecting with a newer client version are added to this iterator
                 while (iterator.hasNext()) {
                     val uuid = iterator.next()
                     val player = world.server.playerManager.getPlayer(uuid) ?: continue
 
                     // Check if player is alive and fully spawned
                     if (!player.isRemoved && player.isAlive) {
-                        logger.info("Sending 1.21.4 resource pack to player ${player.gameProfile.name} (UUID: $uuid)")
-                        player.sendResourcePackUrl(
-                            "https://mc.trackedout.org/brilliance-pack-1.21.4.zip",
-                            "b9b4b625e2f3c3c3162842ee528e6b38500a8161",
-                            true,
-                            null
-                        )
+                        if (protocolMap[uuid] != null && protocolMap[uuid]!! > 769) {
+                            logger.info("Sending 1.21.4 resource pack to player ${player.gameProfile.name} (UUID: $uuid)")
+                            player.sendResourcePackUrl(
+                                modernResourcePackUrl,
+                                modernResourcePackChecksum,
+                                true,
+                                null
+                            )
+                        } else {
+                            logger.info(
+                                "Player client version is using 1.21.3 or lower, the 1.20.1 resource pack should have already been sent to" +
+                                    " player ${player.gameProfile.name} (UUID: $uuid)"
+                            )
+                        }
+
                         iterator.remove()
                     }
                 }
