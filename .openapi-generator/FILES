@@ -1,4 +1,5 @@
 src/main/kotlin/org/trackedout/client/apis/ClaimApi.kt
+src/main/kotlin/org/trackedout/client/apis/ConfigApi.kt
 src/main/kotlin/org/trackedout/client/apis/EventsApi.kt
 src/main/kotlin/org/trackedout/client/apis/InventoryApi.kt
 src/main/kotlin/org/trackedout/client/apis/ScoreApi.kt
@@ -24,6 +25,8 @@ src/main/kotlin/org/trackedout/client/infrastructure/UUIDAdapter.kt
 src/main/kotlin/org/trackedout/client/models/Card.kt
 src/main/kotlin/org/trackedout/client/models/Claim.kt
 src/main/kotlin/org/trackedout/client/models/ClaimsGet200Response.kt
+src/main/kotlin/org/trackedout/client/models/Config.kt
+src/main/kotlin/org/trackedout/client/models/ConfigsListGet200Response.kt
 src/main/kotlin/org/trackedout/client/models/Error.kt
 src/main/kotlin/org/trackedout/client/models/Event.kt
 src/main/kotlin/org/trackedout/client/models/EventsGet200Response.kt

@@ -17,6 +17,7 @@ import org.trackedout.RunContext
 import org.trackedout.client.apis.InventoryApi
 import org.trackedout.client.models.Event
 import org.trackedout.data.BrillianceCard
+import org.trackedout.data.Cards
 import org.trackedout.data.JsonToNbtConverter
 import org.trackedout.debug
 import org.trackedout.fullDeckId
@@ -101,7 +102,11 @@ class AddDeckToPlayerInventoryAction(
                 // If the player has more copies of a card than they should, log the new count that we're giving them
                 modificationLog["new-card-count-${cardName.replace("_", "-")}"] = "$count"
                 logger.warn("$playerName has too many copies of $cardName in their deck, truncating to $count")
-                player.sendMessage("You have too many copies of $cardName in your deck (max is $maxCopies and you have ${countInDeck}), truncating to $count", Formatting.RED)
+                val cardDisplayName = Cards.findCard(cardName)?.displayName ?: cardName
+                player.sendMessage(
+                    "You have too many copies of $cardDisplayName in your deck " +
+                        "(max is $maxCopies and you have ${countInDeck}), truncating to $count", Formatting.RED
+                )
             }
 
             // If the new cards would take the total over 40, truncate the count to only fill up to 40
