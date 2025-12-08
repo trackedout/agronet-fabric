@@ -108,55 +108,5 @@ val dungeonItemsForGiveCommand = mapOf(
 
 )
 
-/*
-
-{ "Potion": "minecraft:strong_slowness" }
-
-{
-  "tracked": 1b,
-  "CustomModelData": 201,
-  "display": {
-    "Name": "{\"text\":\"❄☠ The Caves of Carnage Key ☠❄\"}"
-  }
-}
-
-{
-  "tracked": 1b,
-  "CustomModelData": 203,
-  "display": {
-    "Name": "{\"text\":\"❄☠ The Black Mines Key ☠❄\"}"
-  }
-}
-
-{
-  "tracked": 1b,
-  "CustomModelData": 209,
-  "display": {
-    "Name": "{\"text\":\"❄☠ The Burning Dark Key ☠❄\"}"
-  }
-}
-
-{
-  "tracked": 1b,
-  "CustomModelData": 1,
-  "display": {
-    "Name": "{\"text\":\"❄☠ Decked Out Coin ☠❄\"}"
-  }
-}
-
-{
-  "tracked": 1b,
-  "CustomModelData": 2,
-  "display": {
-    "Name": "{\"text\":\"❄☠ Decked Out Crown ☠❄\"}"
-  }
-}
-
-{
-  "display": {
-    "Name": "[{\"text\":\"❄☠ Rusty Repair Kit ☠❄\"}]"
-  },
-  "CustomModelData": 2
-}
-
- */
+// Tracked in the DB, but we don't actually want to give them to the player in the dungeon
+val ignoredItems = setOf("VICTORY_TOME")
