@@ -58,23 +58,31 @@ class LogEventCommand(
 
                 val result = eventsApi.eventsPost(eventObject)
 
-                if (event == "game-ended") {
-                    val server = context.source.server
-                    val spectators = server.playerManager.playerList
-                        .filter { player -> player.commandTags.contains("do2.spectating") }
-                        .filter { player -> !player.commandTags.contains("do2.staff") }
-
-                    logger.info("game-ended event detected, sending ${spectators.size} spectators back to the lobby")
-                    spectators.forEach { spectator ->
-                        sendPlayerToLobby(spectator)
+                when (event) {
+                    "game-started" -> {
+                        RunContext.gameStarted = true
                     }
 
-                    // Sync scores for all players except spectators
-                    server.playerManager.playerList
-                        .filter { player -> !player.commandTags.contains("do2.spectating") }
-                        .forEach { player ->
-                            scoreSyncer.syncPlayerScoreboard(server, player)
+                    "game-ended" -> {
+                        RunContext.gameEnded = true
+
+                        val server = context.source.server
+                        val spectators = server.playerManager.playerList
+                            .filter { player -> player.commandTags.contains("do2.spectating") }
+                            .filter { player -> !player.commandTags.contains("do2.staff") }
+
+                        logger.info("game-ended event detected, sending ${spectators.size} spectators back to the lobby")
+                        spectators.forEach { spectator ->
+                            sendPlayerToLobby(spectator)
                         }
+
+                        // Sync scores for all players except spectators
+                        server.playerManager.playerList
+                            .filter { player -> !player.commandTags.contains("do2.spectating") }
+                            .forEach { player ->
+                                scoreSyncer.syncPlayerScoreboard(server, player)
+                            }
+                    }
                 }
 
                 RunContext.drainEventHandlers(event).forEachIndexed { index, handler ->

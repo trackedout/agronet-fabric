@@ -22,11 +22,9 @@ import net.minecraft.resource.ResourceType
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.command.CommandManager.argument
 import net.minecraft.server.command.CommandManager.literal
-import net.minecraft.server.command.CommandOutput
 import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.server.network.ServerPlayNetworkHandler
 import net.minecraft.server.network.ServerPlayerEntity
-import net.minecraft.text.Text
 import net.minecraft.util.Formatting
 import net.minecraft.util.Identifier
 import okhttp3.OkHttpClient
@@ -437,6 +435,13 @@ object Agronet : ModInitializer {
                 )
                 if (deathMessage != null) {
                     metadata["death-message"] = deathMessage
+                }
+
+                if (RunContext.gameStarted) {
+                    logger.info("Player ${entity.gameProfile.name} started the game, marking game as ended due to death. " +
+                        "This will prevent cards from being deleted post death")
+                    RunContext.suppressCardDeletion = true
+                    RunContext.gameEnded = true
                 }
 
                 eventsApi.eventsPost(

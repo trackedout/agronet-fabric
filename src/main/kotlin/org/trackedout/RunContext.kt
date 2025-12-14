@@ -14,6 +14,9 @@ data object RunContext {
     var dungeonType = "default" // e.g. "default" or "season-2"
     var runId = UUID.randomUUID().toString()
     var initialized = false
+    var gameStarted = false
+    var gameEnded = false
+    var suppressCardDeletion = false
 
     private val eventHandlers = ConcurrentHashMap<String, MutableSet<(Event) -> Unit>>()
 

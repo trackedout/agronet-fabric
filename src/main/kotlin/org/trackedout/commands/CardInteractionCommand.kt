@@ -95,26 +95,39 @@ class CardInteractionCommand(
 
                 "card-played" -> {
                     if (RunContext.findCard(cardName)?.isEthereal == true) {
-                        context.source.sendMessage(
-                            "Deleting $cardName from $playerName's deck as it is an ethereal card",
-                            Formatting.GRAY
-                        )
-                        inventoryApi.inventoryDeleteCardPost(
-                            card = Card(
-                                name = cardName,
-                                player = playerName,
-                                server = serverName,
-                                deckType = RunContext.playerContext(playerName).runType(),
+
+                        if (RunContext.suppressCardDeletion) {
+                            context.source.sendMessage(
+                                "Suppression of card deletion is enabled, not deleting $cardName from $playerName's deck",
+                                Formatting.GRAY
                             )
-                        )
-                        eventsApi.eventsPost(Event(
-                            name = "card-deleted-${cardName}",
-                            player = playerName,
-                            x = x,
-                            y = y,
-                            z = z,
-                            count = 1,
-                        ))
+
+                        } else {
+                            context.source.sendMessage(
+                                "Deleting $cardName from $playerName's deck as it is an ethereal card",
+                                Formatting.GRAY
+                            )
+                            inventoryApi.inventoryDeleteCardPost(
+                                card = Card(
+                                    name = cardName,
+                                    player = playerName,
+                                    server = serverName,
+                                    deckType = RunContext.playerContext(playerName).runType(),
+                                )
+                            )
+
+                            eventsApi.eventsPost(
+                                Event(
+                                    name = "card-deleted-${cardName}",
+                                    player = playerName,
+                                    x = x,
+                                    y = y,
+                                    z = z,
+                                    count = 1,
+                                )
+                            )
+                        }
+
                     } else {
                         context.source.sendMessage(
                             "$cardName is NOT an ethereal card, keeping it in $playerName's deck",
