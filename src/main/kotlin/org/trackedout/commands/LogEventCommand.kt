@@ -8,20 +8,19 @@ import net.minecraft.text.Text
 import org.trackedout.Agronet.runAsyncTask
 import org.trackedout.Agronet.sendPlayerToLobby
 import org.trackedout.EventsApiWithContext
-import org.trackedout.client.apis.TasksApi
+import org.trackedout.RunContext
 import org.trackedout.client.models.Event
 import org.trackedout.scoreboard.ScoreSyncer
 
 class LogEventCommand(
     private val eventsApi: EventsApiWithContext,
-    private val tasksApi: TasksApi,
     private val scoreSyncer: ScoreSyncer,
 ) : PlayerCommand {
     override fun run(context: CommandContext<ServerCommandSource>): Int {
         val event = StringArgumentType.getString(context, "event")
         val count = try {
             IntegerArgumentType.getInteger(context, "count")
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             1
         }
 
@@ -48,16 +47,16 @@ class LogEventCommand(
 
         runAsyncTask {
             try {
-                val result = eventsApi.eventsPost(
-                    Event(
-                        name = event,
-                        player = sourceName,
-                        x = x,
-                        y = y,
-                        z = z,
-                        count = count,
-                    )
+                val eventObject = Event(
+                    name = event,
+                    player = sourceName,
+                    x = x,
+                    y = y,
+                    z = z,
+                    count = count,
                 )
+
+                val result = eventsApi.eventsPost(eventObject)
 
                 if (event == "game-ended") {
                     val server = context.source.server
@@ -76,6 +75,16 @@ class LogEventCommand(
                         .forEach { player ->
                             scoreSyncer.syncPlayerScoreboard(server, player)
                         }
+                }
+
+                RunContext.drainEventHandlers(event).forEachIndexed { index, handler ->
+                    logger.info("Running event handler #${index} for $event")
+                    try {
+                        handler(eventObject)
+                    } catch (e: Exception) {
+                        logger.error("Error handling event handler #${index} for $event", e)
+                        e.printStackTrace()
+                    }
                 }
 
                 context.source.sendFeedback(

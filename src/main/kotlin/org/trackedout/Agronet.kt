@@ -177,7 +177,7 @@ object Agronet : ModInitializer {
         }
 
         val scoreSyncer = ScoreSyncer(scoreApi, tasksApi)
-        val logEventCommand = LogEventCommand(eventsApi, tasksApi, scoreSyncer)
+        val logEventCommand = LogEventCommand(eventsApi, scoreSyncer)
 
         CommandRegistrationCallback.EVENT.register { dispatcher, _, _ ->
             dispatcher.register(
@@ -618,24 +618,4 @@ object Agronet : ModInitializer {
         }
         return value
     }
-}
-
-fun executeConsoleCommand(server: MinecraftServer, cmd: String): List<String> {
-    val lines = mutableListOf<String>()
-
-    val out = object : CommandOutput {
-        override fun sendMessage(message: Text) {
-            lines.add(message.string)
-        }
-
-        override fun shouldReceiveFeedback() = true
-        override fun shouldTrackOutput() = true
-        override fun shouldBroadcastConsoleToOps() = false
-    }
-
-    val source = server.commandSource.withOutput(out)
-
-    server.commandManager.dispatcher.execute(cmd, source)
-
-    return lines
 }

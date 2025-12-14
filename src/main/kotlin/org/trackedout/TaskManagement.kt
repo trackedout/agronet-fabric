@@ -13,8 +13,8 @@ import org.trackedout.client.apis.TasksApi
 import org.trackedout.client.models.Event
 import org.trackedout.client.models.Task
 import org.trackedout.fs.applyDatapackReplacements
+import org.trackedout.fs.executeConsoleCommand
 import org.trackedout.fs.reloadServer
-
 
 class TaskManagement(
     private val serverName: String,
@@ -86,24 +86,30 @@ class TaskManagement(
                             server.dataPackManager.names.forEach {
                                 logger.info("Noting presence of datapack: $it (enabled: ${server.dataPackManager.enabledNames.contains(it)})")
                             }
-                            server.reloadServer()
 
-                            executeConsoleCommand(server, "function do2:version").forEach {
-                                logger.info("[output from 'function do2:version'] $it")
-                            }
-                            val datapackVersionScoreboard = server.scoreboard.getObjective("do2.version")
-                            val datapackVersion = server.scoreboard.getPlayerScore("\$dungeon", datapackVersionScoreboard)?.score?.toString() ?: "unknown"
-                            logger.info("Datapack version: $datapackVersion")
+                            RunContext.drainEventHandlers("datapack-setup-datapack-load") // Clear any existing handlers
+                            RunContext.addEventHandler("datapack-setup-datapack-load") {
 
-                            eventsApi.eventsPost(
-                                Event(
-                                    server = RunContext.serverName,
-                                    name = "preparation-complete",
-                                    player = task.targetPlayer,
-                                    metadata = claim.metadata.plus("datapack-version" to datapackVersion),
+                                // After datapacks are loaded, get the datapack version, and allow the player to enter the dungeon
+                                server.executeConsoleCommand("function do2:version").forEach {
+                                    logger.info("[output from 'function do2:version'] $it")
+                                }
+                                val datapackVersionScoreboard = server.scoreboard.getObjective("do2.version")
+                                val datapackVersion = server.scoreboard.getPlayerScore("\$dungeon", datapackVersionScoreboard)?.score?.toString() ?: "unknown"
+                                logger.info("Datapack version: $datapackVersion")
+
+                                logger.info("Notifying Dunga Dunga that preparation is complete for ${task.targetPlayer}")
+                                eventsApi.eventsPost(
+                                    Event(
+                                        server = RunContext.serverName,
+                                        name = "preparation-complete",
+                                        player = task.targetPlayer,
+                                        metadata = claim.metadata.plus("datapack-version" to datapackVersion),
+                                    )
                                 )
-                            )
+                            }
 
+                            server.reloadServer()
                         } ?: run { logger.error("No run type found for ${task.targetPlayer}! Unable to prepare for them") }
 
                     } ?: "No claim found for ${task.targetPlayer}! Unable to prepare for them".let { logger.error(it) }

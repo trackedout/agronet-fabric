@@ -1,10 +1,12 @@
 package org.trackedout
 
 import com.google.common.collect.Maps
+import org.trackedout.client.models.Event
 import org.trackedout.data.BrillianceCard
 import org.trackedout.data.find
 import org.trackedout.data.getRunTypeById
 import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 
 data object RunContext {
@@ -12,6 +14,16 @@ data object RunContext {
     var dungeonType = "default" // e.g. "default" or "season-2"
     var runId = UUID.randomUUID().toString()
     var initialized = false
+
+    private val eventHandlers = ConcurrentHashMap<String, MutableSet<(Event) -> Unit>>()
+
+    fun addEventHandler(eventName: String, handler: (Event) -> Unit) {
+        eventHandlers
+            .computeIfAbsent(eventName) { ConcurrentHashMap.newKeySet() }
+            .add(handler)
+    }
+
+    fun drainEventHandlers(key: String): Set<(Event) -> Unit> = eventHandlers.remove(key) ?: emptySet()
 
     // Note that all keys are stored without underscores or dashes, e.g. "quickstep" and "suitup"
     // This is due to a disparity between what Agronet vs Brilliance calls the card
