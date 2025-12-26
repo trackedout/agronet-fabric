@@ -438,23 +438,27 @@ object Agronet : ModInitializer {
                 }
 
                 if (RunContext.gameStarted) {
-                    logger.info("Player ${entity.gameProfile.name} started the game, marking game as ended due to death. " +
-                        "This will prevent cards from being deleted post death")
+                    logger.info(
+                        "Player ${entity.gameProfile.name} started the game, marking game as ended due to death. " +
+                            "This will prevent cards from being deleted post death"
+                    )
                     RunContext.suppressCardDeletion = true
                     RunContext.gameEnded = true
                 }
 
-                eventsApi.eventsPost(
-                    Event(
-                        name = "player-died",
-                        player = entity.gameProfile.name,
-                        x = entity.pos.x,
-                        y = entity.pos.y,
-                        z = entity.pos.z,
-                        count = 1,
-                        metadata = metadata,
+                runAsyncTask {
+                    eventsApi.eventsPost(
+                        Event(
+                            name = "player-died",
+                            player = entity.gameProfile.name,
+                            x = entity.pos.x,
+                            y = entity.pos.y,
+                            z = entity.pos.z,
+                            count = 1,
+                            metadata = metadata,
+                        )
                     )
-                )
+                }
             }
         }
 
