@@ -91,6 +91,7 @@ class ScoreSyncer(
 
             batchMap += server.advancementLoader.advancements.asSequence()
                 .filter { !it.id.path.startsWith("visible/") }
+                .filter { !it.id.path.startsWith("utility/") }
                 .filter { player.advancementTracker.getProgress(it).isAnyObtained }.flatMap {
                     val progress = player.advancementTracker.getProgress(it)
                     it.criteria.entries.map { entry ->

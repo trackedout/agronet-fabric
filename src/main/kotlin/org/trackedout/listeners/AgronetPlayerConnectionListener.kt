@@ -151,7 +151,7 @@ class AgronetPlayerConnectionListener(
         val advancements = results
             .filter { it.key!!.startsWith(advancementFilter) }
             .map { it.copy(key = it.key?.substring(advancementFilter.length)) }
-            .filter { it.key!!.isNotBlank() && it.key.contains("#") && !it.key.contains("visible") }
+            .filter { it.key!!.isNotBlank() && it.key.contains("#") && !it.key.contains("visible") && !it.key.contains("utility") }
             .filter { it.value!!.toInt() > 0 }
 
         logger.info("Applying ${advancements.size} advancements for $playerName")
