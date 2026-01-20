@@ -285,7 +285,7 @@ object Agronet : ModInitializer {
         }
 
         if (!serverName.startsWith("builders", ignoreCase = true)) {
-            val scoreListener = AgronetPlayerConnectionListener(scoreApi, claimApi, addDeckToPlayerInventoryAction, scoreSyncer)
+            val scoreListener = AgronetPlayerConnectionListener(scoreApi, claimApi, eventsApi, addDeckToPlayerInventoryAction, scoreSyncer)
             ServerPlayConnectionEvents.JOIN.register(scoreListener)
             ServerPlayConnectionEvents.DISCONNECT.register(scoreListener)
             ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(scoreListener)
@@ -414,7 +414,6 @@ object Agronet : ModInitializer {
 
         sendServerOnlineEvent(eventsApi, activePlayers)
         threadPool.scheduleAtFixedRate({
-            logger.info("Sending server-online event (with player count: ${activePlayers.size})")
             sendServerOnlineEvent(eventsApi, activePlayers)
 
             activePlayers.forEach {
@@ -534,9 +533,10 @@ object Agronet : ModInitializer {
         )
     }
 
-    private fun sendServerOnlineEvent(eventsApi: EventsApiWithContext, playerList: List<String>) {
+    fun sendServerOnlineEvent(eventsApi: EventsApiWithContext, playerList: List<String>) {
         runAsyncTask {
             try {
+                logger.info("Sending server-online event (with player count: ${activePlayers.size})")
                 eventsApi.eventsPost(
                     Event(
                         name = "server-online",

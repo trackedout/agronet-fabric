@@ -12,6 +12,8 @@ import net.minecraft.util.Formatting
 import net.minecraft.util.Identifier
 import net.minecraft.world.GameRules
 import org.slf4j.LoggerFactory
+import org.trackedout.Agronet.sendServerOnlineEvent
+import org.trackedout.EventsApiWithContext
 import org.trackedout.RunContext
 import org.trackedout.RunContext.serverName
 import org.trackedout.actions.AddDeckToPlayerInventoryAction
@@ -29,6 +31,7 @@ val json = Json { ignoreUnknownKeys = true }
 class AgronetPlayerConnectionListener(
     private val scoreApi: ScoreApi,
     private val claimApi: ClaimApi,
+    private val eventsApi: EventsApiWithContext,
     private val addDeckToPlayerInventoryAction: AddDeckToPlayerInventoryAction,
     private val scoreSyncer: ScoreSyncer,
 ) : ServerPlayConnectionEvents.Join, ServerPlayConnectionEvents.Disconnect, SimpleSynchronousResourceReloadListener {
@@ -213,6 +216,15 @@ class AgronetPlayerConnectionListener(
         if (playerName.equals("TangoCam", ignoreCase = true)) {
             return
         }
+
+        val playerListWithoutLeavingPlayer = server.playerManager.playerList
+            .filter { player -> !player.commandTags.contains("do2.spectating") }
+            .filter { player -> !player.entityName.equals(playerName, ignoreCase = true) }
+            .map { player -> player.gameProfile.name }
+            .toList()
+
+        // We want dunga-dunga to shut down the server if no players are left after this player leaves
+        sendServerOnlineEvent(eventsApi, playerListWithoutLeavingPlayer)
 
         scoreSyncer.syncPlayerScoreboard(server, handler.player)
     }
