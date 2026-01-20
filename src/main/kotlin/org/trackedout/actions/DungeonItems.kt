@@ -14,6 +14,22 @@ val dungeonItemsForGiveCommand = mapOf(
         )
     },
 
+    "WEAKNESS_POTION" to ItemStack(Items.SPLASH_POTION).also {
+        it.nbt = StringNbtReader.parse(
+            """
+                { "Potion": "minecraft:weakness" }
+            """.trimIndent()
+        )
+    },
+
+    "HEALTH_POTION" to ItemStack(Items.POTION).also {
+        it.nbt = StringNbtReader.parse(
+            """
+                { "Potion": "minecraft:strong_healing" }
+            """.trimIndent()
+        )
+    },
+
     "CAVES_OF_CARNAGE_KEY" to ItemStack(Items.IRON_NUGGET).also {
         it.nbt = StringNbtReader.parse(
             """
@@ -106,6 +122,7 @@ val dungeonItemsForGiveCommand = mapOf(
     "PACKED_ICE" to ItemStack(Items.PACKED_ICE),
     "BLUE_ICE" to ItemStack(Items.BLUE_ICE),
 
+    "RED_DYE" to ItemStack(Items.RED_DYE),
 )
 
 // Tracked in the DB, but we don't actually want to give them to the player in the dungeon
