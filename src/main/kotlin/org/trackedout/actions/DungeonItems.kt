@@ -109,4 +109,4 @@ val dungeonItemsForGiveCommand = mapOf(
 )
 
 // Tracked in the DB, but we don't actually want to give them to the player in the dungeon
-val ignoredItems = setOf("VICTORY_TOME")
+val ignoredItems = setOf("VICTORY_TOME", "SHARD_FRAGMENT")
