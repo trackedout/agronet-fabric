@@ -27,6 +27,8 @@ import net.minecraft.server.network.ServerPlayNetworkHandler
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.util.Formatting
 import net.minecraft.util.Identifier
+import net.minecraft.entity.effect.StatusEffectInstance
+import net.minecraft.entity.effect.StatusEffects
 import okhttp3.OkHttpClient
 import org.slf4j.LoggerFactory
 import org.trackedout.RunContext.dungeonType
@@ -316,6 +318,24 @@ object Agronet : ModInitializer {
             } else {
                 logger.warn("Player ${profile.name} joined without 'clientProtocol' property, cannot determine client version")
             }
+        }
+
+        ServerPlayConnectionEvents.JOIN.register { handler, _, _ ->
+            val player = handler.player
+            val playerName = handler.player.entityName
+
+            logger.info("Giving ${playerName} 10 seconds of resistance to avoid the splat")
+
+            player.addStatusEffect(
+                StatusEffectInstance(
+                    StatusEffects.RESISTANCE,
+                    20 * 10,  // 10 seconds
+                    255,      // Strength
+                    false,
+                    false,
+                    false
+                )
+            )
         }
 
         CommandRegistrationCallback.EVENT.register { dispatcher, _, _ ->
