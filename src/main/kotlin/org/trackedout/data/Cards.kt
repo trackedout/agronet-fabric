@@ -58,7 +58,7 @@ class Cards {
 fun findBrillianceCard(brillianceCards: Map<String, BrillianceCard>, cardKey: String): BrillianceCard? {
 //    logger.info("Finding card with key: $cardKey. Existing card keys are: ${brillianceCards.entries.map { "${it.key}:${it.value.shorthand}" }}")
     return brillianceCards.entries.find { (key, value) ->
-        key == cardKey || value.shorthand == cardKey || value.tag.display.name == cardKey
+        key.equals(cardKey, ignoreCase = true) || value.shorthand == cardKey || value.tag.display.name == cardKey
     }?.value//?.apply { print("Found card for $cardKey: $this") }
 }
 
