@@ -16,6 +16,8 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
 import net.fabricmc.fabric.api.networking.v1.PacketSender
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper
+import net.minecraft.entity.effect.StatusEffectInstance
+import net.minecraft.entity.effect.StatusEffects
 import net.minecraft.network.PacketByteBuf
 import net.minecraft.network.packet.s2c.play.CustomPayloadS2CPacket
 import net.minecraft.resource.ResourceType
@@ -27,8 +29,6 @@ import net.minecraft.server.network.ServerPlayNetworkHandler
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.util.Formatting
 import net.minecraft.util.Identifier
-import net.minecraft.entity.effect.StatusEffectInstance
-import net.minecraft.entity.effect.StatusEffects
 import okhttp3.OkHttpClient
 import org.slf4j.LoggerFactory
 import org.trackedout.RunContext.dungeonType
