@@ -6,6 +6,14 @@ import net.minecraft.nbt.StringNbtReader
 
 val dungeonItemsForGiveCommand = mapOf(
 
+    "SWIFTNESS_POTION" to ItemStack(Items.SPLASH_POTION).also {
+        it.nbt = StringNbtReader.parse(
+            """
+                { "Potion": "minecraft:strong_swiftness" }
+            """.trimIndent()
+        )
+    },
+
     "SLOWNESS_POTION" to ItemStack(Items.SPLASH_POTION).also {
         it.nbt = StringNbtReader.parse(
             """
