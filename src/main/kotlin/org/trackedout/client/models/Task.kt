@@ -28,6 +28,7 @@ import com.squareup.moshi.JsonClass
  * @param targetPlayer 
  * @param server 
  * @param sourceIP 
+ * @param createdAt
  */
 
 
@@ -49,7 +50,10 @@ data class Task (
     val server: kotlin.String? = null,
 
     @Json(name = "sourceIP")
-    val sourceIP: kotlin.String? = null
+    val sourceIP: kotlin.String? = null,
+
+    @Json(name = "createdAt")
+    val createdAt: kotlin.String? = null
 
 )
 

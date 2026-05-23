@@ -5,11 +5,13 @@ import org.trackedout.client.models.Event
 import org.trackedout.data.BrillianceCard
 import org.trackedout.data.find
 import org.trackedout.data.getRunTypeById
+import java.time.Instant
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 
 data object RunContext {
+    var serverStartTimestamp: Instant = Instant.now()
     var serverName = "unknown"
     var dungeonType = "default" // e.g. "default" or "season-2"
     var runId = UUID.randomUUID().toString()

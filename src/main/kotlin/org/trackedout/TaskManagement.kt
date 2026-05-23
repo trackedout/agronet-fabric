@@ -8,6 +8,7 @@ import net.minecraft.text.Text
 import net.minecraft.util.Formatting
 import net.minecraft.util.Identifier
 import org.slf4j.LoggerFactory
+import java.time.Instant
 import org.trackedout.client.apis.ClaimApi
 import org.trackedout.client.apis.TasksApi
 import org.trackedout.client.models.Event
@@ -35,6 +36,12 @@ class TaskManagement(
         tasks.forEach {
             logger.info("Handling task: $it")
             it.updateState(tasksApi, "IN_PROGRESS")
+
+            if (it.createdAt != null && Instant.parse(it.createdAt).isBefore(RunContext.serverStartTimestamp)) {
+                logger.warn("Skipping stale task: type=${it.type}, id=${it.id}, createdAt=${it.createdAt}")
+                return@forEach
+            }
+
             try {
                 handleTask(it, server)
             } catch (e: Exception) {
