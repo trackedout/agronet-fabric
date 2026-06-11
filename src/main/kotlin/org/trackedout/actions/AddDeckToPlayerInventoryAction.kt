@@ -53,7 +53,7 @@ class AddDeckToPlayerInventoryAction(
 
         val context = RunContext.playerContext(playerName)
         player.sendMessage("Fetching ${context.fullRunType()} mode Decked Out shulker #${context.shortDeckId()} from Dunga Dunga...", Formatting.GRAY)
-        val cards = inventoryApi.inventoryCardsGet(player = playerName, limit = 200, deckType = context.runType(), deckId = context.fullDeckId()).results!!
+        val cards = inventoryApi.inventoryCardsGet(player = playerName, limit = 1000, deckType = context.runType(), deckId = context.fullDeckId()).results!!
 
         runAsyncTask {
             eventsApi.eventsPost(
