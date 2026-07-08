@@ -134,4 +134,10 @@ val dungeonItemsForGiveCommand = mapOf(
 )
 
 // Tracked in the DB, but we don't actually want to give them to the player in the dungeon
-val ignoredItems = setOf("VICTORY_TOME", "SHARD_FRAGMENT")
+val ignoredItems = setOf("VICTORY_TOME", "SHARD_FRAGMENT") +
+    // Artifact/Artifake keys (from Brilliance/JSON/items_json/Artifacts.json)
+    setOf(
+        "ASV", "BAP", "BED", "CF1", "CUS", "DLP", "GDE", "GGR", "GGS",
+        "HAY", "HGT", "HST", "HYB", "JSS", "KNH", "MDM", "MGW", "MKY",
+        "OFP", "PCL", "PPS", "PWS", "SHD", "SKA", "SPS", "THL", "TSL", "WGG",
+    )
