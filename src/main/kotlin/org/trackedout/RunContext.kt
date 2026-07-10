@@ -36,6 +36,19 @@ data object RunContext {
 
     private val playerContextMap: ConcurrentMap<String, PlayerContext> = Maps.newConcurrentMap()
 
+    // Tracks how many of each dungeon item was given to a player on join
+    private val itemsGivenOnJoin = ConcurrentHashMap<String, MutableMap<String, Int>>()
+
+    fun recordItemGiven(playerName: String, itemName: String) {
+        itemsGivenOnJoin
+            .computeIfAbsent(playerName) { ConcurrentHashMap() }
+            .merge(itemName, 1, Int::plus)
+    }
+
+    fun getItemsGivenOnJoin(playerName: String): Map<String, Int> {
+        return itemsGivenOnJoin.getOrDefault(playerName, emptyMap())
+    }
+
     fun addPlayerContext(playerName: String, context: PlayerContext) {
         val map = playerContextMap.getOrDefault(playerName, mapOf())
         playerContextMap[playerName] = map + context

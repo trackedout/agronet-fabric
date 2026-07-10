@@ -190,6 +190,7 @@ class AddDeckToPlayerInventoryAction(
 
                     val item = dungeonItemsForGiveCommand[itemName]!!
                     player.giveItemStack(item.copy())
+                    RunContext.recordItemGiven(playerName, itemName)
                 } else if (!ignoredItems.contains(itemName)) {
                     player.sendMessage("Unknown item '${itemName}', Agronet will not add it to your deck", Formatting.RED)
                     logger.error("Unknown item '${itemName}', Agronet cannot add it to $playerName's deck")
