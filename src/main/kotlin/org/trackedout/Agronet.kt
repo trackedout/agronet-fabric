@@ -35,6 +35,7 @@ import org.trackedout.RunContext.dungeonType
 import org.trackedout.RunContext.serverName
 import org.trackedout.actions.AddDeckToPlayerInventoryAction
 import org.trackedout.actions.RemoveDeckFromPlayerInventoryAction
+import org.trackedout.actions.ReturnDungeonItemsToDeckAction
 import org.trackedout.client.apis.ClaimApi
 import org.trackedout.client.apis.EventsApi
 import org.trackedout.client.apis.InventoryApi
@@ -177,7 +178,8 @@ object Agronet : ModInitializer {
         }
 
         val scoreSyncer = ScoreSyncer(scoreApi, tasksApi)
-        val logEventCommand = LogEventCommand(eventsApi, scoreSyncer)
+        val returnDungeonItemsToDeckAction = ReturnDungeonItemsToDeckAction(inventoryApi, serverName)
+        val logEventCommand = LogEventCommand(eventsApi, scoreSyncer, returnDungeonItemsToDeckAction)
 
         CommandRegistrationCallback.EVENT.register { dispatcher, _, _ ->
             dispatcher.register(

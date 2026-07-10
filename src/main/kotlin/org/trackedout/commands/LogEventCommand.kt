@@ -9,12 +9,14 @@ import org.trackedout.Agronet.runAsyncTask
 import org.trackedout.Agronet.sendPlayerToLobby
 import org.trackedout.EventsApiWithContext
 import org.trackedout.RunContext
+import org.trackedout.actions.ReturnDungeonItemsToDeckAction
 import org.trackedout.client.models.Event
 import org.trackedout.scoreboard.ScoreSyncer
 
 class LogEventCommand(
     private val eventsApi: EventsApiWithContext,
     private val scoreSyncer: ScoreSyncer,
+    private val returnDungeonItemsToDeckAction: ReturnDungeonItemsToDeckAction,
 ) : PlayerCommand {
     override fun run(context: CommandContext<ServerCommandSource>): Int {
         val event = StringArgumentType.getString(context, "event")
@@ -81,6 +83,17 @@ class LogEventCommand(
                             .filter { player -> !player.commandTags.contains("do2.spectating") }
                             .forEach { player ->
                                 scoreSyncer.syncPlayerScoreboard(server, player)
+                            }
+                    }
+
+                    "game-won" -> {
+                        val server = context.source.server
+
+                        // Return dungeon items from player inventory back to their deck
+                        server.playerManager.playerList
+                            .filter { player -> !player.commandTags.contains("do2.spectating") }
+                            .forEach { player ->
+                                returnDungeonItemsToDeckAction.execute(player)
                             }
                     }
                 }
