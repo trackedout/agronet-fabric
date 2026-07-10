@@ -45,6 +45,7 @@ import org.trackedout.client.models.Event
 import org.trackedout.commands.CardInteractionCommand
 import org.trackedout.commands.LogEventCommand
 import org.trackedout.listeners.AgronetPlayerConnectionListener
+import org.trackedout.listeners.CommandBlockOutputListener
 import org.trackedout.scoreboard.ScoreSyncer
 import redis.clients.jedis.Jedis
 import java.net.InetAddress
@@ -484,6 +485,8 @@ object Agronet : ModInitializer {
         }
 
         ServerLifecycleEvents.SERVER_STARTED.register { server: MinecraftServer ->
+            CommandBlockOutputListener.server = server
+
             val taskManager = TaskManagement(serverName, tasksApi, eventsApi, claimApi)
             threadPool.scheduleAtFixedRate({
                 try {
