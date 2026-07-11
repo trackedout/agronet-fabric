@@ -179,8 +179,8 @@ object Agronet : ModInitializer {
         }
 
         val scoreSyncer = ScoreSyncer(scoreApi, tasksApi)
-        val returnDungeonItemsToDeckAction = ReturnDungeonItemsToDeckAction(inventoryApi, serverName)
-        val logEventCommand = LogEventCommand(eventsApi, scoreSyncer, returnDungeonItemsToDeckAction)
+        val returnDungeonItemsToDeckAction = ReturnDungeonItemsToDeckAction(eventsApi, inventoryApi, serverName)
+        val logEventCommand = LogEventCommand(eventsApi, scoreSyncer)
 
         CommandRegistrationCallback.EVENT.register { dispatcher, _, _ ->
             dispatcher.register(
@@ -443,6 +443,13 @@ object Agronet : ModInitializer {
                 sendPlayerSeenEvent(eventsApi, serverName, it)
             }
         }, 5, 15, TimeUnit.SECONDS)
+
+        ServerLivingEntityEvents.ALLOW_DEATH.register { entity, _, _ ->
+            if (entity is ServerPlayerEntity && RunContext.gameWon) {
+                returnDungeonItemsToDeckAction.execute(entity)
+            }
+            true // Always allow death to proceed
+        }
 
         ServerLivingEntityEvents.AFTER_DEATH.register { entity, source ->
             if (entity is ServerPlayerEntity) {

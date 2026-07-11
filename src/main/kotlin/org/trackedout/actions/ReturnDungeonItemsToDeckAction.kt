@@ -4,9 +4,11 @@ import net.minecraft.item.ItemStack
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.util.Formatting
 import org.slf4j.LoggerFactory
+import org.trackedout.EventsApiWithContext
 import org.trackedout.RunContext
 import org.trackedout.client.apis.InventoryApi
 import org.trackedout.client.models.Card
+import org.trackedout.client.models.Event
 import org.trackedout.runType
 import org.trackedout.sendMessage
 
@@ -19,6 +21,7 @@ val returnableItems = setOf(
 )
 
 class ReturnDungeonItemsToDeckAction(
+    private val eventsApi: EventsApiWithContext,
     private val inventoryApi: InventoryApi,
     private val serverName: String,
 ) {
@@ -73,6 +76,16 @@ class ReturnDungeonItemsToDeckAction(
                         )
                     )
                 }
+                eventsApi.eventsPost(
+                    Event(
+                        name = "item-refunded-$itemName",
+                        player = playerName,
+                        x = player.x,
+                        y = player.y,
+                        z = player.z,
+                        count = removedCount,
+                    )
+                )
             } else {
                 logger.info("No $itemName found in ${playerName}'s inventory, skipping")
             }

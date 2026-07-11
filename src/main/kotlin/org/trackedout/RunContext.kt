@@ -18,6 +18,7 @@ data object RunContext {
     var initialized = false
     var gameStarted = false
     var gameEnded = false
+    var gameWon = false
     var suppressCardDeletion = false
 
     private val eventHandlers = ConcurrentHashMap<String, MutableSet<(Event) -> Unit>>()
