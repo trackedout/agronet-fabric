@@ -290,7 +290,7 @@ object Agronet : ModInitializer {
         }
 
         if (!serverName.startsWith("builders", ignoreCase = true)) {
-            val scoreListener = AgronetPlayerConnectionListener(scoreApi, claimApi, eventsApi, addDeckToPlayerInventoryAction, scoreSyncer)
+            val scoreListener = AgronetPlayerConnectionListener(scoreApi, claimApi, eventsApi, addDeckToPlayerInventoryAction, returnDungeonItemsToDeckAction, scoreSyncer)
             ServerPlayConnectionEvents.JOIN.register(scoreListener)
             ServerPlayConnectionEvents.DISCONNECT.register(scoreListener)
             ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(scoreListener)

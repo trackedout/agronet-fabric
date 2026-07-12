@@ -17,6 +17,7 @@ import org.trackedout.EventsApiWithContext
 import org.trackedout.RunContext
 import org.trackedout.RunContext.serverName
 import org.trackedout.actions.AddDeckToPlayerInventoryAction
+import org.trackedout.actions.ReturnDungeonItemsToDeckAction
 import org.trackedout.client.apis.ClaimApi
 import org.trackedout.client.apis.ScoreApi
 import org.trackedout.client.models.Score
@@ -33,6 +34,7 @@ class AgronetPlayerConnectionListener(
     private val claimApi: ClaimApi,
     private val eventsApi: EventsApiWithContext,
     private val addDeckToPlayerInventoryAction: AddDeckToPlayerInventoryAction,
+    private val returnDungeonItemsToDeckAction: ReturnDungeonItemsToDeckAction,
     private val scoreSyncer: ScoreSyncer,
 ) : ServerPlayConnectionEvents.Join, ServerPlayConnectionEvents.Disconnect, SimpleSynchronousResourceReloadListener {
     private val logger = LoggerFactory.getLogger("ServerPlayConnectionJoin")
@@ -215,6 +217,10 @@ class AgronetPlayerConnectionListener(
         val playerName = handler.player.entityName
         if (playerName.equals("TangoCam", ignoreCase = true)) {
             return
+        }
+
+        if (RunContext.gameWon) {
+            returnDungeonItemsToDeckAction.execute(handler.player)
         }
 
         val playerListWithoutLeavingPlayer = server.playerManager.playerList
