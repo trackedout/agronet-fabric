@@ -28,7 +28,7 @@ import com.squareup.moshi.JsonClass
  * @param targetPlayer 
  * @param server 
  * @param sourceIP 
- * @param createdAt
+ * @param createdAt 
  */
 
 

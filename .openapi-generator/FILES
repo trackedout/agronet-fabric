@@ -1,7 +1,10 @@
 src/main/kotlin/org/trackedout/client/apis/ClaimApi.kt
 src/main/kotlin/org/trackedout/client/apis/ConfigApi.kt
 src/main/kotlin/org/trackedout/client/apis/EventsApi.kt
+src/main/kotlin/org/trackedout/client/apis/GameRegistryApi.kt
+src/main/kotlin/org/trackedout/client/apis/InstancesApi.kt
 src/main/kotlin/org/trackedout/client/apis/InventoryApi.kt
+src/main/kotlin/org/trackedout/client/apis/PartiesApi.kt
 src/main/kotlin/org/trackedout/client/apis/ScoreApi.kt
 src/main/kotlin/org/trackedout/client/apis/StatusApi.kt
 src/main/kotlin/org/trackedout/client/apis/TasksApi.kt
@@ -30,8 +33,14 @@ src/main/kotlin/org/trackedout/client/models/ConfigsListGet200Response.kt
 src/main/kotlin/org/trackedout/client/models/Error.kt
 src/main/kotlin/org/trackedout/client/models/Event.kt
 src/main/kotlin/org/trackedout/client/models/EventsGet200Response.kt
+src/main/kotlin/org/trackedout/client/models/GameRegistryEntry.kt
+src/main/kotlin/org/trackedout/client/models/GameRegistryGet200Response.kt
+src/main/kotlin/org/trackedout/client/models/GetInstances200ResponseInner.kt
 src/main/kotlin/org/trackedout/client/models/InventoryCardsGet200Response.kt
 src/main/kotlin/org/trackedout/client/models/Item.kt
+src/main/kotlin/org/trackedout/client/models/PartiesInvitePostRequest.kt
+src/main/kotlin/org/trackedout/client/models/PartiesPostRequest.kt
+src/main/kotlin/org/trackedout/client/models/Party.kt
 src/main/kotlin/org/trackedout/client/models/Score.kt
 src/main/kotlin/org/trackedout/client/models/ScoresGet200Response.kt
 src/main/kotlin/org/trackedout/client/models/StatusSection.kt
