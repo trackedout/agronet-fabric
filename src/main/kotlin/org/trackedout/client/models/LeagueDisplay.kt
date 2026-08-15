@@ -23,6 +23,7 @@ import com.squareup.moshi.JsonClass
  * 
  *
  * @param shortId 
+ * @param runTypeId 
  * @param colour 
  * @param material 
  */
@@ -32,6 +33,9 @@ data class LeagueDisplay (
 
     @Json(name = "shortId")
     val shortId: kotlin.String? = null,
+
+    @Json(name = "runTypeId")
+    val runTypeId: kotlin.Int? = null,
 
     @Json(name = "colour")
     val colour: kotlin.Int? = null,
