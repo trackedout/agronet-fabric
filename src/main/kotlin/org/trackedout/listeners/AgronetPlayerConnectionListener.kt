@@ -21,11 +21,11 @@ import org.trackedout.actions.ReturnDungeonItemsToDeckAction
 import org.trackedout.client.apis.ClaimApi
 import org.trackedout.client.apis.ScoreApi
 import org.trackedout.client.models.Score
-import org.trackedout.data.getRunTypeById
 import org.trackedout.fullRunType
 import org.trackedout.scoreboard.ScoreSyncer
 import org.trackedout.sendMessage
 import org.trackedout.shortRunType
+import org.trackedout.data.LeagueRegistry
 
 val json = Json { ignoreUnknownKeys = true }
 
@@ -74,7 +74,8 @@ class AgronetPlayerConnectionListener(
                     claim.metadata?.shortRunType()?.let { runType ->
                         val objective = server.scoreboard.getObjective("do2.utility.runType")
                         val playerScore = server.scoreboard.getPlayerScore(playerName, objective)
-                        playerScore.score = getRunTypeById(runType).runTypeId
+                        val runTypeId = LeagueRegistry.getRunTypeIdForShortId(runType.firstOrNull()?.lowercase() ?: runType)
+                        playerScore.score = runTypeId
                         logger.info("Set do2.utility.runType to ${playerScore.score} (${runType}) for $playerName")
                     } ?: run { logger.error("No run-type found for ${playerName}! Unable to set do2.utility.runType") }
 

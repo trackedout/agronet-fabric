@@ -3,8 +3,9 @@ package org.trackedout
 import com.google.common.collect.Maps
 import org.trackedout.client.models.Event
 import org.trackedout.data.BrillianceCard
+import org.trackedout.data.LeagueRegistry
 import org.trackedout.data.find
-import org.trackedout.data.getRunTypeById
+
 import java.time.Instant
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
@@ -75,7 +76,7 @@ fun PlayerContext.fullRunType(): String {
 }
 
 fun String.fullRunType(): String {
-    return getRunTypeById(this).displayName
+    return LeagueRegistry.getSlugForShortId(this.firstOrNull()?.lowercase() ?: this)
 }
 
 fun PlayerContext.shortRunType(): String {

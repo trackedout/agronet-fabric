@@ -37,11 +37,13 @@ import org.trackedout.actions.ReturnDungeonItemsToDeckAction
 import org.trackedout.client.apis.ClaimApi
 import org.trackedout.client.apis.EventsApi
 import org.trackedout.client.apis.InventoryApi
+import org.trackedout.client.apis.LeaguesApi
 import org.trackedout.client.apis.ScoreApi
 import org.trackedout.client.apis.TasksApi
 import org.trackedout.client.models.Event
 import org.trackedout.commands.CardInteractionCommand
 import org.trackedout.commands.LogEventCommand
+import org.trackedout.data.LeagueRegistry
 import org.trackedout.listeners.AgronetPlayerConnectionListener
 import org.trackedout.listeners.CommandBlockOutputListener
 import org.trackedout.scoreboard.ScoreSyncer
@@ -139,6 +141,17 @@ object Agronet : ModInitializer {
                 .callTimeout(30.seconds.toJavaDuration())
                 .build()
         )
+
+        val leaguesApi = LeaguesApi(
+            basePath = dungaAPIPath,
+            client = OkHttpClient.Builder()
+                .connectTimeout(5.seconds.toJavaDuration())
+                .callTimeout(30.seconds.toJavaDuration())
+                .build()
+        )
+
+        LeagueRegistry.leaguesApi = leaguesApi
+        LeagueRegistry.refresh()
 
         val addDeckToPlayerInventoryAction = AddDeckToPlayerInventoryAction(eventsApi, inventoryApi)
         val removeDeckFromPlayerInventoryAction = RemoveDeckFromPlayerInventoryAction()
