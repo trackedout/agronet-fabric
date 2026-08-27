@@ -19,9 +19,12 @@ import java.io.IOException
 import okhttp3.OkHttpClient
 import okhttp3.HttpUrl
 
-import org.trackedout.client.models.Error
 import org.trackedout.client.models.League
+import org.trackedout.client.models.LeagueBuilderAllowlistEntry
+import org.trackedout.client.models.LeagueSandboxInstance
+import org.trackedout.client.models.LeaguesCreateRequest
 import org.trackedout.client.models.LeaguesGet200Response
+import org.trackedout.client.models.SandboxUpdateRequest
 
 import com.squareup.moshi.Json
 
@@ -45,6 +48,362 @@ class LeaguesApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClient
         val defaultBasePath: String by lazy {
             System.getProperties().getProperty(ApiClient.baseUrlKey, "http://localhost:3000/v1")
         }
+    }
+
+    /**
+     * Get builder allowlist for a league
+     * Returns the whitelist of players allowed to join the league&#39;s build server.
+     * @param slug 
+     * @return kotlin.collections.List<LeagueBuilderAllowlistEntry>
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     * @throws UnsupportedOperationException If the API returns an informational or redirection response
+     * @throws ClientException If the API returns a client error response
+     * @throws ServerException If the API returns a server error response
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class, UnsupportedOperationException::class, ClientException::class, ServerException::class)
+    fun leagueBuilderAllowlist(slug: kotlin.String) : kotlin.collections.List<LeagueBuilderAllowlistEntry> {
+        val localVarResponse = leagueBuilderAllowlistWithHttpInfo(slug = slug)
+
+        return when (localVarResponse.responseType) {
+            ResponseType.Success -> (localVarResponse as Success<*>).data as kotlin.collections.List<LeagueBuilderAllowlistEntry>
+            ResponseType.Informational -> throw UnsupportedOperationException("Client does not support Informational responses.")
+            ResponseType.Redirection -> throw UnsupportedOperationException("Client does not support Redirection responses.")
+            ResponseType.ClientError -> {
+                val localVarError = localVarResponse as ClientError<*>
+                throw ClientException("Client error : ${localVarError.statusCode} ${localVarError.message.orEmpty()}", localVarError.statusCode, localVarResponse)
+            }
+            ResponseType.ServerError -> {
+                val localVarError = localVarResponse as ServerError<*>
+                throw ServerException("Server error : ${localVarError.statusCode} ${localVarError.message.orEmpty()} ${localVarError.body}", localVarError.statusCode, localVarResponse)
+            }
+        }
+    }
+
+    /**
+     * Get builder allowlist for a league
+     * Returns the whitelist of players allowed to join the league&#39;s build server.
+     * @param slug 
+     * @return ApiResponse<kotlin.collections.List<LeagueBuilderAllowlistEntry>?>
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class)
+    fun leagueBuilderAllowlistWithHttpInfo(slug: kotlin.String) : ApiResponse<kotlin.collections.List<LeagueBuilderAllowlistEntry>?> {
+        val localVariableConfig = leagueBuilderAllowlistRequestConfig(slug = slug)
+
+        return request<Unit, kotlin.collections.List<LeagueBuilderAllowlistEntry>>(
+            localVariableConfig
+        )
+    }
+
+    /**
+     * To obtain the request config of the operation leagueBuilderAllowlist
+     *
+     * @param slug 
+     * @return RequestConfig
+     */
+    fun leagueBuilderAllowlistRequestConfig(slug: kotlin.String) : RequestConfig<Unit> {
+        val localVariableBody = null
+        val localVariableQuery: MultiValueMap = mutableMapOf()
+        val localVariableHeaders: MutableMap<String, String> = mutableMapOf()
+        localVariableHeaders["Accept"] = "application/json"
+
+        return RequestConfig(
+            method = RequestMethod.GET,
+            path = "/leagues/{slug}/builder-allowlist".replace("{"+"slug"+"}", encodeURIComponent(slug.toString())),
+            query = localVariableQuery,
+            headers = localVariableHeaders,
+            requiresAuthentication = false,
+            body = localVariableBody
+        )
+    }
+
+    /**
+     * Get sandbox instance for a league
+     * Returns the active sandbox instance for the given league.
+     * @param slug 
+     * @return LeagueSandboxInstance
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     * @throws UnsupportedOperationException If the API returns an informational or redirection response
+     * @throws ClientException If the API returns a client error response
+     * @throws ServerException If the API returns a server error response
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class, UnsupportedOperationException::class, ClientException::class, ServerException::class)
+    fun leagueSandboxGet(slug: kotlin.String) : LeagueSandboxInstance {
+        val localVarResponse = leagueSandboxGetWithHttpInfo(slug = slug)
+
+        return when (localVarResponse.responseType) {
+            ResponseType.Success -> (localVarResponse as Success<*>).data as LeagueSandboxInstance
+            ResponseType.Informational -> throw UnsupportedOperationException("Client does not support Informational responses.")
+            ResponseType.Redirection -> throw UnsupportedOperationException("Client does not support Redirection responses.")
+            ResponseType.ClientError -> {
+                val localVarError = localVarResponse as ClientError<*>
+                throw ClientException("Client error : ${localVarError.statusCode} ${localVarError.message.orEmpty()}", localVarError.statusCode, localVarResponse)
+            }
+            ResponseType.ServerError -> {
+                val localVarError = localVarResponse as ServerError<*>
+                throw ServerException("Server error : ${localVarError.statusCode} ${localVarError.message.orEmpty()} ${localVarError.body}", localVarError.statusCode, localVarResponse)
+            }
+        }
+    }
+
+    /**
+     * Get sandbox instance for a league
+     * Returns the active sandbox instance for the given league.
+     * @param slug 
+     * @return ApiResponse<LeagueSandboxInstance?>
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class)
+    fun leagueSandboxGetWithHttpInfo(slug: kotlin.String) : ApiResponse<LeagueSandboxInstance?> {
+        val localVariableConfig = leagueSandboxGetRequestConfig(slug = slug)
+
+        return request<Unit, LeagueSandboxInstance>(
+            localVariableConfig
+        )
+    }
+
+    /**
+     * To obtain the request config of the operation leagueSandboxGet
+     *
+     * @param slug 
+     * @return RequestConfig
+     */
+    fun leagueSandboxGetRequestConfig(slug: kotlin.String) : RequestConfig<Unit> {
+        val localVariableBody = null
+        val localVariableQuery: MultiValueMap = mutableMapOf()
+        val localVariableHeaders: MutableMap<String, String> = mutableMapOf()
+        localVariableHeaders["Accept"] = "application/json"
+
+        return RequestConfig(
+            method = RequestMethod.GET,
+            path = "/leagues/{slug}/sandbox".replace("{"+"slug"+"}", encodeURIComponent(slug.toString())),
+            query = localVariableQuery,
+            headers = localVariableHeaders,
+            requiresAuthentication = false,
+            body = localVariableBody
+        )
+    }
+
+    /**
+     * Launch a sandbox build server for a league
+     * Allocates a slot and schedules an ECS task to start the sandbox.
+     * @param slug 
+     * @return LeagueSandboxInstance
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     * @throws UnsupportedOperationException If the API returns an informational or redirection response
+     * @throws ClientException If the API returns a client error response
+     * @throws ServerException If the API returns a server error response
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class, UnsupportedOperationException::class, ClientException::class, ServerException::class)
+    fun leagueSandboxLaunch(slug: kotlin.String) : LeagueSandboxInstance {
+        val localVarResponse = leagueSandboxLaunchWithHttpInfo(slug = slug)
+
+        return when (localVarResponse.responseType) {
+            ResponseType.Success -> (localVarResponse as Success<*>).data as LeagueSandboxInstance
+            ResponseType.Informational -> throw UnsupportedOperationException("Client does not support Informational responses.")
+            ResponseType.Redirection -> throw UnsupportedOperationException("Client does not support Redirection responses.")
+            ResponseType.ClientError -> {
+                val localVarError = localVarResponse as ClientError<*>
+                throw ClientException("Client error : ${localVarError.statusCode} ${localVarError.message.orEmpty()}", localVarError.statusCode, localVarResponse)
+            }
+            ResponseType.ServerError -> {
+                val localVarError = localVarResponse as ServerError<*>
+                throw ServerException("Server error : ${localVarError.statusCode} ${localVarError.message.orEmpty()} ${localVarError.body}", localVarError.statusCode, localVarResponse)
+            }
+        }
+    }
+
+    /**
+     * Launch a sandbox build server for a league
+     * Allocates a slot and schedules an ECS task to start the sandbox.
+     * @param slug 
+     * @return ApiResponse<LeagueSandboxInstance?>
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class)
+    fun leagueSandboxLaunchWithHttpInfo(slug: kotlin.String) : ApiResponse<LeagueSandboxInstance?> {
+        val localVariableConfig = leagueSandboxLaunchRequestConfig(slug = slug)
+
+        return request<Unit, LeagueSandboxInstance>(
+            localVariableConfig
+        )
+    }
+
+    /**
+     * To obtain the request config of the operation leagueSandboxLaunch
+     *
+     * @param slug 
+     * @return RequestConfig
+     */
+    fun leagueSandboxLaunchRequestConfig(slug: kotlin.String) : RequestConfig<Unit> {
+        val localVariableBody = null
+        val localVariableQuery: MultiValueMap = mutableMapOf()
+        val localVariableHeaders: MutableMap<String, String> = mutableMapOf()
+        localVariableHeaders["Accept"] = "application/json"
+
+        return RequestConfig(
+            method = RequestMethod.POST,
+            path = "/leagues/{slug}/sandbox/launch".replace("{"+"slug"+"}", encodeURIComponent(slug.toString())),
+            query = localVariableQuery,
+            headers = localVariableHeaders,
+            requiresAuthentication = false,
+            body = localVariableBody
+        )
+    }
+
+    /**
+     * Stop a sandbox build server for a league
+     * Schedules the ECS task for termination.
+     * @param slug 
+     * @return LeagueSandboxInstance
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     * @throws UnsupportedOperationException If the API returns an informational or redirection response
+     * @throws ClientException If the API returns a client error response
+     * @throws ServerException If the API returns a server error response
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class, UnsupportedOperationException::class, ClientException::class, ServerException::class)
+    fun leagueSandboxStop(slug: kotlin.String) : LeagueSandboxInstance {
+        val localVarResponse = leagueSandboxStopWithHttpInfo(slug = slug)
+
+        return when (localVarResponse.responseType) {
+            ResponseType.Success -> (localVarResponse as Success<*>).data as LeagueSandboxInstance
+            ResponseType.Informational -> throw UnsupportedOperationException("Client does not support Informational responses.")
+            ResponseType.Redirection -> throw UnsupportedOperationException("Client does not support Redirection responses.")
+            ResponseType.ClientError -> {
+                val localVarError = localVarResponse as ClientError<*>
+                throw ClientException("Client error : ${localVarError.statusCode} ${localVarError.message.orEmpty()}", localVarError.statusCode, localVarResponse)
+            }
+            ResponseType.ServerError -> {
+                val localVarError = localVarResponse as ServerError<*>
+                throw ServerException("Server error : ${localVarError.statusCode} ${localVarError.message.orEmpty()} ${localVarError.body}", localVarError.statusCode, localVarResponse)
+            }
+        }
+    }
+
+    /**
+     * Stop a sandbox build server for a league
+     * Schedules the ECS task for termination.
+     * @param slug 
+     * @return ApiResponse<LeagueSandboxInstance?>
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class)
+    fun leagueSandboxStopWithHttpInfo(slug: kotlin.String) : ApiResponse<LeagueSandboxInstance?> {
+        val localVariableConfig = leagueSandboxStopRequestConfig(slug = slug)
+
+        return request<Unit, LeagueSandboxInstance>(
+            localVariableConfig
+        )
+    }
+
+    /**
+     * To obtain the request config of the operation leagueSandboxStop
+     *
+     * @param slug 
+     * @return RequestConfig
+     */
+    fun leagueSandboxStopRequestConfig(slug: kotlin.String) : RequestConfig<Unit> {
+        val localVariableBody = null
+        val localVariableQuery: MultiValueMap = mutableMapOf()
+        val localVariableHeaders: MutableMap<String, String> = mutableMapOf()
+        localVariableHeaders["Accept"] = "application/json"
+
+        return RequestConfig(
+            method = RequestMethod.POST,
+            path = "/leagues/{slug}/sandbox/stop".replace("{"+"slug"+"}", encodeURIComponent(slug.toString())),
+            query = localVariableQuery,
+            headers = localVariableHeaders,
+            requiresAuthentication = false,
+            body = localVariableBody
+        )
+    }
+
+    /**
+     * Create a league with world seed
+     * Creates a new league and seeds its world from builders2 dungeon snapshot.
+     * @param leaguesCreateRequest 
+     * @return League
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     * @throws UnsupportedOperationException If the API returns an informational or redirection response
+     * @throws ClientException If the API returns a client error response
+     * @throws ServerException If the API returns a server error response
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class, UnsupportedOperationException::class, ClientException::class, ServerException::class)
+    fun leaguesCreate(leaguesCreateRequest: LeaguesCreateRequest) : League {
+        val localVarResponse = leaguesCreateWithHttpInfo(leaguesCreateRequest = leaguesCreateRequest)
+
+        return when (localVarResponse.responseType) {
+            ResponseType.Success -> (localVarResponse as Success<*>).data as League
+            ResponseType.Informational -> throw UnsupportedOperationException("Client does not support Informational responses.")
+            ResponseType.Redirection -> throw UnsupportedOperationException("Client does not support Redirection responses.")
+            ResponseType.ClientError -> {
+                val localVarError = localVarResponse as ClientError<*>
+                throw ClientException("Client error : ${localVarError.statusCode} ${localVarError.message.orEmpty()}", localVarError.statusCode, localVarResponse)
+            }
+            ResponseType.ServerError -> {
+                val localVarError = localVarResponse as ServerError<*>
+                throw ServerException("Server error : ${localVarError.statusCode} ${localVarError.message.orEmpty()} ${localVarError.body}", localVarError.statusCode, localVarResponse)
+            }
+        }
+    }
+
+    /**
+     * Create a league with world seed
+     * Creates a new league and seeds its world from builders2 dungeon snapshot.
+     * @param leaguesCreateRequest 
+     * @return ApiResponse<League?>
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class)
+    fun leaguesCreateWithHttpInfo(leaguesCreateRequest: LeaguesCreateRequest) : ApiResponse<League?> {
+        val localVariableConfig = leaguesCreateRequestConfig(leaguesCreateRequest = leaguesCreateRequest)
+
+        return request<LeaguesCreateRequest, League>(
+            localVariableConfig
+        )
+    }
+
+    /**
+     * To obtain the request config of the operation leaguesCreate
+     *
+     * @param leaguesCreateRequest 
+     * @return RequestConfig
+     */
+    fun leaguesCreateRequestConfig(leaguesCreateRequest: LeaguesCreateRequest) : RequestConfig<LeaguesCreateRequest> {
+        val localVariableBody = leaguesCreateRequest
+        val localVariableQuery: MultiValueMap = mutableMapOf()
+        val localVariableHeaders: MutableMap<String, String> = mutableMapOf()
+        localVariableHeaders["Content-Type"] = "application/json"
+        localVariableHeaders["Accept"] = "application/json"
+
+        return RequestConfig(
+            method = RequestMethod.POST,
+            path = "/leagues/create",
+            query = localVariableQuery,
+            headers = localVariableHeaders,
+            requiresAuthentication = false,
+            body = localVariableBody
+        )
     }
 
     /**
@@ -251,6 +610,75 @@ class LeaguesApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClient
         return RequestConfig(
             method = RequestMethod.GET,
             path = "/leagues/{slug}".replace("{"+"slug"+"}", encodeURIComponent(slug.toString())),
+            query = localVariableQuery,
+            headers = localVariableHeaders,
+            requiresAuthentication = false,
+            body = localVariableBody
+        )
+    }
+
+    /**
+     * Update sandbox instance state (internal)
+     * Called by job-scheduler to update sandbox state after ECS task changes.
+     * @param sandboxUpdateRequest 
+     * @return void
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     * @throws UnsupportedOperationException If the API returns an informational or redirection response
+     * @throws ClientException If the API returns a client error response
+     * @throws ServerException If the API returns a server error response
+     */
+    @Throws(IllegalStateException::class, IOException::class, UnsupportedOperationException::class, ClientException::class, ServerException::class)
+    fun sandboxUpdate(sandboxUpdateRequest: SandboxUpdateRequest) : Unit {
+        val localVarResponse = sandboxUpdateWithHttpInfo(sandboxUpdateRequest = sandboxUpdateRequest)
+
+        return when (localVarResponse.responseType) {
+            ResponseType.Success -> Unit
+            ResponseType.Informational -> throw UnsupportedOperationException("Client does not support Informational responses.")
+            ResponseType.Redirection -> throw UnsupportedOperationException("Client does not support Redirection responses.")
+            ResponseType.ClientError -> {
+                val localVarError = localVarResponse as ClientError<*>
+                throw ClientException("Client error : ${localVarError.statusCode} ${localVarError.message.orEmpty()}", localVarError.statusCode, localVarResponse)
+            }
+            ResponseType.ServerError -> {
+                val localVarError = localVarResponse as ServerError<*>
+                throw ServerException("Server error : ${localVarError.statusCode} ${localVarError.message.orEmpty()} ${localVarError.body}", localVarError.statusCode, localVarResponse)
+            }
+        }
+    }
+
+    /**
+     * Update sandbox instance state (internal)
+     * Called by job-scheduler to update sandbox state after ECS task changes.
+     * @param sandboxUpdateRequest 
+     * @return ApiResponse<Unit?>
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     */
+    @Throws(IllegalStateException::class, IOException::class)
+    fun sandboxUpdateWithHttpInfo(sandboxUpdateRequest: SandboxUpdateRequest) : ApiResponse<Unit?> {
+        val localVariableConfig = sandboxUpdateRequestConfig(sandboxUpdateRequest = sandboxUpdateRequest)
+
+        return request<SandboxUpdateRequest, Unit>(
+            localVariableConfig
+        )
+    }
+
+    /**
+     * To obtain the request config of the operation sandboxUpdate
+     *
+     * @param sandboxUpdateRequest 
+     * @return RequestConfig
+     */
+    fun sandboxUpdateRequestConfig(sandboxUpdateRequest: SandboxUpdateRequest) : RequestConfig<SandboxUpdateRequest> {
+        val localVariableBody = sandboxUpdateRequest
+        val localVariableQuery: MultiValueMap = mutableMapOf()
+        val localVariableHeaders: MutableMap<String, String> = mutableMapOf()
+        localVariableHeaders["Content-Type"] = "application/json"
+        
+        return RequestConfig(
+            method = RequestMethod.POST,
+            path = "/leagues/sandbox/update",
             query = localVariableQuery,
             headers = localVariableHeaders,
             requiresAuthentication = false,

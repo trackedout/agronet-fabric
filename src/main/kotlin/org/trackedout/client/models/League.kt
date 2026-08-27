@@ -15,6 +15,7 @@
 
 package org.trackedout.client.models
 
+import org.trackedout.client.models.LeagueBuilders
 import org.trackedout.client.models.LeagueDeck
 import org.trackedout.client.models.LeagueDisplay
 import org.trackedout.client.models.LeagueDungeon
@@ -38,6 +39,7 @@ import com.squareup.moshi.JsonClass
  * @param display 
  * @param members 
  * @param joinPolicy 
+ * @param builders 
  * @param items 
  * @param trades 
  * @param deck 
@@ -75,6 +77,9 @@ data class League (
 
     @Json(name = "joinPolicy")
     val joinPolicy: kotlin.String? = null,
+
+    @Json(name = "builders")
+    val builders: LeagueBuilders? = null,
 
     @Json(name = "items")
     val items: kotlin.collections.Map<kotlin.String, kotlin.Any>? = null,
