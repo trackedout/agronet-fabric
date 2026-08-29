@@ -43,6 +43,7 @@ import org.trackedout.client.apis.TasksApi
 import org.trackedout.client.models.Event
 import org.trackedout.commands.CardInteractionCommand
 import org.trackedout.commands.LogEventCommand
+import org.trackedout.commands.SnapshotCommand
 import org.trackedout.data.LeagueRegistry
 import org.trackedout.listeners.AgronetPlayerConnectionListener
 import org.trackedout.listeners.CommandBlockOutputListener
@@ -208,6 +209,16 @@ object Agronet : ModInitializer {
                                     .executes(logEventCommand::run)
                             )
                     )
+            )
+        }
+
+        val snapshotCommand = SnapshotCommand(serverName, getEnvOrDefault("LEAGUE_SLUG", ""))
+
+        CommandRegistrationCallback.EVENT.register { dispatcher, _, _ ->
+            dispatcher.register(
+                literal("create-snapshot")
+                    .requires { it.hasPermissionLevel(2) } // Command Blocks have permission level of 2
+                    .executes(snapshotCommand::run)
             )
         }
 
