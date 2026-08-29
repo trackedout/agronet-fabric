@@ -114,7 +114,7 @@ class ScoreSyncer(
 
             val metadata = mapOf(
                 "run-id" to RunContext.runId,
-                "run-type" to RunContext.playerContext(playerName).runType(),
+                "slug" to RunContext.playerContext(playerName).runType(),
             )
 
             // Chunk batchMap into batches of 100 entries

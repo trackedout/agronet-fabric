@@ -67,28 +67,22 @@ data object RunContext {
 
 typealias PlayerContext = Map<String, String>
 
+// The league `slug` is the canonical run identifier network-wide. Claim metadata
+// carries it under the "slug" key; default to the practice league.
 fun PlayerContext.runType(): String {
-    return this.getOrDefault("run-type", "p")
+    return this.getOrDefault("slug", "practice")
 }
 
 fun PlayerContext.fullRunType(): String {
-    return this.runType().fullRunType()
-}
-
-fun String.fullRunType(): String {
-    return LeagueRegistry.getSlugForShortId(this.firstOrNull()?.lowercase() ?: this)
-}
-
-fun PlayerContext.shortRunType(): String {
-    return this.runType()[0].lowercase()
+    return this.runType()
 }
 
 fun PlayerContext.fullDeckId(): String {
     // TODO: https://github.com/trackedout/agronet-fabric/issues/31
-    return this.getOrDefault("deck-id", "p1")
+    return this.getOrDefault("deck-id", "practice1")
 }
 
 fun PlayerContext.shortDeckId(): String {
     // TODO: https://github.com/trackedout/agronet-fabric/issues/31
-    return this.getOrDefault("deck-id", "p1").substring(1)
+    return this.getOrDefault("deck-id", "practice1").substring(1)
 }

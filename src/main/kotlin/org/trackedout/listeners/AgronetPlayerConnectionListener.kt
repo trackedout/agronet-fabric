@@ -24,7 +24,7 @@ import org.trackedout.client.models.Score
 import org.trackedout.fullRunType
 import org.trackedout.scoreboard.ScoreSyncer
 import org.trackedout.sendMessage
-import org.trackedout.shortRunType
+import org.trackedout.runType
 import org.trackedout.data.LeagueRegistry
 
 val json = Json { ignoreUnknownKeys = true }
@@ -71,13 +71,13 @@ class AgronetPlayerConnectionListener(
                     logger.info("Setting state of Claim ${claim.id} to 'in-use'")
                     claimApi.claimsIdPatch(claim.id!!, claim.copy(id = null, state = "in-use", claimant = serverName))
 
-                    claim.metadata?.shortRunType()?.let { runType ->
+                    claim.metadata?.runType()?.let { runType ->
                         val objective = server.scoreboard.getObjective("do2.utility.runType")
                         val playerScore = server.scoreboard.getPlayerScore(playerName, objective)
-                        val runTypeId = LeagueRegistry.getRunTypeIdForShortId(runType.firstOrNull()?.lowercase() ?: runType)
+                        val runTypeId = LeagueRegistry.getRunTypeIdForSlug(runType)
                         playerScore.score = runTypeId
                         logger.info("Set do2.utility.runType to ${playerScore.score} (${runType}) for $playerName")
-                    } ?: run { logger.error("No run-type found for ${playerName}! Unable to set do2.utility.runType") }
+                    } ?: run { logger.error("No slug found for ${playerName}! Unable to set do2.utility.runType") }
 
                     givePlayerTheirShulker = true
                     RunContext.initialized = true

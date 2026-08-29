@@ -87,7 +87,7 @@ class TaskManagement(
                         logger.info("Preparing for ${task.targetPlayer} to join the server (claim: ${claim.id})")
                         logger.info("Claim: $claim")
 
-                        claim.metadata?.shortRunType()?.let { runType ->
+                        claim.metadata?.runType()?.let { runType ->
                             applyDatapackReplacements(runType)
                             server.dataPackManager.names.forEach {
                                 logger.info("Noting presence of datapack: $it (enabled: ${server.dataPackManager.enabledNames.contains(it)})")

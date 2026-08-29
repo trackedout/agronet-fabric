@@ -13,7 +13,7 @@ class EventsApiWithContext(
         )
 
         event.player?.let { player ->
-            metadata = metadata.plus("run-type" to RunContext.playerContext(player).runType())
+            metadata = metadata.plus("slug" to RunContext.playerContext(player).runType())
         }
 
         // Merge in any existing metadata from the event, overwriting the defaults above if necessary

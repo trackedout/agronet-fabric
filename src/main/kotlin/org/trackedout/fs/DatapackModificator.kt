@@ -124,8 +124,8 @@ fun replaceFilesInZip(zipPath: String, runType: String) {
     logger.info("Modified zip file created at: $zipPath")
 }
 
-internal fun applyDatapackReplacements(runTypeShort: String) {
-    val runType = runTypeShort.fullRunType().lowercase()
+internal fun applyDatapackReplacements(runTypeSlug: String) {
+    val runType = runTypeSlug.lowercase()
     logger.info("Preparing datapack for run type: $runType")
 
     val zipPath = "world/datapacks/brilliance-datapack.zip"

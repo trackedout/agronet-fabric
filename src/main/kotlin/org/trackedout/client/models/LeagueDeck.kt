@@ -22,15 +22,11 @@ import com.squareup.moshi.JsonClass
 /**
  * 
  *
- * @param prefix 
  * @param defaultCards 
  */
 
 
 data class LeagueDeck (
-
-    @Json(name = "prefix")
-    val prefix: kotlin.String? = null,
 
     @Json(name = "defaultCards")
     val defaultCards: kotlin.collections.List<kotlin.String>? = null
