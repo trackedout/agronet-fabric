@@ -45,6 +45,7 @@ import org.trackedout.commands.CardInteractionCommand
 import org.trackedout.commands.LogEventCommand
 import org.trackedout.commands.SnapshotCommand
 import org.trackedout.data.LeagueRegistry
+import org.trackedout.fs.enforceEditGamerules
 import org.trackedout.listeners.AgronetPlayerConnectionListener
 import org.trackedout.listeners.CommandBlockOutputListener
 import org.trackedout.scoreboard.ScoreSyncer
@@ -515,6 +516,8 @@ object Agronet : ModInitializer {
 
         ServerLifecycleEvents.SERVER_STARTED.register { server: MinecraftServer ->
             CommandBlockOutputListener.server = server
+
+            server.enforceEditGamerules()
 
             val taskManager = TaskManagement(serverName, tasksApi, eventsApi, claimApi)
             threadPool.scheduleAtFixedRate({

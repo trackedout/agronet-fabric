@@ -5,8 +5,10 @@ import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.text.Text
 import net.minecraft.util.Formatting
 import org.trackedout.Agronet.runAsyncTask
+import org.trackedout.fs.enforceEditGamerules
 import java.io.File
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * `/create-snapshot` — captures the current sandbox world into the per-league restic repo.
@@ -26,6 +28,8 @@ class SnapshotCommand(
     private val leagueSlug: String,
 ) : PlayerCommand {
 
+    private val snapshotInProgress = AtomicBoolean(false)
+
     override fun run(context: CommandContext<ServerCommandSource>): Int {
         val source = context.source
 
@@ -38,7 +42,23 @@ class SnapshotCommand(
         }
 
         val server = source.server
-        source.sendFeedback({ Text.literal("Creating world snapshot…").formatted(Formatting.YELLOW) }, true)
+
+        // Only one snapshot at a time: a second run would race the same world
+        // files on EFS and could push an inconsistent backup. Reject overlapping
+        // invocations instead of queuing them.
+        if (!snapshotInProgress.compareAndSet(false, true)) {
+            source.sendFeedback(
+                { Text.literal("A snapshot is already in progress, please wait for it to finish").formatted(Formatting.RED) },
+                false,
+            )
+            return 0
+        }
+
+        source.sendFeedback({ Text.literal("Snapshot: saving the world to disk…").formatted(Formatting.YELLOW) }, true)
+
+        // The datapack may have disabled command feedback; make sure the player
+        // can see this command's own output.
+        server.execute { server.enforceEditGamerules() }
 
         runAsyncTask {
             try {
@@ -58,6 +78,11 @@ class SnapshotCommand(
                     saved
                 }.get(SAVE_TIMEOUT_SECONDS, TimeUnit.SECONDS)
 
+                source.sendFeedback(
+                    { Text.literal("Snapshot: world saved, uploading backup (this can take a minute or two)…").formatted(Formatting.YELLOW) },
+                    true,
+                )
+
                 // 3. Back up the now-consistent world via restic (RESTIC_REPOSITORY /
                 //    RESTIC_PASSWORD / AWS role creds are inherited from the entrypoint).
                 val leagueDir = "/efs/$leagueSlug"
@@ -66,8 +91,18 @@ class SnapshotCommand(
                     .redirectErrorStream(true)
                     .start()
 
-                val output = process.inputStream.bufferedReader().use { it.readText() }
-                val finished = process.waitFor(RESTIC_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                // The upload is the long phase. Emit a periodic heartbeat so the player
+                // knows the command is still working rather than staring at a blank chat.
+                val heartbeat = startHeartbeat(source)
+
+                val output: String
+                val finished: Boolean
+                try {
+                    output = process.inputStream.bufferedReader().use { it.readText() }
+                    finished = process.waitFor(RESTIC_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                } finally {
+                    heartbeat.interrupt()
+                }
 
                 if (!finished) {
                     process.destroyForcibly()
@@ -88,10 +123,39 @@ class SnapshotCommand(
                     { Text.literal("Snapshot failed: ${e.message}").formatted(Formatting.RED) },
                     false,
                 )
+            } finally {
+                snapshotInProgress.set(false)
             }
         }
 
         return 1
+    }
+
+    /**
+     * Emits a "still uploading" message to the command source every
+     * [HEARTBEAT_INTERVAL_MS] until interrupted, so a long restic backup never
+     * leaves the player looking at a silent chat. Returns the thread so the
+     * caller can [Thread.interrupt] it once the backup finishes.
+     */
+    private fun startHeartbeat(source: ServerCommandSource): Thread {
+        val thread = Thread {
+            var elapsedSeconds = 0
+            try {
+                while (!Thread.currentThread().isInterrupted) {
+                    Thread.sleep(HEARTBEAT_INTERVAL_MS)
+                    elapsedSeconds += (HEARTBEAT_INTERVAL_MS / 1000).toInt()
+                    source.sendFeedback(
+                        { Text.literal("Snapshot: still uploading… (${elapsedSeconds}s)").formatted(Formatting.GRAY) },
+                        false,
+                    )
+                }
+            } catch (_: InterruptedException) {
+                // Backup finished; stop quietly.
+            }
+        }
+        thread.isDaemon = true
+        thread.start()
+        return thread
     }
 
     companion object {
@@ -100,5 +164,6 @@ class SnapshotCommand(
         private const val SAVE_WAIT_TIMEOUT_MS = 30_000
         private const val SAVE_TIMEOUT_SECONDS = 60L
         private const val RESTIC_TIMEOUT_SECONDS = 300L
+        private const val HEARTBEAT_INTERVAL_MS = 15_000L
     }
 }

@@ -21,6 +21,7 @@ import okhttp3.HttpUrl
 
 import org.trackedout.client.models.League
 import org.trackedout.client.models.LeagueBuilderAllowlistEntry
+import org.trackedout.client.models.LeagueMemberRequest
 import org.trackedout.client.models.LeagueSandboxInstance
 import org.trackedout.client.models.LeaguesCreateRequest
 import org.trackedout.client.models.LeaguesGet200Response
@@ -48,6 +49,156 @@ class LeaguesApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClient
         val defaultBasePath: String by lazy {
             System.getProperties().getProperty(ApiClient.baseUrlKey, "http://localhost:3000/v1")
         }
+    }
+
+    /**
+     * Add an editor (builder) to a league
+     * 
+     * @param slug 
+     * @param leagueMemberRequest 
+     * @return League
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     * @throws UnsupportedOperationException If the API returns an informational or redirection response
+     * @throws ClientException If the API returns a client error response
+     * @throws ServerException If the API returns a server error response
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class, UnsupportedOperationException::class, ClientException::class, ServerException::class)
+    fun leagueAddEditor(slug: kotlin.String, leagueMemberRequest: LeagueMemberRequest) : League {
+        val localVarResponse = leagueAddEditorWithHttpInfo(slug = slug, leagueMemberRequest = leagueMemberRequest)
+
+        return when (localVarResponse.responseType) {
+            ResponseType.Success -> (localVarResponse as Success<*>).data as League
+            ResponseType.Informational -> throw UnsupportedOperationException("Client does not support Informational responses.")
+            ResponseType.Redirection -> throw UnsupportedOperationException("Client does not support Redirection responses.")
+            ResponseType.ClientError -> {
+                val localVarError = localVarResponse as ClientError<*>
+                throw ClientException("Client error : ${localVarError.statusCode} ${localVarError.message.orEmpty()}", localVarError.statusCode, localVarResponse)
+            }
+            ResponseType.ServerError -> {
+                val localVarError = localVarResponse as ServerError<*>
+                throw ServerException("Server error : ${localVarError.statusCode} ${localVarError.message.orEmpty()} ${localVarError.body}", localVarError.statusCode, localVarResponse)
+            }
+        }
+    }
+
+    /**
+     * Add an editor (builder) to a league
+     * 
+     * @param slug 
+     * @param leagueMemberRequest 
+     * @return ApiResponse<League?>
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class)
+    fun leagueAddEditorWithHttpInfo(slug: kotlin.String, leagueMemberRequest: LeagueMemberRequest) : ApiResponse<League?> {
+        val localVariableConfig = leagueAddEditorRequestConfig(slug = slug, leagueMemberRequest = leagueMemberRequest)
+
+        return request<LeagueMemberRequest, League>(
+            localVariableConfig
+        )
+    }
+
+    /**
+     * To obtain the request config of the operation leagueAddEditor
+     *
+     * @param slug 
+     * @param leagueMemberRequest 
+     * @return RequestConfig
+     */
+    fun leagueAddEditorRequestConfig(slug: kotlin.String, leagueMemberRequest: LeagueMemberRequest) : RequestConfig<LeagueMemberRequest> {
+        val localVariableBody = leagueMemberRequest
+        val localVariableQuery: MultiValueMap = mutableMapOf()
+        val localVariableHeaders: MutableMap<String, String> = mutableMapOf()
+        localVariableHeaders["Content-Type"] = "application/json"
+        localVariableHeaders["Accept"] = "application/json"
+
+        return RequestConfig(
+            method = RequestMethod.POST,
+            path = "/leagues/{slug}/editors".replace("{"+"slug"+"}", encodeURIComponent(slug.toString())),
+            query = localVariableQuery,
+            headers = localVariableHeaders,
+            requiresAuthentication = false,
+            body = localVariableBody
+        )
+    }
+
+    /**
+     * Add a member to a league
+     * 
+     * @param slug 
+     * @param leagueMemberRequest 
+     * @return League
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     * @throws UnsupportedOperationException If the API returns an informational or redirection response
+     * @throws ClientException If the API returns a client error response
+     * @throws ServerException If the API returns a server error response
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class, UnsupportedOperationException::class, ClientException::class, ServerException::class)
+    fun leagueAddMember(slug: kotlin.String, leagueMemberRequest: LeagueMemberRequest) : League {
+        val localVarResponse = leagueAddMemberWithHttpInfo(slug = slug, leagueMemberRequest = leagueMemberRequest)
+
+        return when (localVarResponse.responseType) {
+            ResponseType.Success -> (localVarResponse as Success<*>).data as League
+            ResponseType.Informational -> throw UnsupportedOperationException("Client does not support Informational responses.")
+            ResponseType.Redirection -> throw UnsupportedOperationException("Client does not support Redirection responses.")
+            ResponseType.ClientError -> {
+                val localVarError = localVarResponse as ClientError<*>
+                throw ClientException("Client error : ${localVarError.statusCode} ${localVarError.message.orEmpty()}", localVarError.statusCode, localVarResponse)
+            }
+            ResponseType.ServerError -> {
+                val localVarError = localVarResponse as ServerError<*>
+                throw ServerException("Server error : ${localVarError.statusCode} ${localVarError.message.orEmpty()} ${localVarError.body}", localVarError.statusCode, localVarResponse)
+            }
+        }
+    }
+
+    /**
+     * Add a member to a league
+     * 
+     * @param slug 
+     * @param leagueMemberRequest 
+     * @return ApiResponse<League?>
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class)
+    fun leagueAddMemberWithHttpInfo(slug: kotlin.String, leagueMemberRequest: LeagueMemberRequest) : ApiResponse<League?> {
+        val localVariableConfig = leagueAddMemberRequestConfig(slug = slug, leagueMemberRequest = leagueMemberRequest)
+
+        return request<LeagueMemberRequest, League>(
+            localVariableConfig
+        )
+    }
+
+    /**
+     * To obtain the request config of the operation leagueAddMember
+     *
+     * @param slug 
+     * @param leagueMemberRequest 
+     * @return RequestConfig
+     */
+    fun leagueAddMemberRequestConfig(slug: kotlin.String, leagueMemberRequest: LeagueMemberRequest) : RequestConfig<LeagueMemberRequest> {
+        val localVariableBody = leagueMemberRequest
+        val localVariableQuery: MultiValueMap = mutableMapOf()
+        val localVariableHeaders: MutableMap<String, String> = mutableMapOf()
+        localVariableHeaders["Content-Type"] = "application/json"
+        localVariableHeaders["Accept"] = "application/json"
+
+        return RequestConfig(
+            method = RequestMethod.POST,
+            path = "/leagues/{slug}/members".replace("{"+"slug"+"}", encodeURIComponent(slug.toString())),
+            query = localVariableQuery,
+            headers = localVariableHeaders,
+            requiresAuthentication = false,
+            body = localVariableBody
+        )
     }
 
     /**
@@ -114,6 +265,227 @@ class LeaguesApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClient
         return RequestConfig(
             method = RequestMethod.GET,
             path = "/leagues/{slug}/builder-allowlist".replace("{"+"slug"+"}", encodeURIComponent(slug.toString())),
+            query = localVariableQuery,
+            headers = localVariableHeaders,
+            requiresAuthentication = false,
+            body = localVariableBody
+        )
+    }
+
+    /**
+     * Publish a league so it becomes a playable mode
+     * Transitions a draft league to active, filling in playable defaults (display id, standard items, a shard→queue trade, deck) and pointing its dungeon type at the league&#39;s own latest restic snapshot. 
+     * @param slug 
+     * @return League
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     * @throws UnsupportedOperationException If the API returns an informational or redirection response
+     * @throws ClientException If the API returns a client error response
+     * @throws ServerException If the API returns a server error response
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class, UnsupportedOperationException::class, ClientException::class, ServerException::class)
+    fun leaguePublish(slug: kotlin.String) : League {
+        val localVarResponse = leaguePublishWithHttpInfo(slug = slug)
+
+        return when (localVarResponse.responseType) {
+            ResponseType.Success -> (localVarResponse as Success<*>).data as League
+            ResponseType.Informational -> throw UnsupportedOperationException("Client does not support Informational responses.")
+            ResponseType.Redirection -> throw UnsupportedOperationException("Client does not support Redirection responses.")
+            ResponseType.ClientError -> {
+                val localVarError = localVarResponse as ClientError<*>
+                throw ClientException("Client error : ${localVarError.statusCode} ${localVarError.message.orEmpty()}", localVarError.statusCode, localVarResponse)
+            }
+            ResponseType.ServerError -> {
+                val localVarError = localVarResponse as ServerError<*>
+                throw ServerException("Server error : ${localVarError.statusCode} ${localVarError.message.orEmpty()} ${localVarError.body}", localVarError.statusCode, localVarResponse)
+            }
+        }
+    }
+
+    /**
+     * Publish a league so it becomes a playable mode
+     * Transitions a draft league to active, filling in playable defaults (display id, standard items, a shard→queue trade, deck) and pointing its dungeon type at the league&#39;s own latest restic snapshot. 
+     * @param slug 
+     * @return ApiResponse<League?>
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class)
+    fun leaguePublishWithHttpInfo(slug: kotlin.String) : ApiResponse<League?> {
+        val localVariableConfig = leaguePublishRequestConfig(slug = slug)
+
+        return request<Unit, League>(
+            localVariableConfig
+        )
+    }
+
+    /**
+     * To obtain the request config of the operation leaguePublish
+     *
+     * @param slug 
+     * @return RequestConfig
+     */
+    fun leaguePublishRequestConfig(slug: kotlin.String) : RequestConfig<Unit> {
+        val localVariableBody = null
+        val localVariableQuery: MultiValueMap = mutableMapOf()
+        val localVariableHeaders: MutableMap<String, String> = mutableMapOf()
+        localVariableHeaders["Accept"] = "application/json"
+
+        return RequestConfig(
+            method = RequestMethod.POST,
+            path = "/leagues/{slug}/publish".replace("{"+"slug"+"}", encodeURIComponent(slug.toString())),
+            query = localVariableQuery,
+            headers = localVariableHeaders,
+            requiresAuthentication = false,
+            body = localVariableBody
+        )
+    }
+
+    /**
+     * Remove an editor (builder) from a league
+     * 
+     * @param slug 
+     * @param leagueMemberRequest 
+     * @return League
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     * @throws UnsupportedOperationException If the API returns an informational or redirection response
+     * @throws ClientException If the API returns a client error response
+     * @throws ServerException If the API returns a server error response
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class, UnsupportedOperationException::class, ClientException::class, ServerException::class)
+    fun leagueRemoveEditor(slug: kotlin.String, leagueMemberRequest: LeagueMemberRequest) : League {
+        val localVarResponse = leagueRemoveEditorWithHttpInfo(slug = slug, leagueMemberRequest = leagueMemberRequest)
+
+        return when (localVarResponse.responseType) {
+            ResponseType.Success -> (localVarResponse as Success<*>).data as League
+            ResponseType.Informational -> throw UnsupportedOperationException("Client does not support Informational responses.")
+            ResponseType.Redirection -> throw UnsupportedOperationException("Client does not support Redirection responses.")
+            ResponseType.ClientError -> {
+                val localVarError = localVarResponse as ClientError<*>
+                throw ClientException("Client error : ${localVarError.statusCode} ${localVarError.message.orEmpty()}", localVarError.statusCode, localVarResponse)
+            }
+            ResponseType.ServerError -> {
+                val localVarError = localVarResponse as ServerError<*>
+                throw ServerException("Server error : ${localVarError.statusCode} ${localVarError.message.orEmpty()} ${localVarError.body}", localVarError.statusCode, localVarResponse)
+            }
+        }
+    }
+
+    /**
+     * Remove an editor (builder) from a league
+     * 
+     * @param slug 
+     * @param leagueMemberRequest 
+     * @return ApiResponse<League?>
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class)
+    fun leagueRemoveEditorWithHttpInfo(slug: kotlin.String, leagueMemberRequest: LeagueMemberRequest) : ApiResponse<League?> {
+        val localVariableConfig = leagueRemoveEditorRequestConfig(slug = slug, leagueMemberRequest = leagueMemberRequest)
+
+        return request<LeagueMemberRequest, League>(
+            localVariableConfig
+        )
+    }
+
+    /**
+     * To obtain the request config of the operation leagueRemoveEditor
+     *
+     * @param slug 
+     * @param leagueMemberRequest 
+     * @return RequestConfig
+     */
+    fun leagueRemoveEditorRequestConfig(slug: kotlin.String, leagueMemberRequest: LeagueMemberRequest) : RequestConfig<LeagueMemberRequest> {
+        val localVariableBody = leagueMemberRequest
+        val localVariableQuery: MultiValueMap = mutableMapOf()
+        val localVariableHeaders: MutableMap<String, String> = mutableMapOf()
+        localVariableHeaders["Content-Type"] = "application/json"
+        localVariableHeaders["Accept"] = "application/json"
+
+        return RequestConfig(
+            method = RequestMethod.DELETE,
+            path = "/leagues/{slug}/editors".replace("{"+"slug"+"}", encodeURIComponent(slug.toString())),
+            query = localVariableQuery,
+            headers = localVariableHeaders,
+            requiresAuthentication = false,
+            body = localVariableBody
+        )
+    }
+
+    /**
+     * Remove a member from a league
+     * 
+     * @param slug 
+     * @param leagueMemberRequest 
+     * @return League
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     * @throws UnsupportedOperationException If the API returns an informational or redirection response
+     * @throws ClientException If the API returns a client error response
+     * @throws ServerException If the API returns a server error response
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class, UnsupportedOperationException::class, ClientException::class, ServerException::class)
+    fun leagueRemoveMember(slug: kotlin.String, leagueMemberRequest: LeagueMemberRequest) : League {
+        val localVarResponse = leagueRemoveMemberWithHttpInfo(slug = slug, leagueMemberRequest = leagueMemberRequest)
+
+        return when (localVarResponse.responseType) {
+            ResponseType.Success -> (localVarResponse as Success<*>).data as League
+            ResponseType.Informational -> throw UnsupportedOperationException("Client does not support Informational responses.")
+            ResponseType.Redirection -> throw UnsupportedOperationException("Client does not support Redirection responses.")
+            ResponseType.ClientError -> {
+                val localVarError = localVarResponse as ClientError<*>
+                throw ClientException("Client error : ${localVarError.statusCode} ${localVarError.message.orEmpty()}", localVarError.statusCode, localVarResponse)
+            }
+            ResponseType.ServerError -> {
+                val localVarError = localVarResponse as ServerError<*>
+                throw ServerException("Server error : ${localVarError.statusCode} ${localVarError.message.orEmpty()} ${localVarError.body}", localVarError.statusCode, localVarResponse)
+            }
+        }
+    }
+
+    /**
+     * Remove a member from a league
+     * 
+     * @param slug 
+     * @param leagueMemberRequest 
+     * @return ApiResponse<League?>
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class)
+    fun leagueRemoveMemberWithHttpInfo(slug: kotlin.String, leagueMemberRequest: LeagueMemberRequest) : ApiResponse<League?> {
+        val localVariableConfig = leagueRemoveMemberRequestConfig(slug = slug, leagueMemberRequest = leagueMemberRequest)
+
+        return request<LeagueMemberRequest, League>(
+            localVariableConfig
+        )
+    }
+
+    /**
+     * To obtain the request config of the operation leagueRemoveMember
+     *
+     * @param slug 
+     * @param leagueMemberRequest 
+     * @return RequestConfig
+     */
+    fun leagueRemoveMemberRequestConfig(slug: kotlin.String, leagueMemberRequest: LeagueMemberRequest) : RequestConfig<LeagueMemberRequest> {
+        val localVariableBody = leagueMemberRequest
+        val localVariableQuery: MultiValueMap = mutableMapOf()
+        val localVariableHeaders: MutableMap<String, String> = mutableMapOf()
+        localVariableHeaders["Content-Type"] = "application/json"
+        localVariableHeaders["Accept"] = "application/json"
+
+        return RequestConfig(
+            method = RequestMethod.DELETE,
+            path = "/leagues/{slug}/members".replace("{"+"slug"+"}", encodeURIComponent(slug.toString())),
             query = localVariableQuery,
             headers = localVariableHeaders,
             requiresAuthentication = false,

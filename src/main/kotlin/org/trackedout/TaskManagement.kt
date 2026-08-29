@@ -12,6 +12,7 @@ import org.trackedout.client.apis.TasksApi
 import org.trackedout.client.models.Event
 import org.trackedout.client.models.Task
 import org.trackedout.fs.applyDatapackReplacements
+import org.trackedout.fs.enforceEditGamerules
 import org.trackedout.fs.executeConsoleCommand
 import org.trackedout.fs.reloadServer
 
@@ -99,6 +100,10 @@ class TaskManagement(
                                 server.executeConsoleCommand("function do2:version").forEach {
                                     logger.info("[output from 'function do2:version'] $it")
                                 }
+
+                                // The datapack load just reset reducedDebugInfo / sendCommandFeedback;
+                                // so we revert those configs (unless this is a dungeon instance)
+                                server.enforceEditGamerules()
                                 val datapackVersionScoreboard = server.scoreboard.getObjective("do2.version")
                                 val datapackVersion = server.scoreboard.getPlayerScore("\$dungeon", datapackVersionScoreboard)?.score?.toString() ?: "unknown"
                                 logger.info("Datapack version: $datapackVersion")

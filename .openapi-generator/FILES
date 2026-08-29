@@ -49,6 +49,7 @@ src/main/kotlin/org/trackedout/client/models/LeagueDungeon.kt
 src/main/kotlin/org/trackedout/client/models/LeagueEventHandlersInner.kt
 src/main/kotlin/org/trackedout/client/models/LeagueEventHandlersInnerActionsInner.kt
 src/main/kotlin/org/trackedout/client/models/LeagueEventHandlersInnerTrigger.kt
+src/main/kotlin/org/trackedout/client/models/LeagueMemberRequest.kt
 src/main/kotlin/org/trackedout/client/models/LeaguePhaseTransition.kt
 src/main/kotlin/org/trackedout/client/models/LeaguePhaseTransitionAllocation.kt
 src/main/kotlin/org/trackedout/client/models/LeaguePhasesInner.kt
