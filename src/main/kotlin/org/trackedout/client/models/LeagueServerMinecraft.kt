@@ -22,18 +22,14 @@ import com.squareup.moshi.JsonClass
 /**
  * 
  *
- * @param type 
- * @param claimFilters 
+ * @param version 
  */
 
 
-data class LeagueDungeon (
+data class LeagueServerMinecraft (
 
-    @Json(name = "type")
-    val type: kotlin.String? = null,
-
-    @Json(name = "claimFilters")
-    val claimFilters: kotlin.collections.Map<kotlin.String, kotlin.collections.List<kotlin.String>>? = null
+    @Json(name = "version")
+    val version: kotlin.String? = null
 
 )
 

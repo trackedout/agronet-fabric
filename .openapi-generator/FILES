@@ -40,12 +40,12 @@ src/main/kotlin/org/trackedout/client/models/GetInstances200ResponseInner.kt
 src/main/kotlin/org/trackedout/client/models/InventoryCardsGet200Response.kt
 src/main/kotlin/org/trackedout/client/models/Item.kt
 src/main/kotlin/org/trackedout/client/models/League.kt
+src/main/kotlin/org/trackedout/client/models/LeagueAsset.kt
 src/main/kotlin/org/trackedout/client/models/LeagueBuilderAllowlistEntry.kt
 src/main/kotlin/org/trackedout/client/models/LeagueBuilders.kt
 src/main/kotlin/org/trackedout/client/models/LeagueCreateRequest.kt
 src/main/kotlin/org/trackedout/client/models/LeagueDeck.kt
 src/main/kotlin/org/trackedout/client/models/LeagueDisplay.kt
-src/main/kotlin/org/trackedout/client/models/LeagueDungeon.kt
 src/main/kotlin/org/trackedout/client/models/LeagueEventHandlersInner.kt
 src/main/kotlin/org/trackedout/client/models/LeagueEventHandlersInnerActionsInner.kt
 src/main/kotlin/org/trackedout/client/models/LeagueEventHandlersInnerTrigger.kt
@@ -55,6 +55,9 @@ src/main/kotlin/org/trackedout/client/models/LeaguePhaseTransitionAllocation.kt
 src/main/kotlin/org/trackedout/client/models/LeaguePhasesInner.kt
 src/main/kotlin/org/trackedout/client/models/LeagueSandboxInstance.kt
 src/main/kotlin/org/trackedout/client/models/LeagueScoring.kt
+src/main/kotlin/org/trackedout/client/models/LeagueServer.kt
+src/main/kotlin/org/trackedout/client/models/LeagueServerMinecraft.kt
+src/main/kotlin/org/trackedout/client/models/LeagueServerResourcePack.kt
 src/main/kotlin/org/trackedout/client/models/LeagueTradesInner.kt
 src/main/kotlin/org/trackedout/client/models/LeagueTradesInnerSource.kt
 src/main/kotlin/org/trackedout/client/models/LeagueTradesInnerTarget.kt

@@ -23,6 +23,7 @@ import org.trackedout.client.models.League
 import org.trackedout.client.models.LeagueBuilderAllowlistEntry
 import org.trackedout.client.models.LeagueMemberRequest
 import org.trackedout.client.models.LeagueSandboxInstance
+import org.trackedout.client.models.LeagueServer
 import org.trackedout.client.models.LeaguesCreateRequest
 import org.trackedout.client.models.LeaguesGet200Response
 import org.trackedout.client.models.SandboxUpdateRequest
@@ -699,6 +700,77 @@ class LeaguesApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClient
         return RequestConfig(
             method = RequestMethod.POST,
             path = "/leagues/{slug}/sandbox/stop".replace("{"+"slug"+"}", encodeURIComponent(slug.toString())),
+            query = localVariableQuery,
+            headers = localVariableHeaders,
+            requiresAuthentication = false,
+            body = localVariableBody
+        )
+    }
+
+    /**
+     * Get the authoritative server provisioning spec for a league
+     * Returns the league&#39;s &#x60;server&#x60; block (worldSource, minecraft version, datapacks[], mods[], resourcePack, dungeonType, claimFilters). Container entrypoints fetch this by slug to drive world seeding and asset downloads. 
+     * @param slug 
+     * @return LeagueServer
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     * @throws UnsupportedOperationException If the API returns an informational or redirection response
+     * @throws ClientException If the API returns a client error response
+     * @throws ServerException If the API returns a server error response
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class, UnsupportedOperationException::class, ClientException::class, ServerException::class)
+    fun leagueServerSpec(slug: kotlin.String) : LeagueServer {
+        val localVarResponse = leagueServerSpecWithHttpInfo(slug = slug)
+
+        return when (localVarResponse.responseType) {
+            ResponseType.Success -> (localVarResponse as Success<*>).data as LeagueServer
+            ResponseType.Informational -> throw UnsupportedOperationException("Client does not support Informational responses.")
+            ResponseType.Redirection -> throw UnsupportedOperationException("Client does not support Redirection responses.")
+            ResponseType.ClientError -> {
+                val localVarError = localVarResponse as ClientError<*>
+                throw ClientException("Client error : ${localVarError.statusCode} ${localVarError.message.orEmpty()}", localVarError.statusCode, localVarResponse)
+            }
+            ResponseType.ServerError -> {
+                val localVarError = localVarResponse as ServerError<*>
+                throw ServerException("Server error : ${localVarError.statusCode} ${localVarError.message.orEmpty()} ${localVarError.body}", localVarError.statusCode, localVarResponse)
+            }
+        }
+    }
+
+    /**
+     * Get the authoritative server provisioning spec for a league
+     * Returns the league&#39;s &#x60;server&#x60; block (worldSource, minecraft version, datapacks[], mods[], resourcePack, dungeonType, claimFilters). Container entrypoints fetch this by slug to drive world seeding and asset downloads. 
+     * @param slug 
+     * @return ApiResponse<LeagueServer?>
+     * @throws IllegalStateException If the request is not correctly configured
+     * @throws IOException Rethrows the OkHttp execute method exception
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Throws(IllegalStateException::class, IOException::class)
+    fun leagueServerSpecWithHttpInfo(slug: kotlin.String) : ApiResponse<LeagueServer?> {
+        val localVariableConfig = leagueServerSpecRequestConfig(slug = slug)
+
+        return request<Unit, LeagueServer>(
+            localVariableConfig
+        )
+    }
+
+    /**
+     * To obtain the request config of the operation leagueServerSpec
+     *
+     * @param slug 
+     * @return RequestConfig
+     */
+    fun leagueServerSpecRequestConfig(slug: kotlin.String) : RequestConfig<Unit> {
+        val localVariableBody = null
+        val localVariableQuery: MultiValueMap = mutableMapOf()
+        val localVariableHeaders: MutableMap<String, String> = mutableMapOf()
+        localVariableHeaders["Accept"] = "application/json"
+
+        return RequestConfig(
+            method = RequestMethod.GET,
+            path = "/leagues/{slug}/server-spec".replace("{"+"slug"+"}", encodeURIComponent(slug.toString())),
             query = localVariableQuery,
             headers = localVariableHeaders,
             requiresAuthentication = false,
