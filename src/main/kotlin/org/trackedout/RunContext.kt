@@ -76,13 +76,3 @@ fun PlayerContext.runType(): String {
 fun PlayerContext.fullRunType(): String {
     return this.runType()
 }
-
-fun PlayerContext.fullDeckId(): String {
-    // TODO: https://github.com/trackedout/agronet-fabric/issues/31
-    return this.getOrDefault("deck-id", "practice1")
-}
-
-fun PlayerContext.shortDeckId(): String {
-    // TODO: https://github.com/trackedout/agronet-fabric/issues/31
-    return this.getOrDefault("deck-id", "practice1").substring(1)
-}

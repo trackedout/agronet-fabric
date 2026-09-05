@@ -19,11 +19,9 @@ import org.trackedout.client.models.Event
 import org.trackedout.data.BrillianceCard
 import org.trackedout.data.JsonToNbtConverter
 import org.trackedout.debug
-import org.trackedout.fullDeckId
 import org.trackedout.fullRunType
 import org.trackedout.runType
 import org.trackedout.sendMessage
-import org.trackedout.shortDeckId
 import kotlin.math.max
 import kotlin.math.min
 
@@ -52,8 +50,8 @@ class AddDeckToPlayerInventoryAction(
         }
 
         val context = RunContext.playerContext(playerName)
-        player.sendMessage("Fetching ${context.fullRunType()} mode Decked Out shulker #${context.shortDeckId()} from Dunga Dunga...", Formatting.GRAY)
-        val cards = inventoryApi.inventoryCardsGet(player = playerName, limit = 1000, deckType = context.runType(), deckId = context.fullDeckId()).results!!
+        player.sendMessage("Fetching ${context.fullRunType()} mode Decked Out shulker from Dunga Dunga...", Formatting.GRAY)
+        val cards = inventoryApi.inventoryCardsGet(player = playerName, limit = 1000, deckType = context.runType(), deckId = context.runType()).results!!
 
         runAsyncTask {
             eventsApi.eventsPost(
