@@ -1,7 +1,5 @@
 package org.trackedout
 
-import io.netty.buffer.Unpooled
-import net.minecraft.network.PacketByteBuf
 import net.minecraft.network.packet.s2c.play.CustomPayloadS2CPacket
 import net.minecraft.server.MinecraftServer
 import net.minecraft.text.Text
@@ -132,15 +130,12 @@ class TaskManagement(
                 if (task.targetPlayer != null) {
                     val targetPlayer = server.overworld.players.find { it.gameProfile.name == task.targetPlayer }
                     if (targetPlayer != null) {
-                        val buf = PacketByteBuf(Unpooled.buffer())
-                        task.arguments?.forEach(buf::writeString)
-
                         targetPlayer.networkHandler.sendPacket(
                             CustomPayloadS2CPacket(
                                 Identifier(
                                     "bungeecord", "main"
                                 ),
-                                buf
+                                bungeeCordMessage(*(task.arguments ?: emptyList()).toTypedArray())
                             )
                         )
                     } else {

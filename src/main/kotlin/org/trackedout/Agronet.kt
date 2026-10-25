@@ -3,7 +3,6 @@ package org.trackedout
 import com.mojang.brigadier.arguments.IntegerArgumentType
 import com.mojang.brigadier.arguments.StringArgumentType
 import com.mojang.brigadier.context.CommandContext
-import io.netty.buffer.Unpooled
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -18,7 +17,6 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper
 import net.minecraft.entity.effect.StatusEffectInstance
 import net.minecraft.entity.effect.StatusEffects
-import net.minecraft.network.PacketByteBuf
 import net.minecraft.network.packet.s2c.play.CustomPayloadS2CPacket
 import net.minecraft.resource.ResourceType
 import net.minecraft.server.MinecraftServer
@@ -550,17 +548,12 @@ object Agronet : ModInitializer {
     }
 
     fun sendPlayerToLobby(player: ServerPlayerEntity) {
-        val buf = PacketByteBuf(Unpooled.buffer())
-        buf.writeString("ConnectOther")
-        buf.writeString(player.gameProfile.name)
-        buf.writeString("lobby")
-
         player.networkHandler.sendPacket(
             CustomPayloadS2CPacket(
                 Identifier(
                     "bungeecord", "main"
                 ),
-                buf
+                bungeeCordMessage("ConnectOther", player.gameProfile.name, "lobby")
             )
         )
     }

@@ -22,10 +22,6 @@
       }
     ],
     "client": [
-      {
-        "value": "org.trackedout.AgronetClient",
-        "adapter": "kotlin"
-      }
     ]
   },
   "mixins": [
