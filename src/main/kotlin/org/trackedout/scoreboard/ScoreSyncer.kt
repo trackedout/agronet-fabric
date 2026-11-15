@@ -16,7 +16,6 @@ import org.trackedout.client.models.Score
 import org.trackedout.client.models.Task
 import org.trackedout.data.BrillianceCard
 import org.trackedout.data.BrillianceScoreboardDescription
-import org.trackedout.fullRunType
 import org.trackedout.runType
 import java.nio.charset.StandardCharsets
 
@@ -112,10 +111,8 @@ class ScoreSyncer(
             logger.info("Storing ${batchMap.size} objectives for player $playerName")
             logger.info("BatchMap: ${Json.encodeToString(batchMap)}")
 
-            val metadata = mapOf(
-                "run-id" to RunContext.runId,
-                "slug" to RunContext.playerContext(playerName).runType(),
-            )
+            val slug = RunContext.playerContext(playerName).runType()
+            val metadata = mapOf("run-id" to RunContext.runId)
 
             // Chunk batchMap into batches of 100 entries
             batchMap.entries.chunked(100).forEach { chunk ->
@@ -126,7 +123,8 @@ class ScoreSyncer(
                     chunk.map {
                         Score(
                             player = playerName,
-                            key = "${getFullRunType(playerName)}-${it.key}",
+                            slug = slug,
+                            key = it.key,
                             value = it.value.toBigDecimal(),
                             metadata = metadata,
                         )
@@ -150,5 +148,4 @@ class ScoreSyncer(
         }
     }
 
-    private fun getFullRunType(playerName: String): String = RunContext.playerContext(playerName).fullRunType().lowercase()
 }

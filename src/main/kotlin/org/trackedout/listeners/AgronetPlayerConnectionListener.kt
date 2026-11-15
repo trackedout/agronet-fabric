@@ -21,13 +21,16 @@ import org.trackedout.actions.ReturnDungeonItemsToDeckAction
 import org.trackedout.client.apis.ClaimApi
 import org.trackedout.client.apis.ScoreApi
 import org.trackedout.client.models.Score
-import org.trackedout.fullRunType
 import org.trackedout.scoreboard.ScoreSyncer
 import org.trackedout.sendMessage
 import org.trackedout.runType
 import org.trackedout.data.LeagueRegistry
 
 val json = Json { ignoreUnknownKeys = true }
+
+private const val ADVANCEMENT_PREFIX = "advancement-"
+private const val LEADERBOARD_PREFIX = "leaderboard-"
+private const val INVENTORY_PREFIX = "do2.inventory."
 
 class AgronetPlayerConnectionListener(
     private val scoreApi: ScoreApi,
@@ -89,36 +92,35 @@ class AgronetPlayerConnectionListener(
                 logger.info("Run context is already initialized, skipping processing from ${playerName}'s join event")
             }
 
-            val runType = getFullRunType(playerName)
-            val filter = "$runType-"
-            val advancementFilter = "$runType-advancement-"
+            val slug = RunContext.playerContext(playerName).runType()
 
-            logger.info("Scoreboard filter: $filter")
+            logger.info("Loading scores for $playerName from namespace '$slug'")
             var startTime = System.currentTimeMillis()
             val scores = scoreApi.scoresGet(
                 player = playerName,
-                prefixFilter = filter,
+                slug = slug,
                 limit = 10000,
             )
             logger.info("Fetched ${scores.results?.size} scoreboards for $playerName in ${System.currentTimeMillis() - startTime}ms")
 
             val scoreboards = scores.results!!
-                .filter { it.key!!.startsWith(filter) }
-                .filter { !it.key!!.startsWith(advancementFilter) }
-                .map { it.copy(key = it.key?.substring(filter.length)) }
-                .filter { it.key!!.isNotBlank() }
+                .filter { isDungeonScoreboard(it.key!!) }
 
             logger.info("Applying scoreboards: ${scoreboards.map { it.key to it.value }}")
             startTime = System.currentTimeMillis()
             scoreboards.forEach {
                 val objective = server.scoreboard.getObjective(it.key)
+                if (objective == null) {
+                    logger.warn("Skipping score '${it.key}' for $playerName: this server has no such objective")
+                    return@forEach
+                }
 
                 val playerScore = server.scoreboard.getPlayerScore(playerName, objective)
                 playerScore.score = it.value!!.toInt()
             }
             logger.info("Finished processing ${scoreboards.size} scoreboards for $playerName in ${System.currentTimeMillis() - startTime}ms")
 
-            applyAdvancements(handler.player, scores.results, advancementFilter)
+            applyAdvancements(handler.player, scores.results)
 
         } catch (e: Exception) {
             e.printStackTrace()
@@ -143,10 +145,17 @@ class AgronetPlayerConnectionListener(
         logger.info("Finished handling join event for $playerName in ${System.currentTimeMillis() - joinEventStartTime}ms")
     }
 
+    // A namespace also holds scores that are not dungeon scoreboards: advancements
+    // (applied separately), the shard balance and leaderboard copies (lobby side).
+    private fun isDungeonScoreboard(key: String): Boolean =
+        key.isNotBlank() &&
+            !key.startsWith(ADVANCEMENT_PREFIX) &&
+            !key.startsWith(LEADERBOARD_PREFIX) &&
+            !key.startsWith(INVENTORY_PREFIX)
+
     private fun applyAdvancements(
         player: ServerPlayerEntity,
         results: List<Score>,
-        advancementFilter: String,
     ) {
         val startTime = System.currentTimeMillis()
         val tracker = player.advancementTracker
@@ -155,8 +164,8 @@ class AgronetPlayerConnectionListener(
         val server = player.server
 
         val advancements = results
-            .filter { it.key!!.startsWith(advancementFilter) }
-            .map { it.copy(key = it.key?.substring(advancementFilter.length)) }
+            .filter { it.key!!.startsWith(ADVANCEMENT_PREFIX) }
+            .map { it.copy(key = it.key?.substring(ADVANCEMENT_PREFIX.length)) }
             .filter { it.key!!.isNotBlank() && it.key.contains("#") && !it.key.contains("visible") && !it.key.contains("utility") }
             .filter { it.value!!.toInt() > 0 }
 
@@ -207,8 +216,6 @@ class AgronetPlayerConnectionListener(
         server.gameRules.get(GameRules.ANNOUNCE_ADVANCEMENTS).set(true, server)
         logger.info("Finished processing ${advancements.size} advancements for $playerName in ${System.currentTimeMillis() - startTime}ms")
     }
-
-    private fun getFullRunType(playerName: String): String = RunContext.playerContext(playerName).fullRunType().lowercase()
 
     override fun onPlayDisconnect(handler: ServerPlayNetworkHandler, server: MinecraftServer) {
         if (serverName.startsWith("builders", ignoreCase = true)) {

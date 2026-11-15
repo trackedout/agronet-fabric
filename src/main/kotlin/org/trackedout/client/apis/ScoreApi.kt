@@ -193,6 +193,7 @@ class ScoreApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClient =
      * Get all scores
      * Only admins can retrieve all scores.
      * @param player Player (optional)
+     * @param slug Only return scores in this league namespace (e.g. do2-s2-comp) (optional)
      * @param sortBy sort by query in the form of field:desc/asc (ex. name:asc) (optional)
      * @param projectBy project by query in the form of field:hide/include (ex. name:hide) (optional)
      * @param prefixFilter filter by prefix (optional)
@@ -207,8 +208,8 @@ class ScoreApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClient =
      */
     @Suppress("UNCHECKED_CAST")
     @Throws(IllegalStateException::class, IOException::class, UnsupportedOperationException::class, ClientException::class, ServerException::class)
-    fun scoresGet(player: kotlin.String? = null, sortBy: kotlin.String? = null, projectBy: kotlin.String? = null, prefixFilter: kotlin.String? = null, limit: kotlin.Int? = null, page: kotlin.Int? = 1) : ScoresGet200Response {
-        val localVarResponse = scoresGetWithHttpInfo(player = player, sortBy = sortBy, projectBy = projectBy, prefixFilter = prefixFilter, limit = limit, page = page)
+    fun scoresGet(player: kotlin.String? = null, slug: kotlin.String? = null, sortBy: kotlin.String? = null, projectBy: kotlin.String? = null, prefixFilter: kotlin.String? = null, limit: kotlin.Int? = null, page: kotlin.Int? = 1) : ScoresGet200Response {
+        val localVarResponse = scoresGetWithHttpInfo(player = player, slug = slug, sortBy = sortBy, projectBy = projectBy, prefixFilter = prefixFilter, limit = limit, page = page)
 
         return when (localVarResponse.responseType) {
             ResponseType.Success -> (localVarResponse as Success<*>).data as ScoresGet200Response
@@ -229,6 +230,7 @@ class ScoreApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClient =
      * Get all scores
      * Only admins can retrieve all scores.
      * @param player Player (optional)
+     * @param slug Only return scores in this league namespace (e.g. do2-s2-comp) (optional)
      * @param sortBy sort by query in the form of field:desc/asc (ex. name:asc) (optional)
      * @param projectBy project by query in the form of field:hide/include (ex. name:hide) (optional)
      * @param prefixFilter filter by prefix (optional)
@@ -240,8 +242,8 @@ class ScoreApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClient =
      */
     @Suppress("UNCHECKED_CAST")
     @Throws(IllegalStateException::class, IOException::class)
-    fun scoresGetWithHttpInfo(player: kotlin.String?, sortBy: kotlin.String?, projectBy: kotlin.String?, prefixFilter: kotlin.String?, limit: kotlin.Int?, page: kotlin.Int?) : ApiResponse<ScoresGet200Response?> {
-        val localVariableConfig = scoresGetRequestConfig(player = player, sortBy = sortBy, projectBy = projectBy, prefixFilter = prefixFilter, limit = limit, page = page)
+    fun scoresGetWithHttpInfo(player: kotlin.String?, slug: kotlin.String?, sortBy: kotlin.String?, projectBy: kotlin.String?, prefixFilter: kotlin.String?, limit: kotlin.Int?, page: kotlin.Int?) : ApiResponse<ScoresGet200Response?> {
+        val localVariableConfig = scoresGetRequestConfig(player = player, slug = slug, sortBy = sortBy, projectBy = projectBy, prefixFilter = prefixFilter, limit = limit, page = page)
 
         return request<Unit, ScoresGet200Response>(
             localVariableConfig
@@ -252,6 +254,7 @@ class ScoreApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClient =
      * To obtain the request config of the operation scoresGet
      *
      * @param player Player (optional)
+     * @param slug Only return scores in this league namespace (e.g. do2-s2-comp) (optional)
      * @param sortBy sort by query in the form of field:desc/asc (ex. name:asc) (optional)
      * @param projectBy project by query in the form of field:hide/include (ex. name:hide) (optional)
      * @param prefixFilter filter by prefix (optional)
@@ -259,12 +262,15 @@ class ScoreApi(basePath: kotlin.String = defaultBasePath, client: OkHttpClient =
      * @param page Page number (optional, default to 1)
      * @return RequestConfig
      */
-    fun scoresGetRequestConfig(player: kotlin.String?, sortBy: kotlin.String?, projectBy: kotlin.String?, prefixFilter: kotlin.String?, limit: kotlin.Int?, page: kotlin.Int?) : RequestConfig<Unit> {
+    fun scoresGetRequestConfig(player: kotlin.String?, slug: kotlin.String?, sortBy: kotlin.String?, projectBy: kotlin.String?, prefixFilter: kotlin.String?, limit: kotlin.Int?, page: kotlin.Int?) : RequestConfig<Unit> {
         val localVariableBody = null
         val localVariableQuery: MultiValueMap = mutableMapOf<kotlin.String, kotlin.collections.List<kotlin.String>>()
             .apply {
                 if (player != null) {
                     put("player", listOf(player.toString()))
+                }
+                if (slug != null) {
+                    put("slug", listOf(slug.toString()))
                 }
                 if (sortBy != null) {
                     put("sortBy", listOf(sortBy.toString()))

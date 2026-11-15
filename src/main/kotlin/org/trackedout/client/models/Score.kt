@@ -24,6 +24,7 @@ import com.squareup.moshi.JsonClass
  *
  * @param id 
  * @param player 
+ * @param slug League namespace the score belongs to
  * @param key 
  * @param `value` 
  * @param metadata 
@@ -37,6 +38,9 @@ data class Score (
 
     @Json(name = "player")
     val player: kotlin.String? = null,
+
+    @Json(name = "slug")
+    val slug: kotlin.String? = null,
 
     @Json(name = "key")
     val key: kotlin.String? = null,
