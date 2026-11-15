@@ -52,7 +52,7 @@ After verifying, commit changes with a descriptive message. Stage only the files
 
 ## Server Architecture
 
-The dungeon server gets its identity from the `SERVER_NAME` env var (defaults to hostname). Names like `dungeon-0` are converted to `d800`, `dungeon-1` to `d801`, etc. The `DUNGEON_TYPE` is fetched from the dunga-dunga API config at startup (e.g. `season-2`), not from an env var.
+The dungeon server gets its identity from the `SERVER_NAME` env var (defaults to hostname). Names like `dungeon-0` are converted to `d800`, `dungeon-1` to `d801`, etc. The `DUNGEON_TYPE` is fetched from the dunga-dunga API config at startup (e.g. `do2-s2-comp`), not from an env var.
 
 The server sends `server-online` heartbeat events every 15 seconds with the player count and `dungeon-type` in metadata. The API uses these to track available dungeons.
 
@@ -109,7 +109,7 @@ cd ~/tracked-out/davybones && export KUBECONTEXT=burn
 just build-mods && just sync-configs && just terminate-dungeon-pods
 
 # 2. Wait for pod, then queue player (dungeon type must match the server's config)
-just queue-fake-player Nef season-2
+just queue-fake-player Nef do2-s2-comp
 
 # 3. Connect fake player (goes through proxy → dungeon)
 cd ~/tracked-out/IrdidiumStresser && node gamer.js Nef
@@ -118,7 +118,7 @@ cd ~/tracked-out/IrdidiumStresser && node gamer.js Nef
 If the player gets stuck in `in-queue` state (e.g. from a previous failed attempt), reset first:
 ```bash
 just reset-fake-player Nef
-just queue-fake-player Nef season-2
+just queue-fake-player Nef do2-s2-comp
 ```
 
 ### Queue State Gotchas
@@ -126,14 +126,14 @@ just queue-fake-player Nef season-2
 - The player queue state and claim state are separate. A claim can be `invalid` while the player is still `in-queue`.
 - Only `left-network` from `server: "velocity"` (the proxy) clears queue state. Sending it from `"lobby"` does nothing.
 - `reset-fake-player` sends the correct `left-network` from velocity to clear the queue.
-- `queue-fake-player` accepts an optional dungeon type (e.g. `season-2`). The dungeon type must match what the target dungeon server reports in its `server-online` events, or the API won't assign the player to it.
+- `queue-fake-player` accepts an optional dungeon type (e.g. `do2-s2-comp`). The dungeon type must match what the target dungeon server reports in its `server-online` events, or the API won't assign the player to it.
 - After a player disconnects, the dungeon stays reserved for about a minute before the API marks it available and shuts it down if empty.
 
 ### Useful davybones Commands
 
 All run from `~/tracked-out/davybones` with `KUBECONTEXT=burn`:
 ```bash
-just queue-fake-player <name> [dungeon-type]  # Queue player (e.g. just queue-fake-player Nef season-2)
+just queue-fake-player <name> [dungeon-type]  # Queue player (e.g. just queue-fake-player Nef do2-s2-comp)
 just reset-fake-player <name>                 # Clear stuck queue state
 just prepare-for-player <player> [server]     # Prepare dungeon (default: d800)
 just send-event <player> <event> [server] [count] [run-id] [run-type] [dungeon-type]

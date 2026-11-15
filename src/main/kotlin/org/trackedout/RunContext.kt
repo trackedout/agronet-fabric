@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentMap
 data object RunContext {
     var serverStartTimestamp: Instant = Instant.now()
     var serverName = "unknown"
-    var dungeonType = "default" // e.g. "default" or "season-2"
+    var dungeonType = "default" // e.g. "default" or "do2-s2-comp"
     var runId = UUID.randomUUID().toString()
     var initialized = false
     var gameStarted = false
@@ -70,7 +70,7 @@ typealias PlayerContext = Map<String, String>
 // The league `slug` is the canonical run identifier network-wide. Claim metadata
 // carries it under the "slug" key; default to the practice league.
 fun PlayerContext.runType(): String {
-    return this.getOrDefault("slug", "practice")
+    return this.getOrDefault("slug", "do2-s2-practice")
 }
 
 fun PlayerContext.fullRunType(): String {
