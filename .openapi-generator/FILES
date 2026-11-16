@@ -1,7 +1,6 @@
 src/main/kotlin/org/trackedout/client/apis/ClaimApi.kt
 src/main/kotlin/org/trackedout/client/apis/ConfigApi.kt
 src/main/kotlin/org/trackedout/client/apis/EventsApi.kt
-src/main/kotlin/org/trackedout/client/apis/GameRegistryApi.kt
 src/main/kotlin/org/trackedout/client/apis/InstancesApi.kt
 src/main/kotlin/org/trackedout/client/apis/InventoryApi.kt
 src/main/kotlin/org/trackedout/client/apis/LeaguesApi.kt
@@ -34,8 +33,6 @@ src/main/kotlin/org/trackedout/client/models/ConfigsListGet200Response.kt
 src/main/kotlin/org/trackedout/client/models/Error.kt
 src/main/kotlin/org/trackedout/client/models/Event.kt
 src/main/kotlin/org/trackedout/client/models/EventsGet200Response.kt
-src/main/kotlin/org/trackedout/client/models/GameRegistryEntry.kt
-src/main/kotlin/org/trackedout/client/models/GameRegistryGet200Response.kt
 src/main/kotlin/org/trackedout/client/models/GetInstances200ResponseInner.kt
 src/main/kotlin/org/trackedout/client/models/InventoryCardsGet200Response.kt
 src/main/kotlin/org/trackedout/client/models/Item.kt
@@ -50,6 +47,7 @@ src/main/kotlin/org/trackedout/client/models/LeagueEventHandlersInner.kt
 src/main/kotlin/org/trackedout/client/models/LeagueEventHandlersInnerActionsInner.kt
 src/main/kotlin/org/trackedout/client/models/LeagueEventHandlersInnerTrigger.kt
 src/main/kotlin/org/trackedout/client/models/LeagueMemberRequest.kt
+src/main/kotlin/org/trackedout/client/models/LeagueParty.kt
 src/main/kotlin/org/trackedout/client/models/LeaguePhaseTransition.kt
 src/main/kotlin/org/trackedout/client/models/LeaguePhaseTransitionAllocation.kt
 src/main/kotlin/org/trackedout/client/models/LeaguePhasesInner.kt

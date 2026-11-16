@@ -23,7 +23,7 @@ import com.squareup.moshi.JsonClass
  * 
  *
  * @param leader 
- * @param game 
+ * @param slug League the party plays
  */
 
 
@@ -32,8 +32,8 @@ data class PartiesPostRequest (
     @Json(name = "leader")
     val leader: kotlin.String,
 
-    @Json(name = "game")
-    val game: kotlin.String
+    @Json(name = "slug")
+    val slug: kotlin.String
 
 )
 

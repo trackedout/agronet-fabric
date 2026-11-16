@@ -15,22 +15,25 @@
 
 package org.trackedout.client.models
 
-import org.trackedout.client.models.GameRegistryEntry
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
 /**
- * 
+ * Party size limits, leader included. A league with maxPlayers 1 does not offer parties
  *
- * @param results 
+ * @param minPlayers 
+ * @param maxPlayers 
  */
 
 
-data class GameRegistryGet200Response (
+data class LeagueParty (
 
-    @Json(name = "results")
-    val results: kotlin.collections.List<GameRegistryEntry>? = null
+    @Json(name = "minPlayers")
+    val minPlayers: kotlin.Int? = null,
+
+    @Json(name = "maxPlayers")
+    val maxPlayers: kotlin.Int? = null
 
 )
 

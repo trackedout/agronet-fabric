@@ -19,6 +19,7 @@ import org.trackedout.client.models.LeagueBuilders
 import org.trackedout.client.models.LeagueDeck
 import org.trackedout.client.models.LeagueDisplay
 import org.trackedout.client.models.LeagueEventHandlersInner
+import org.trackedout.client.models.LeagueParty
 import org.trackedout.client.models.LeaguePhaseTransition
 import org.trackedout.client.models.LeaguePhasesInner
 import org.trackedout.client.models.LeagueScoring
@@ -44,6 +45,7 @@ import com.squareup.moshi.JsonClass
  * @param trades 
  * @param deck 
  * @param server 
+ * @param party 
  * @param phases 
  * @param phaseTransition 
  * @param scoring 
@@ -92,6 +94,9 @@ data class League (
 
     @Json(name = "server")
     val server: LeagueServer? = null,
+
+    @Json(name = "party")
+    val party: LeagueParty? = null,
 
     @Json(name = "phases")
     val phases: kotlin.collections.List<LeaguePhasesInner>? = null,

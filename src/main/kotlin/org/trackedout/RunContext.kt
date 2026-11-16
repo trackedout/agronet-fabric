@@ -22,6 +22,23 @@ data object RunContext {
     var gameWon = false
     var suppressCardDeletion = false
 
+    // The player who queued; the run plays their deck. Party members share the claim.
+    var claimOwner: String? = null
+    var runPlayers: Set<String> = emptySet()
+    private var deckHandedOut = false
+
+    fun isRunPlayer(playerName: String) = playerName in runPlayers
+
+    // True exactly once, when the claim owner first joins, so a rejoin does not get a second deck
+    @Synchronized
+    fun takeDeckHandout(playerName: String): Boolean {
+        if (deckHandedOut || playerName != claimOwner) {
+            return false
+        }
+        deckHandedOut = true
+        return true
+    }
+
     private val eventHandlers = ConcurrentHashMap<String, MutableSet<(Event) -> Unit>>()
 
     fun addEventHandler(eventName: String, handler: (Event) -> Unit) {

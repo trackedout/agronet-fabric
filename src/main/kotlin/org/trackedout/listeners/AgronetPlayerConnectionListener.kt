@@ -20,6 +20,7 @@ import org.trackedout.actions.AddDeckToPlayerInventoryAction
 import org.trackedout.actions.ReturnDungeonItemsToDeckAction
 import org.trackedout.client.apis.ClaimApi
 import org.trackedout.client.apis.ScoreApi
+import org.trackedout.client.models.Claim
 import org.trackedout.client.models.Score
 import org.trackedout.scoreboard.ScoreSyncer
 import org.trackedout.sendMessage
@@ -31,6 +32,7 @@ val json = Json { ignoreUnknownKeys = true }
 private const val ADVANCEMENT_PREFIX = "advancement-"
 private const val LEADERBOARD_PREFIX = "leaderboard-"
 private const val INVENTORY_PREFIX = "do2.inventory."
+private const val PARTY_PLAYERS_KEY = "party-players"
 
 class AgronetPlayerConnectionListener(
     private val scoreApi: ScoreApi,
@@ -62,34 +64,16 @@ class AgronetPlayerConnectionListener(
         var givePlayerTheirShulker = false
         try {
             if (!RunContext.initialized) {
-                claimApi.claimsGet(
-                    player = playerName,
-                    state = "acquired",
-                    type = "dungeon",
-                    claimant = serverName,
-                ).results?.firstOrNull()?.let { claim ->
-                    claim.metadata?.let { RunContext.addPlayerContext(playerName, it) }
-                    claim.metadata?.get("run-id")?.let { RunContext.runId = it }
-                    // TODO: Store deck-id - https://github.com/trackedout/agronet-fabric/issues/31
-                    logger.info("Setting state of Claim ${claim.id} to 'in-use'")
-                    claimApi.claimsIdPatch(claim.id!!, claim.copy(id = null, state = "in-use", claimant = serverName))
-
-                    claim.metadata?.runType()?.let { runType ->
-                        val objective = server.scoreboard.getObjective("do2.utility.runType")
-                        val playerScore = server.scoreboard.getPlayerScore(playerName, objective)
-                        val runTypeId = LeagueRegistry.getRunTypeIdForSlug(runType)
-                        playerScore.score = runTypeId
-                        logger.info("Set do2.utility.runType to ${playerScore.score} (${runType}) for $playerName")
-                    } ?: run { logger.error("No slug found for ${playerName}! Unable to set do2.utility.runType") }
-
-                    givePlayerTheirShulker = true
-                    RunContext.initialized = true
-                } ?: run {
-                    logger.error("No matching claim found for $playerName")
-                    handler.player.sendMessage("No matching claim found for your run, contact a moderator (unless you are spectating)", Formatting.RED)
-                }
+                initializeRunFromClaim(playerName)
             } else {
-                logger.info("Run context is already initialized, skipping processing from ${playerName}'s join event")
+                logger.info("Run context is already initialized, skipping claim lookup for ${playerName}'s join event")
+            }
+
+            if (RunContext.isRunPlayer(playerName)) {
+                setRunTypeScore(server, playerName)
+                givePlayerTheirShulker = RunContext.takeDeckHandout(playerName)
+            } else if (!RunContext.initialized) {
+                handler.player.sendMessage("No matching claim found for your run, contact a moderator (unless you are spectating)", Formatting.RED)
             }
 
             val slug = RunContext.playerContext(playerName).runType()
@@ -143,6 +127,44 @@ class AgronetPlayerConnectionListener(
         }
 
         logger.info("Finished handling join event for $playerName in ${System.currentTimeMillis() - joinEventStartTime}ms")
+    }
+
+    // The run's claim belongs to the player who queued. Party members share it, so
+    // whoever joins first (owner or member) loads it for everyone in the party.
+    private fun initializeRunFromClaim(playerName: String) {
+        val claim = claimApi.claimsGet(
+            state = "acquired",
+            type = "dungeon",
+            claimant = serverName,
+        ).results?.firstOrNull { playerName in runPlayersOf(it) }
+
+        if (claim == null) {
+            logger.error("No matching claim found for $playerName")
+            return
+        }
+
+        val runPlayers = runPlayersOf(claim)
+        claim.metadata?.let { metadata -> runPlayers.forEach { RunContext.addPlayerContext(it, metadata) } }
+        claim.metadata?.get("run-id")?.let { RunContext.runId = it }
+        RunContext.claimOwner = claim.player
+        RunContext.runPlayers = runPlayers
+        // TODO: Store deck-id - https://github.com/trackedout/agronet-fabric/issues/31
+        logger.info("Setting state of Claim ${claim.id} to 'in-use' (players: $runPlayers)")
+        claimApi.claimsIdPatch(claim.id!!, claim.copy(id = null, state = "in-use", claimant = serverName))
+        RunContext.initialized = true
+    }
+
+    private fun runPlayersOf(claim: Claim): Set<String> {
+        val partyPlayers = claim.metadata?.get(PARTY_PLAYERS_KEY).orEmpty().split(",").filter { it.isNotBlank() }
+        return setOfNotNull(claim.player) + partyPlayers
+    }
+
+    private fun setRunTypeScore(server: MinecraftServer, playerName: String) {
+        val runType = RunContext.playerContext(playerName).runType()
+        val objective = server.scoreboard.getObjective("do2.utility.runType")
+        val playerScore = server.scoreboard.getPlayerScore(playerName, objective)
+        playerScore.score = LeagueRegistry.getRunTypeIdForSlug(runType)
+        logger.info("Set do2.utility.runType to ${playerScore.score} (${runType}) for $playerName")
     }
 
     // A namespace also holds scores that are not dungeon scoreboards: advancements

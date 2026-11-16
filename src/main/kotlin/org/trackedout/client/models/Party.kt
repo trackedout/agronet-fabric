@@ -24,7 +24,7 @@ import com.squareup.moshi.JsonClass
  *
  * @param id 
  * @param leader 
- * @param game 
+ * @param slug League the party plays
  * @param members 
  * @param invites 
  * @param state 
@@ -40,8 +40,8 @@ data class Party (
     @Json(name = "leader")
     val leader: kotlin.String? = null,
 
-    @Json(name = "game")
-    val game: kotlin.String? = null,
+    @Json(name = "slug")
+    val slug: kotlin.String? = null,
 
     @Json(name = "members")
     val members: kotlin.collections.List<kotlin.String>? = null,
